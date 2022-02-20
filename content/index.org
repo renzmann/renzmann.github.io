@@ -1,5 +1,0 @@
-#+title: Robert Enzmann
-
-+ [[https://www.github.com/renzmann][GitHub]]
-+ [[https://www.linkedin.com/in/robert-enzmann-940609133][linkedin]]
-+ [[https://github.com/renzmann/renzmann][dotfiles]]
