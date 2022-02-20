@@ -1,4 +1,5 @@
 public
 .packages
 .hugo_build.lock
+resources
 *#
