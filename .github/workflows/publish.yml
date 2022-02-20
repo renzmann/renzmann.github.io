@@ -1,25 +1,32 @@
-name: Publish to GitHub Pages
+name: github pages
 
 on:
   push:
     branches:
-      - master
+      - master  # Set a branch to deploy
+  pull_request:
 
 jobs:
-  publish:
-    runs-on: ubuntu-latest
+  deploy:
+    runs-on: ubuntu-20.04
     steps:
-      - name: Check out
-        uses: actions/checkout@v1
-
-      - name: Install Emacs
-        run: sudo apt install emacs-nox --yes
-
-      - name: Build the site
-        run: make build
-
-      - name: Publish generated content to GitHub Pages
-        uses: JamesIves/github-pages-deploy-action@4.1.4
+      - uses: actions/checkout@v2
         with:
-          branch: gh-pages
-          folder: public
+          submodules: true  # Fetch Hugo themes (true OR recursive)
+          fetch-depth: 0    # Fetch all history for .GitInfo and .Lastmod
+
+      - name: Setup Hugo
+        uses: peaceiris/actions-hugo@v2
+        with:
+          hugo-version: 'latest'
+          # extended: true
+
+      - name: Build
+        run: hugo --minify
+
+      - name: Deploy
+        uses: peaceiris/actions-gh-pages@v3
+        if: github.ref == 'refs/heads/main'
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./public
