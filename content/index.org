@@ -1,7 +1,5 @@
 #+title: Robert Enzmann
 
 + [[https://www.github.com/renzmann][GitHub]]
-+ Resume
-+ Curriculum Vitae
 + [[https://www.linkedin.com/in/robert-enzmann-940609133][linkedin]]
 + [[https://github.com/renzmann/renzmann][dotfiles]]
