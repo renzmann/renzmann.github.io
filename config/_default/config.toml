@@ -2,7 +2,7 @@
 # Refer to the theme docs for more details about each of these parameters.
 # https://jpanther.github.io/congo/docs/getting-started/
 
-baseURL = "https://renzmann.github.io/"
+baseURL = "https://robbmann.io"
 languageCode = "en"
 defaultContentLanguage = "en"
 theme = "congo"
