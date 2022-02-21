@@ -5,9 +5,9 @@ isoCode = "en"
 weight = 1
 rtl = false
 
-title = "robaleenz"
+title = "robbmann"
 # logo = "img/logo.jpg"
-# description = "My awesome website"
+description = "It's Robb, man!"
 # copyright = "Copy, _right?_ :thinking_face:"
 
 dateFormat = "2 January 2006"
@@ -15,11 +15,11 @@ dateFormat = "2 January 2006"
 [author]
   name = "Robert Enzmann"
   image = "img/piano_keys.jpg"
-  headline = "Data Scientist + Software Engineer"
+  headline = "Data {Science, Engineering}"
   bio = "I create tools in python that empower data science teams of all levels."
   links = [
     { email = "mailto:robbenzmann@gmail.com" },
-    # { link = "https://link-to-some-website.com/" },
+  #   { link = "https://link-to-some-website.com/" },
   #   { amazon = "https://www.amazon.com/hz/wishlist/ls/wishlist-id" },
   #   { apple = "https://www.apple.com" },
   #   { blogger = "https://username.blogspot.com/" },
