@@ -12,13 +12,13 @@
 
 [[main]]
   name = "Resume"
-  pageRef = "https://www.linkedin.com/in/robert-enzmann-940609133/"
+  url = "resume.pdf"
   weight = 20
 
-# [[main]]
-#   name = "CV"
-#   pageRef = "cv"
-#   weight = 30
+[[main]]
+  name = "Posts"
+  pageRef = "posts"
+  weight = 30
 
 # [[main]]
 #   name = "Posts"

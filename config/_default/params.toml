@@ -10,7 +10,7 @@ defaultAppearance = "dark" # valid options: light or dark
 autoSwitchAppearance = true
 showAppearanceSwitcher = false
 
-enableSearch = false
+enableSearch = true
 enableCodeCopy = false
 
 # mainSections = ["section1", "section2"]
