@@ -1,7 +1,7 @@
 ---
 title: "Objective"
 date: 2022-02-26T21:05:32-05:00
-draft: true
+draft: false
 ---
 
 Why create a new tech blog when so many great ones already exist? In short,
