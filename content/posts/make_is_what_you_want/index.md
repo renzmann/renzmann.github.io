@@ -1,7 +1,7 @@
 ---
 title: "'Make' might not be what you want, but it's probably all you need"
 date: 2022-03-06T14:22:30-05:00
-draft: true
+draft: false
 ---
 
 In data science we tend to think in "DAGs" (directed acyclic graphs), which just
@@ -10,7 +10,7 @@ _that_ thing, we have to run these two queries, and so on.  It decomposes a syst
 processing data and producing hard artifacts like visualizations or data exports
 for others to consume.  
 
-***TODO: image of example DAG here***
+<img src="sample-dag.png" alt="A DAG" caption="An example DAG" width="200"/>
 
 There are a lot of contenders in this space, and each one solves it a little
 differently.  Right now the hot thing is
@@ -27,10 +27,10 @@ compile project assets from the source code. Moreover, there are a host of
 other reasons you might not want to try building a whole new tooling ecosystem
 into your workflow.  Maybe:
 
-* you can't get permission for a new install
-* you don't want to force another install on your end users or coworkers
-* you don't want more transitive dependencies entering the picture
-* you don't like someone trying to sell their cloud solution on top of the free
+* You can't get permission for a new install
+* You don't want to force another install on your end users or coworkers
+* You don't want more transitive dependencies entering the picture
+* You don't like someone trying to sell their cloud solution on top of the free
   tier offering
 
 `make` was born from a history of compiling C programs on Unix machines in the
@@ -41,20 +41,21 @@ make over one of the more modern alternatives?
 
 * The commands are very elegant - `make report.xlsx` is completely intuitive
 * Parallel execution is built in and easy to turn on or off
-* It's installed on damn near everything[^0], and has proven over the last
-  almost 50 years to be a shark, not a dinosaur
-* The [documentation][make-docs] is tiny. You can get through the introductory
-  materials and make useful software from it in a couple hours.
+* It's installed on damn near everything,[^1] and has proven over the last 50
+  years to be a shark, not a dinosaur
+* It's a "small" program.  You can get through the [documentation][make-docs]
+  and start creating useful software in a couple hours.
 * Like SQL, Make is declarative. We describe the result, and let the program
-  optimize the route by which we get there.
-***TODO: any other points here? - Anything about code/text files?***
+  optimize the route by which we get there. 
 
-***TODO: image of example project***
+
+
+# Creating a simple DAG project with `make` and python
 
 I'm going to use an example of a recent project I built using just a Makefile,
 some python, and a little SQL that shows simple tools can be efficient and
 reliable, without the overhead of learning, installing, configuring, and
-inevitably debugging an unfamiliar tool.[^1]  Ultimately, I wanted to hand this
+inevitably debugging an unfamiliar tool.[^2]  Ultimately, I wanted to hand this
 project off in such a way that any of my teammates could maintain it if I was
 unavailable, so it has to be short, and stick to the tools I know they have
 installed everywhere.
@@ -66,7 +67,7 @@ meaningful summary of some data pulled out of our analytics warehouse.  Overall,
 it'll look a little like this:
 
 ```
-base queries --> summary csv's --> (report.xlsx, diagrams for powerpoint)
+base queries --> summary CSVs --> (report.xlsx, diagrams for powerpoint)
 ```
 
 The "base" queries might look a lot like temporary tables or common table
@@ -109,6 +110,7 @@ make report.xlsx
 The cookbook that provides this _rule_ is the `Makefile`. 
 
 ```make
+# Makefile
 report.xlsx: myguy.py
 	python -m myguy build-report
 ```
@@ -131,7 +133,6 @@ runtime when we want to execute the queries or do some pandas hackery.
 
 ```python3
 # myguy.py
-
 from pathlib import Path
 from time import sleep
 
@@ -144,11 +145,23 @@ def cli():
 
 
 @cli.command()
-def build_report(path: str = f"{BUILD_DIR}/report.xlsx"):
+@click.option(
+    "-o",
+    "--output",
+    help="Write to file",
+    default=f"{BUILD_DIR}/report.xlsx",
+    show_default=True,
+)
+def build_report(output: str):
+    """
+    Generate a new Excel workbook and save it locally.
+    """
     sleep(2)
-    destination = Path(path)
+    destination = Path(output)
     destination.touch()
     print(f"Saved report to {destination}")
+
+
 
 
 if __name__ == "__main__":
@@ -156,24 +169,25 @@ if __name__ == "__main__":
 ```
 
 I think `click` is just great, and provides me with a lot of zen writing a CLI
-compared to `argparse`, so that's why I'm using it here. You can achieve
-everything I'm doing in this article equally well with argparse.  In this script
-we create a cli `group` because we'll eventually add more commands to it.  The
-`build_report` function just replicates a process that takes a couple seconds
-before it outputs a file to `build/report.xlsx`.  
+compared to `argparse`, although you could achieve everything I'm doing in this
+article equally well with argparse.  In this script we create a cli `group`
+because we'll eventually add more commands to it.  The `build_report` function
+just replicates a process that takes a couple seconds before it outputs a file
+to `build/report.xlsx`.  One reason I like click so much is because it takes
+very little code to get a pleasant command line experience with nested commands.
+Here's a quick example of using it after adding another command called `query`, which
+we'll get to in a moment:
 
-***TODO gif of using CLI***
+<script id="asciicast-FtGlAzi0kBBbJm7JczQFflKWx" src="https://asciinema.org/a/FtGlAzi0kBBbJm7JczQFflKWx.js" async></script>
 
-However, if we try building our report
-now with `make report.xlsx`, we get a `FileNotFoundError: [Errno 2] No such file
-or directory: 'build/report.xlsx'`, and that's because we need to make sure the
-`build` directory exists before running this command.  We could handle that in
-the python with a few lines, but why not have our dependency management tool,
-`make`, do it for us?
+However, if we try building our report right now with `make report.xlsx`, we get
+a `FileNotFoundError: [Errno 2] No such file or directory: 'build/report.xlsx'`,
+and that's because we need to make sure the `build` directory exists before
+running this command.  We could handle that in the python with a few lines, but
+why not have our dependency management tool, `make`, do it for us?
 
 ```make
 # Makefile
-
 build:
 	mkdir -p build
 
@@ -184,21 +198,19 @@ report.xlsx: myguy.py | build
 Now our `make report.xlsx` works just fine, and we get a new directory `build`
 with our empty report in it. Normally we won't need the `|`, but in this case it
 declares that the `build` rule should only be run once, even if we have other
-targets with `build` as a prerequisite.[^2]  If we rerun `make report.xlsx`, it
-doesn't try to create that directory again, because it can see that it already
-exists.  We do have one other problem though, and it's that even when the report
-exists, our python code still runs.  Instead, we should get a message saying
-`make: 'report.xlsx' is up to date.`  This is happening because our rule doesn't
-say `build/report.xlsx`, so `make` looks in the current directory, sees that
-there's no `report.xlsx` and therefore runs the rule.  I don't want to write
-`make build/report.xlsx`, I much prefer our original way of issuing the command,
-so what we'll do is set up `make` to automatically look in our `build` and `sql`
-directories for files, if they aren't found in the current directory, by setting
-the [`VPATH` variable][search]:
+targets with `build` as a prerequisite.[^3]  If we rerun `make report.xlsx`, it
+doesn't try to create that directory again, because it already exists.  We do
+have one other problem though, and it's that even when the report exists, our
+python code still runs.  Instead, we should get a message saying `make:
+'report.xlsx' is up to date.`  This is happening because our rule doesn't say
+`build/report.xlsx`, so `make` looks in the current directory, sees that there's
+no `report.xlsx` and therefore runs the recipe.  I don't want to write `make
+build/report.xlsx`, I much prefer our original way of issuing the command, so
+what we'll do is set up `make` to automatically look in our `build` and `sql`
+directories for files by setting the [`VPATH` variable][search]:
 
 ```make
 # Makefile
-
 BUILDDIR := build
 SQLDIR := sql
 VPATH := $(SQLDIR):$(TARGETDIR)
@@ -217,11 +229,13 @@ file:
 
 ```python3
 # myguy.py, cont.
-# other content same as before
+# ...other content same as before...
 
 BUILD_DIR = "build"
 
 
+@cli.command()
+@click.argument("path")
 def query(path: str):
     """
     Issue the query located at `path` to the database, and write the results to
@@ -271,7 +285,7 @@ customer_disposition.csv: customer_disposition.sql
 ```
 
 That's a lot of repetition, so our programmer instincts should kick in here and
-tell us that ["there must be a better way!"][^3].  Make can handle this using
+tell us that "there must be a better way!"[^4].  Make can handle this using
 [_implicit rules_][implicit-rules].  We specify a pattern like this, and Make
 will do all the hard work of connecting the files together:
 
@@ -307,8 +321,8 @@ Finished query for sql/this_quarter_sales.sql and wrote results to build/this_qu
 
 We still need to tie all these together so that I don't have to run each command
 manually - we want to just run `make report.xlsx` and have it do all the
-prerequisite queries for us. To accomplish this, we're going to use two more
-build-ins, [`wildcard`][wildcard] and [`patsubst`][patsubst] to build the prerequisite and
+prerequisite queries for us.  To accomplish this, we're going to use two more
+built-ins, [`wildcard`][wildcard] and [`patsubst`][patsubst] to build the prerequisite and
 target lists, respectively.
 
 ```make
@@ -316,7 +330,8 @@ SQLFILES := $(wildcard $(SQLDIR)/*.sql)
 TARGETS := $(patsubst $(SQLDIR)/%.sql,%.csv,$(SQLFILES))
 ```
 
-If we echo the contents of these two variables, they look like this:
+If we were to echo the contents of these two variables, they would look like
+this:
 
 ```
 # contents of SQLFILES
@@ -351,7 +366,7 @@ Decomposing this into English:
 
 * `@` - don't echo this command when it runs. Just run it.
 * `[ ! -d $(BUILDDIR) ] ||` - unless the BUILDDIR is missing, do the next
-  command[^6]
+  command[^5]
 * `rm -r $(BUILDDIR)` - remove the contents of the BUILDDIR recursively
 
 Here's where our `Makefile` is now:
@@ -364,7 +379,7 @@ VPATH := $(SQLDIR):$(TARGETDIR)
 SQLFILES := $(wildcard $(SQLDIR)/*.sql)
 TARGETS := $(patsubst $(SQLDIR)/%.sql,%.csv,$(SQLFILES))
 
-report.xlsx: $(TARGETS) myguy.py | $(BUILDDIR)
+report.xlsx: $(TARGETS)
 	@python -m myguy build-report
 
 $(BUILDDIR):
@@ -399,20 +414,21 @@ bill, they can all run at the same time:
 
 ***TODO: set up repo with finished code***
 
+---
 
-[^0]: Except Windows. You'll need to get it via mingw/cygwin or via the Windows
+[^1]: Except Windows. You'll need to get it via mingw/cygwin or via the Windows
   subsystem for Linux.
 
-[^1]: I fully acknowledge the irony here that `make` is, in fact, a very foreign
+[^2]: I fully acknowledge the irony here that `make` is, in fact, a very foreign
   tool to many data scientists.
 
-[^2]: These are called [order-only prerequisites][prereq]
+[^3]: These are called [order-only prerequisites][prereq]
 
-[^3]: I'm taking this phrase from Raymond Hettinger, who gives fantastic talks
+[^4]: I'm taking this phrase from Raymond Hettinger, who gives fantastic talks
   on writing idomatic python. I recommend his [beyond PEP8][raymond-better] talk
   to all levels of developers.
 
-[^4]:  We do "unless" instead of the more familiar "if" statement, because
+[^5]:  We do "unless" instead of the more familiar "if" statement, because
   if we did this: `[ -d $(BUILDDIR) ] && rm -r $(BUILDDIR)` the test command `[`
   exits with status 1 when the build directory doesn't exist, and hence the
   whole pipe exits status 1.  Make treats that as a failed recipe, which isn't
