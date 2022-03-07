@@ -7,7 +7,7 @@
 
 colorScheme = "congo"
 defaultAppearance = "dark" # valid options: light or dark
-autoSwitchAppearance = true
+autoSwitchAppearance = false
 showAppearanceSwitcher = false
 
 enableSearch = true

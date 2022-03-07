@@ -49,8 +49,8 @@ make over one of the more modern alternatives?
   optimize the route by which we get there. 
 
 
-
-# Creating a simple DAG project with `make` and python
+Creating a simple DAG project with `make` and python
+====================================================
 
 I'm going to use an example of a recent project I built using just a Makefile,
 some python, and a little SQL that shows simple tools can be efficient and
@@ -404,17 +404,35 @@ bill, they can all run at the same time:
 
 <script id="asciicast-GznCov5dP98vCmtK223Xvoo6G" src="https://asciinema.org/a/GznCov5dP98vCmtK223Xvoo6G.js" async></script>
 
-# Creating a DAG out of the intermediate queries
+Adding dependencies between intermediate queries
+================================================
 
-***TODO: setting up table dependencies with `include dag.mk`***
+Let's suppose we add two more queries, and they need to run before our existing
+queries, because we did a little refactoring of our SQL.
 
-# Using empty targets for fully remote queries
+![Our DAG](our-dag.png "Our DAG")
+
+We can start representing this in Make by writing out the targets and
+prerequisites.
+
+```make
+sales_subset.csv:
+customer_product.csv:
+this_quarter_sales.csv model_forecast.csv: sales_subset.csv
+customer_disposition.csv: customer_product.csv
+```
+
+Inserting this into the Makefile forces the completion of `sales_subset.csv` and
+`customer_product.csv` prior to the original three queries.
+
+<script id="asciicast-vHkVgQs4jDLbv1fYHLsYqj0uw" src="https://asciinema.org/a/vHkVgQs4jDLbv1fYHLsYqj0uw.js" async></script>
+
+Using empty targets for fully remote queries
+============================================
 
 ***TODO: what if the processes are all remote? empty targets section***
 
 ***TODO: set up repo with finished code***
-
----
 
 [^1]: Except Windows. You'll need to get it via mingw/cygwin or via the Windows
   subsystem for Linux.
