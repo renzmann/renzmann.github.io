@@ -1,5 +1,5 @@
 ---
-title: "'Make' might not be what you want, but it's probably all you need"
+title: "Building a poor man's dbt with Make"
 date: 2022-03-06T14:22:30-05:00
 draft: false
 ---
@@ -15,7 +15,7 @@ for others to consume.
 There are a lot of contenders in this space, and each one solves it a little
 differently.  Right now the hot thing is
 [dbt](https://docs.getdbt.com/tutorial/setting-up), but before that we had
-airflow, dagster, prefect, and argo, just to name a few, that all were build to
+airflow, dagster, prefect, argo, and a host of others that all were build to
 operate DAGs at scale on different platforms. For large, mission-critical data
 pipelines these can provide a lot of value, but the truth is that as data
 scientists, most of us don't need something this heavy.  Most projects I see
@@ -39,7 +39,7 @@ _targets_ and _prerequisites_ into a DAG, and incrementally build only the parts
 it needs to when any of the source files change.  Given that, why would I choose
 make over one of the more modern alternatives?
 
-* The commands are very elegant - `make report.xlsx` is completely intuitive
+* The commands are elegant - I find `make report.xlsx` completely intuitive
 * Parallel execution is built in and easy to turn on or off
 * It's installed on damn near everything,[^1] and has proven over the last 50
   years to be a shark, not a dinosaur
@@ -115,14 +115,14 @@ report.xlsx: myguy.py
 	python -m myguy build-report
 ```
 
-If this is your first time seeing make, there's a few terms to know:
+If this is your first time seeing make, there are a few terms to know:
 
-* `report.xlsx` - this is the _target_ of the rule. It's the file that's
-  produced by running `make report.xlsx`
+* `report.xlsx` - this is the _target_ of the rule. It is the file produced by
+  running `make report.xlsx`
 * `myguy.py` - the _prerequisite_ of `report.xlsx`. It has to exist in order to
   create the excel file. If this python file's contents have changed recently,
-  then that's an indication that `report.xlsx` will also change.
-* `python -m myguy build-report` - this is the _recipe_ that make runs when you
+  then that's an indication that `report.xlsx` may also change.
+* `python -m myguy build-report` - this is the _recipe_ that Make runs when you
   issue the command `make report.xlsx`. I am invoking python with the `-m`, or
   "run module as main" flag in case we ever refactor our single .py file into a
   module, like `myguy/__init__.py` with its complementary "dunder main"
@@ -162,8 +162,6 @@ def build_report(output: str):
     print(f"Saved report to {destination}")
 
 
-
-
 if __name__ == "__main__":
     cli()
 ```
@@ -199,10 +197,11 @@ Now our `make report.xlsx` works just fine, and we get a new directory `build`
 with our empty report in it. Normally we won't need the `|`, but in this case it
 declares that the `build` rule should only be run once, even if we have other
 targets with `build` as a prerequisite.[^3]  If we rerun `make report.xlsx`, it
-doesn't try to create that directory again, because it already exists.  We do
-have one other problem though, and it's that even when the report exists, our
-python code still runs.  Instead, we should get a message saying `make:
-'report.xlsx' is up to date.`  This is happening because our rule doesn't say
+doesn't try to create that directory again, because it already exists.
+
+We do have one other problem though: our python code still runs even when the
+report exists.  Instead, we should get a message saying `make: 'report.xlsx' is
+up to date.`  This is happening because our rule doesn't say
 `build/report.xlsx`, so `make` looks in the current directory, sees that there's
 no `report.xlsx` and therefore runs the recipe.  I don't want to write `make
 build/report.xlsx`, I much prefer our original way of issuing the command, so
@@ -291,7 +290,7 @@ will do all the hard work of connecting the files together:
 
 ```make
 %.csv: %.sql myguy.py | $(BUILDDIR)
-	@python -m myguy query $<
+	python -m myguy query $<
 ```
 
 This takes care of all three rules at once.
@@ -341,8 +340,8 @@ sql/customer_disposition.sql sql/model_forecast.sql sql/this_quarter_sales.sql
 customer_disposition.csv model_forecast.csv this_quarter_sales.csv
 ```
 
-Since our `report.xlsx` depends on all three of the files in `TARGETS`, we tie
-it together in that rule:
+Since our `report.xlsx` depends on all three of the files in `TARGETS`, we bind
+them together in that rule:
 
 ```make
 # Makefile
@@ -397,7 +396,7 @@ So now we can run `clean` and build the report:
 <script id="asciicast-k6BCaD1qgCjvmq157MUkOrd4d" src="https://asciinema.org/a/k6BCaD1qgCjvmq157MUkOrd4d.js" async></script>
 
 We can do better though.  Make has parallelism built in, and most of our
-computers utilize multiple cores for running threads concurrently.  By providing
+computers have no trouble running things concurrently.  By providing
 the `-j` (jobs) flag, we can tell it to do several things at once as long as
 they don't depend on one another. Since our intermediate queries to CSV fit the
 bill, they can all run at the same time:
@@ -426,6 +425,12 @@ Inserting this into the Makefile forces the completion of `sales_subset.csv` and
 `customer_product.csv` prior to the original three queries.
 
 <script id="asciicast-vHkVgQs4jDLbv1fYHLsYqj0uw" src="https://asciinema.org/a/vHkVgQs4jDLbv1fYHLsYqj0uw.js" async></script>
+
+***TODO: show `dag.mk` in separate file with `include` statement***
+
+***Re-anchor article with current folder structure***
+
+***Update videos to show files with `tree`***
 
 Using empty targets for fully remote queries
 ============================================
