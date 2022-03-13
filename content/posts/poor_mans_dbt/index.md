@@ -4,17 +4,17 @@ date: 2022-03-06T14:22:30-05:00
 draft: false
 ---
 
-In data science we tend to think in "DAGs" (directed acyclic graphs), which just
-means "to make this report, we first have to build this other thing, and to build
-_that_ thing, we have to run these two queries, and so on.  It decomposes a system of
-processing data and producing hard artifacts like visualizations or data exports
-for others to consume.  
+In data science and engineering we tend to think in "DAGs" (directed acyclic
+graphs), which just means "to make this report, we first have to build this
+other thing, and to build _that_ thing, we have to run these two queries, and so
+on.  It decomposes the process of building data and artifacts like
+visualizations or data exports into smaller, individual chunks.
 
 <img src="sample-dag.png" alt="A DAG" caption="An example DAG" width="200"/>
 
-There are a lot of contenders in this space, and each one solves it a little
-differently.  Right now the hot thing is
-[dbt](https://docs.getdbt.com/tutorial/setting-up), but before that we had
+There are a lot of contenders in the market for selling solutions to this exact
+scenario, and each one solves it a little differently.  Right now the hot thing
+is [dbt](https://docs.getdbt.com/tutorial/setting-up), but before that we had
 airflow, dagster, prefect, argo, and a host of others that all were built to
 operate DAGs at scale on different platforms. For large, mission-critical data
 pipelines these can provide a lot of value, but the truth is that as data
@@ -23,8 +23,8 @@ really just need some way of defining the links between "scrapbook output".
 Maybe it's a jupyter notebook, or a python script, or some queries that have to
 happen in a particular order based on an updated warehouse feed.
 
-Moreover, there are a host of other reasons you might not want to try adding a
-large, new tooling ecosystem into your workflow.  Maybe:
+Moreover, there are some reasons you might not want to try adding an entire
+workflow management ecosystem into your stack.  Maybe:
 
 * You can't get permission for a new install
 * You don't want to force another install on your end users or coworkers
@@ -38,7 +38,7 @@ _targets_ and _prerequisites_ into a DAG, and incrementally build only the parts
 it needs to when any of the source files change.  Given that, why would I choose
 Make over one of the more modern alternatives?
 
-* The commands are elegant - I find `make report.xlsx` completely intuitive
+* The commands are elegant - I enjoy the language of `make report.xlsx`
 * Parallel execution is built in and easy to turn on or off
 * It's installed on damn near everything,[^1] and has proven over the last 50
   years to be a shark, not a dinosaur
@@ -48,8 +48,12 @@ Make over one of the more modern alternatives?
   optimize the route by which we get there.
 
 
-Creating a simple DAG project with `make` and python
-====================================================
+<br>
+<br>
+
+
+Creating a simple project with `make` and python
+================================================
 
 I'm going to use a distilled and simplified example of a recent project I built
 using just a Makefile, some python, and a little SQL. By the end of this my hope
@@ -57,7 +61,7 @@ is to show that simple tools can be efficient and reliable, and avoid the
 overhead of learning, installing, configuring, and inevitably debugging a
 complex tool.[^2]  Ultimately, I wanted to hand this project off in such a
 way that any of my teammates could maintain it if I was unavailable, so it has
-to be short, and stick to the tools I know they have installed everywhere.
+to be short, and stick to the tools I know they have installed.
 
 Our goal is to produce an Excel file for executive consumption that has a
 meaningful summary of some data pulled out of our analytics warehouse.  Overall,
@@ -68,13 +72,11 @@ base queries --> summary CSVs --> (report.xlsx, diagrams for powerpoint)
 ```
 
 The "base" queries might look a lot like temporary tables or common table
-expressions (CTEs, those blocks you see in `WITH` statements), but we've
-broken them into several, separate queries so that we can debug them separately
-if any underlying data has changed that affects one, but not the others.  We're
-plopping those summarized results into some flat files so that we can examine
-the results with our favorite tools like `pandas` or `awk`.  We'll then take all
-those flat results and produce deliverables from them, like charts and an excel
-file.
+expressions (CTEs, or those blocks you see in `WITH` statements), but we've
+broken them into several, separate queries.  We're plopping those summarized
+results into some flat files so that we can examine the results with our
+favorite tools like `pandas` or `awk`. We'll then take all those flat results
+and produce deliverables from them, like charts and an excel file.
 
 `myguy` is always there for me, so that's the name of our project, and its
 basic structure looks like this:
@@ -153,6 +155,8 @@ def build_report(output: str):
     """
     Generate a new Excel workbook and save it locally.
     """
+    # Eventually we'll replace this with code that aggregates some other files,
+    # but for right now we're just setting up the entry point
     sleep(2)
     destination = Path(output)
     destination.touch()
@@ -219,9 +223,10 @@ report.xlsx: myguy.py | $(BULDDIR)
 ```
 
 By doing this, we can just issue `make report.xlsx` instead of `make
-build/report.xlsx`.  Now we need to structure the rules that handle our queries.
-First, let's add a generic method for issuing queries, given the path to a sql
-file:
+build/report.xlsx`.
+
+Next, we need to structure the rules that handle our queries, so let's add a
+generic method for doing exactly that, given the path to a sql file.
 
 ```python3
 # myguy.py, cont.
@@ -505,13 +510,133 @@ Altogether, our dag now looks like this:
 
 <script id="asciicast-kYzgUqw3qGKKKa9KbsUaz7hur" src="https://asciinema.org/a/kYzgUqw3qGKKKa9KbsUaz7hur.js" async></script>
 
+<br>
+<br>
+
+Templating the SQL with Jinja
+=============================
+
+To round out some of our feature parity with dbt, we need to add some templating
+to our SQL.  It's best if I don't have to think about _how_ the template is
+injected, I just want a standard place to put stuff and have the python module
+take care of it.  Let's introduce a configuration file:
+
+```
+# config.yml
+sales_max_date: "2022-03-01"
+sales_min_date: "2021-09-01"
+```
+
+Presumably, a future analyst will have to come refresh this report for a
+different set of dates, and we want that configuration readily available to
+them.  The templating engine we'll use is the same on available on dbt,
+Jinja2.  How we integrate it is by intercepting our python code that reads
+queries and applying the template from the config there. The jinja2 part is a
+little verbose, but flexible - anything that's in our config will be available
+to the templated SQL:[^6]
+
+```python3
+# myguy.py
+import yaml
+import jinja2
+
+BUILD_DIR = "build"
+PROJECT_DIR = Path(__file__).parent
+
+
+def get_config():
+
+    with open(PROJECT_DIR / "config.yml") as f:
+        config = yaml.safe_load(f)
+
+    return config
+
+# The `str | Path` union type hint is python 3.10 syntax, so watch out if you're
+# on an older version!
+def read_sql_text(path: str | Path) -> str:
+    """
+    Read a SQL file contents and apply jinja templating from this project's
+    config.yml
+    """
+
+    config = get_config()
+    jinja_loader = jinja2.FileSystemLoader(PROJECT_DIR)
+    jinja_environment = jinja2.Environment(loader=jinja_loader)
+    template = jinja_environment.get_template(str(path))
+    sql = template.render(**config)
+
+    return sql
+```
+
+And now we use this version of the sql in the `ctas` and `query` functions:
+
+```python3
+# myguy.py
+# ...other content kept the same ...
+
+def query(path: str):
+
+    sql = read_sql_text(path)
+
+    # Assuming you have some way of acquiring a database connection
+    with get_connection() as conn:
+        pd.read_sql(sql, conn).to_csv(destination)
+
+
+def ctas(path: str):
+
+    path = Path(path)
+    sql = f"CREATE TABLE `{path.stem}` AS {read_sql_text(path)}"
+
+    with get_connection() as conn:
+        conn.execute(sql)
+```
+
+Within the SQL itself, we can now reference any of the keys in the `config.yml`
+directly:
+
+```sql
+# sales_subset.sql
+SELECT
+    product_id
+  , sales_revenue
+  , sales_units
+FROM
+    fact_sales
+WHERE
+    sales_date BETWEEN date('{{ sales_min_date }}') AND date('{{ sales_max_date }}')
+```
+
+I'm not here to cover everything you can do with jinja and yaml, since those are
+already pretty well covered. If you haven't used it before, it's worth looking
+into. It's very powerful. The looping and conditional constructs can make what
+would normally be pretty tough with just raw SQL easy.  When we issue a `make
+recent_sales.ctas` command, it looks like this:
+
+```
+$ make sales_subset.ctas
+mkdir -p build
+CREATE TABLE `sales_subset` AS SELECT
+    product_id
+  , sales_revenue
+  , sales_units
+FROM
+    fact_sales
+WHERE
+    sales_date BETWEEN date('2021-09-01') AND date('2022-03-01')
+```
+
+<br>
+<br>
+
 Conclusion
 ==========
 
 There we have it, a simple little dag system for coordinating our project's
-deliverables.  As always, a finished version of the code from this article is available on
-[my github](https://github.com/renzmann/make-dag).  From here, the next step is
-to add a few more output examples, such as code that produces `.png` files for
+deliverables.  To see a finished version of the code from this article mocked up
+using SQLite as the data source, check out the example repo on [my
+github](https://github.com/renzmann/make-dag).  From here, the next step is to
+add a few more output examples, such as code that produces `.png` files for
 including into presentations, or migrating the `mypy.py` into a fully-fledged,
 pip-installable module - but we'll save that for another article.
 
@@ -535,6 +660,13 @@ pip-installable module - but we'll save that for another article.
   what we intend.  We want it to look like a success both in the
   case of removing the directory should it exist, and doing nothing if it
   doesn't.
+
+[^6]: You should be extremely careful about templating like this.  This article
+  also uses f-strings for injecting arbitrary code into SQL, which is
+  unacceptable if any of your system is public facing.  All of these examples
+  are working under the assumption that we're in a locked-down internal data
+  warehouse, and someone who has access to the system in _any_ way is allowed to
+  issue an arbitrary query.
 
 [make-docs]: <https://www.gnu.org/software/make/manual/html_node/Reading.html#Reading>
 [prereq]: <https://www.gnu.org/software/make/manual/html_node/Prerequisite-Types> "GNU Make: Prerequisite Types"
