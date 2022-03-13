@@ -15,29 +15,28 @@ for others to consume.
 There are a lot of contenders in this space, and each one solves it a little
 differently.  Right now the hot thing is
 [dbt](https://docs.getdbt.com/tutorial/setting-up), but before that we had
-airflow, dagster, prefect, argo, and a host of others that all were build to
+airflow, dagster, prefect, argo, and a host of others that all were built to
 operate DAGs at scale on different platforms. For large, mission-critical data
 pipelines these can provide a lot of value, but the truth is that as data
 scientists, most of us don't need something this heavy.  Most projects I see
 really just need some way of defining the links between "scrapbook output".
 Maybe it's a jupyter notebook, or a python script, or some queries that have to
-happen in a particular order based on an updated warehouse feed.  dbt calls
-itself the "data build tool," and that's basically what we need: a way to
-compile project assets from the source code. Moreover, there are a host of
-other reasons you might not want to try building a whole new tooling ecosystem
-into your workflow.  Maybe:
+happen in a particular order based on an updated warehouse feed.
+
+Moreover, there are a host of other reasons you might not want to try adding a
+large, new tooling ecosystem into your workflow.  Maybe:
 
 * You can't get permission for a new install
 * You don't want to force another install on your end users or coworkers
 * You don't want more transitive dependencies entering the picture
 * You don't like someone trying to sell their cloud solution on top of the free
-  tier offering
+  tier offering to you
 
 `make` was born from a history of compiling C programs on Unix machines in the
 70's, but it's completely agnostic to language choice. It's job is to translate
 _targets_ and _prerequisites_ into a DAG, and incrementally build only the parts
 it needs to when any of the source files change.  Given that, why would I choose
-make over one of the more modern alternatives?
+Make over one of the more modern alternatives?
 
 * The commands are elegant - I find `make report.xlsx` completely intuitive
 * Parallel execution is built in and easy to turn on or off
@@ -46,21 +45,19 @@ make over one of the more modern alternatives?
 * It's a "small" program.  You can get through the [documentation][make-docs]
   and start creating useful software in a couple hours.
 * Like SQL, Make is declarative. We describe the result, and let the program
-  optimize the route by which we get there. 
+  optimize the route by which we get there.
 
 
 Creating a simple DAG project with `make` and python
 ====================================================
 
-I'm going to use an example of a recent project I built using just a Makefile,
-some python, and a little SQL that shows simple tools can be efficient and
-reliable, without the overhead of learning, installing, configuring, and
-inevitably debugging an unfamiliar tool.[^2]  Ultimately, I wanted to hand this
-project off in such a way that any of my teammates could maintain it if I was
-unavailable, so it has to be short, and stick to the tools I know they have
-installed everywhere.
-
-***TODO: emphasize importance of considering others***
+I'm going to use a distilled and simplified example of a recent project I built
+using just a Makefile, some python, and a little SQL. By the end of this my hope
+is to show that simple tools can be efficient and reliable, and avoid the
+overhead of learning, installing, configuring, and inevitably debugging a
+complex tool.[^2]  Ultimately, I wanted to hand this project off in such a
+way that any of my teammates could maintain it if I was unavailable, so it has
+to be short, and stick to the tools I know they have installed everywhere.
 
 Our goal is to produce an Excel file for executive consumption that has a
 meaningful summary of some data pulled out of our analytics warehouse.  Overall,
@@ -403,6 +400,14 @@ bill, they can all run at the same time:
 
 <script id="asciicast-GznCov5dP98vCmtK223Xvoo6G" src="https://asciinema.org/a/GznCov5dP98vCmtK223Xvoo6G.js" async></script>
 
+It's also possible to enable parallelism by default with the `MAKEFLAGS` special
+variable.
+
+```make
+# Makefile
+MAKEFLAGS := --jobs=$(shell nproc)
+```
+
 Adding dependencies between intermediate queries
 ================================================
 
@@ -411,33 +416,105 @@ queries, because we did a little refactoring of our SQL.
 
 ![Our DAG](our-dag.png "Our DAG")
 
-We can start representing this in Make by writing out the targets and
-prerequisites.
+Moreover, let's assume that these two new tables are too large to cache locally
+in a flat file, and we have to issue a CREATE TABLE AS (ctas) statement to build
+them first.  Not every database will permit you to run a CTAS on it, but imagine
+this is any process that writes data remotely instead of locally, such as spark
+writing a parquet file on S3, or successfully submitting a POST request to an
+endpoint we no longer control.
+
+We represent this in Make by first writing out the targets and prerequisites
+with different suffixes.  For the remote tables, I'll use the '.ctas' suffix. I
+also like to do this in a separate file, `dag.mk`, so I can hop to its buffer
+directly in my editor.
 
 ```make
-sales_subset.csv:
-customer_product.csv:
-this_quarter_sales.csv model_forecast.csv: sales_subset.csv
-customer_disposition.csv: customer_product.csv
+# dag.mk
+sales_subset.ctas:
+customer_product.ctas:
+this_quarter_sales.csv model_forecast.csv: sales_subset.ctas
+customer_disposition.csv: customer_product.ctas
 ```
 
-Inserting this into the Makefile forces the completion of `sales_subset.csv` and
-`customer_product.csv` prior to the original three queries.
+This arrangement forces the completion of `sales_subset.csv` and
+`customer_product.csv` prior to the original three queries.  Then in the main
+`MakeFile`, we include these contents above the rules that handle `.csv` files,
+along with a new rule for handling the remote tables. The `%.ctas` rule will
+create an _empty target_ as soon as the query is done, signaling to make when it
+last completed successfully:
 
-<script id="asciicast-vHkVgQs4jDLbv1fYHLsYqj0uw" src="https://asciinema.org/a/vHkVgQs4jDLbv1fYHLsYqj0uw.js" async></script>
+```
+# Makefile
+include dag.mk
 
-***TODO: show `dag.mk` in separate file with `include` statement***
+%.csv: %.sql myguy.py | $(BUILDDIR)
+	@python -m myguy query $<
 
-***Re-anchor article with current folder structure***
+%.ctas: %.sql myguy.py | $(BUILDDIR)
+	@python -m myguy ctas $<
+	@touch $(BUILDDIR)/$@
+```
 
-***Update videos to show files with `tree`***
+Note that this includes a new command for
+`myguy`, so let's add that too:
 
-Using empty targets for fully remote queries
-============================================
+```python3
+# myguy.py
 
-***TODO: what if the processes are all remote? empty targets section***
+@cli.command()
+@click.argument("path")
+def ctas(path: str):
+    """
+    Perform a CREATE TABLE AS statement from the SELECT statement in the given
+    SQL file path.
+    """
+    sql_file = Path(path)
+    query = f"CREATE TABLE {sql_file.stem} AS {sql_file.read_text()}"
+    print(query)
+    sleep(3)  # imagine the query is running
+```
 
-***TODO: set up repo with finished code***
+*** TODO could also do it via adding another directory under target for the csv queries*** 
+
+We need to do one more thing though - our `$(TARGETS)` assignment has no way of
+telling which sql files it should or shouldn't tie to CSVs.  The easiest way to
+make this distinction is to actually just remove $(TARGETS) altogether, and have
+the `dag.mk` declare what `report.xlsx` depends on.
+
+```make
+# dag.mk
+# ...other contents the same...
+report.xlsx: this_quarter_sales.csv \
+	model_forecast.csv \
+	customer_disposition.csv
+```
+
+```make
+# Makefile
+
+report.xlsx:
+	@python -m myguy build-report
+```
+
+Make will take care of combining these two rules into a single one.  If all the
+targets are going to have the same suffix, such as `.ctas` or `.csv`, then the
+trick with `$(TARGETS)` is handy, but adds more complexity than it's worth when
+mixing target file types.
+
+Altogether, our dag now looks like this:
+
+<script id="asciicast-kYzgUqw3qGKKKa9KbsUaz7hur" src="https://asciinema.org/a/kYzgUqw3qGKKKa9KbsUaz7hur.js" async></script>
+
+Conclusion
+==========
+
+There we have it, a simple little dag system for coordinating our project's
+deliverables.  As always, a finished version of the code from this article is available on
+[my github](https://github.com/renzmann/make-dag).  From here, the next step is
+to add a few more output examples, such as code that produces `.png` files for
+including into presentations, or migrating the `mypy.py` into a fully-fledged,
+pip-installable module - but we'll save that for another article.
+
 
 [^1]: Except Windows. You'll need to get it via mingw/cygwin or via the Windows
   subsystem for Linux.
