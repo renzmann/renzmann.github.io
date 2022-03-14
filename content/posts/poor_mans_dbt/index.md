@@ -55,13 +55,13 @@ Make over one of the more modern alternatives?
 Creating a simple project with `make` and python
 ================================================
 
-I'm going to use a distilled and simplified example of a recent project I built
-using just a Makefile, some python, and a little SQL. By the end of this my hope
-is to show that simple tools can be efficient and reliable, and avoid the
-overhead of learning, installing, configuring, and inevitably debugging a
-complex tool.[^2]  Ultimately, I wanted to hand this project off in such a
-way that any of my teammates could maintain it if I was unavailable, so it has
-to be short, and stick to the tools I know they have installed.
+I'm going to use a distilled example of a recent project I built using just a
+Makefile, some python, and a little SQL. By the end of this my hope is to show
+that simple tools can be efficient and reliable, and avoid the overhead of
+learning, installing, configuring, and inevitably debugging something more
+complex.[^2] Ultimately, I wanted to hand this project off in such a way that
+any of my teammates could maintain it if I was unavailable, so it has to be
+short, and stick to the tools I know they have installed.
 
 Our goal is to produce an Excel file for executive consumption that has a
 meaningful summary of some data pulled out of our analytics warehouse.  Overall,
@@ -127,8 +127,8 @@ If this is your first time seeing make, there are a few terms to know:
   module, like `myguy/__init__.py` with its complementary "dunder main"
   `myguy/__main__.py`.
 
-In the python file, we need a few entry points, since it will handle our actual
-runtime when we want to execute the queries or do some pandas hackery.
+Our main entry point will be in the python module.  This will handle the program
+runtime for executing queries or pandas hackery.
 
 ```python3
 # myguy.py
@@ -136,6 +136,7 @@ from pathlib import Path
 from time import sleep
 
 import click
+import pandas as pd
 
 
 @click.group()
@@ -155,27 +156,28 @@ def build_report(output: str):
     """
     Generate a new Excel workbook and save it locally.
     """
-    # Eventually we'll replace this with code that aggregates some other files,
-    # but for right now we're just setting up the entry point
+
+    # Suppose this produces, you know, useful data
+    pd.DataFrame(dict(a=range(3), b=list("abc"))).to_excel(output, index=False)
     sleep(2)
-    destination = Path(output)
-    destination.touch()
-    print(f"Saved report to {destination}")
+
+    print(f"Saved report to {output}")
 
 
 if __name__ == "__main__":
     cli()
 ```
 
-I think `click` is just great, and provides me with a lot of zen writing a CLI
-compared to `argparse`, although you could achieve everything I'm doing in this
-article equally well with argparse.  In this script we create a cli `group`
-because we'll eventually add more commands to it.  The `build_report` function
-just replicates a process that takes a couple seconds before it outputs a file
-to `build/report.xlsx`.  One reason I like click so much is because it takes
-very little code to get a pleasant command line experience with nested commands.
-Here's a quick example of using it after adding another command called `query`, which
-we'll get to in a moment:
+I think `click` is just great, and provides me with a lot of zen writing a
+_command line interface_ (CLI) compared to `argparse`, although you could
+achieve everything I'm doing in this article equally well with argparse.  In
+this script we create a cli `group` because we'll eventually add more commands
+to it.  The `build_report` function just replicates a process that takes a
+couple seconds before it outputs a file to `build/report.xlsx`.
+
+It takes very little code to get a pleasant command line experience with nested
+commands. Here's a quick example of using it after adding another command called
+`query`, which we'll get to in a moment:
 
 <script id="asciicast-FtGlAzi0kBBbJm7JczQFflKWx" src="https://asciinema.org/a/FtGlAzi0kBBbJm7JczQFflKWx.js" async></script>
 
@@ -200,14 +202,14 @@ declares that the `build` rule should only be run once, even if we have other
 targets with `build` as a prerequisite.[^3]  If we rerun `make report.xlsx`, it
 doesn't try to create that directory again, because it already exists.
 
-We do have one other problem though: our python code still runs even when the
-report exists.  Instead, we should get a message saying `make: 'report.xlsx' is
-up to date.`  This is happening because our rule doesn't say
-`build/report.xlsx`, so `make` looks in the current directory, sees that there's
-no `report.xlsx` and therefore runs the recipe.  I don't want to write `make
-build/report.xlsx`, I much prefer our original way of issuing the command, so
-what we'll do is set up `make` to automatically look in our `build` and `sql`
-directories for files by setting the [`VPATH` variable][search]:
+We do have one other problem though: if we re-run the python code, it will
+overwrite our report, even if nothing has changed.  Instead, we should get a
+message saying `make: 'report.xlsx' is up to date.`  This is happening because
+our target is `report.xlsx` instead of `build/report.xlsx`, so `make` looks in
+the current directory, sees that there's no `report.xlsx` and therefore runs the
+recipe.  I don't want to write `make build/report.xlsx`, so what we'll do is set
+up `make` to automatically look in our `build` and `sql` directories for files
+by setting the [`VPATH` variable][search]:
 
 ```make
 # Makefile
@@ -223,13 +225,17 @@ report.xlsx: myguy.py | $(BULDDIR)
 ```
 
 By doing this, we can just issue `make report.xlsx` instead of `make
-build/report.xlsx`.
+build/report.xlsx`.  Setting `build` to a variable (referenced via
+`$(BUILDDIR)`) allows us to change up the build directory on a whim, should we
+need to.
 
 Next, we need to structure the rules that handle our queries, so let's add a
 generic method for doing exactly that, given the path to a sql file.
 
 ```python3
 # myguy.py, cont.
+from datetime import datetime
+
 # ...other content same as before...
 
 BUILD_DIR = "build"
@@ -250,17 +256,31 @@ def query(path: str):
     $ python -m myguy query sql/foobar.sql
 
     """
-    sleep(2)
-    destination = Path(BUILD_DIR) / Path(path).with_suffix(".csv").name
-    destination.touch()
-    print(f"Finished query for {path} and wrote results to {destination}")
 
+    # Hey look, more fake code for an article about querying data
+    sleep(2)
+
+    destination = Path(BUILD_DIR) / Path(path).with_suffix(".csv").name
+    (
+        pd.DataFrame(
+            dict(time_updated=[datetime.now()])
+        )
+        .to_csv(destination, index=False)
+    )
+
+    print(f"Finished query for {path} and wrote results to {destination}")
 ```
 
 Again, imagine that the "sleep" we're doing here is some body of actual code
-you've written.  We've also refactored out the destination build directory into
-a variable, so we can have the make script grab that automatically using the
-[`shell` built-in][shell]:
+that fetches results from the database.  We also don't need `pandas` for such a
+banal use as touching a csv with today's date, but it's there to replicate the
+very common use case of `pd.read_sql -> to_csv`, which is nearly always the most
+efficient way to write a program that acquires a database connection, queries it,
+and writes the results to a csv for analytics-scale work in python like this.
+
+We've also refactored out the
+destination build directory into a variable, so we can have the make script grab
+that automatically using the [`shell` built-in][shell]:
 
 ```make
 # Makefile
@@ -425,11 +445,11 @@ Moreover, let's assume that these two new tables are too large to cache locally
 in a flat file, and we have to issue a CREATE TABLE AS (ctas) statement to build
 them first.  Not every database will permit you to run a CTAS on it, but imagine
 this is any process that writes data remotely instead of locally, such as spark
-writing a parquet file on S3, or successfully submitting a POST request to an
-endpoint we no longer control.
+writing a parquet file on S3, or submitting a POST request to an endpoint we
+don't control.
 
 We represent this in Make by first writing out the targets and prerequisites
-with different suffixes.  For the remote tables, I'll use the '.ctas' suffix. I
+with different suffixes.  For the remote tables, I'll use the '.ctas' suffix.  I
 also like to do this in a separate file, `dag.mk`, so I can hop to its buffer
 directly in my editor.
 
@@ -460,8 +480,7 @@ include dag.mk
 	@touch $(BUILDDIR)/$@
 ```
 
-Note that this includes a new command for
-`myguy`, so let's add that too:
+Note that this includes a new command for `myguy`, so let's add that too:
 
 ```python3
 # myguy.py
@@ -481,7 +500,7 @@ def ctas(path: str):
 
 *** TODO could also do it via adding another directory under target for the csv queries*** 
 
-We need to do one more thing though - our `$(TARGETS)` assignment has no way of
+And one last thing - our `$(TARGETS)` assignment has no way of
 telling which sql files it should or shouldn't tie to CSVs.  The easiest way to
 make this distinction is to actually just remove $(TARGETS) altogether, and have
 the `dag.mk` declare what `report.xlsx` depends on.
@@ -516,7 +535,7 @@ Altogether, our dag now looks like this:
 Templating the SQL with Jinja
 =============================
 
-To round out some of our feature parity with dbt, we need to add some templating
+To round out some of our feature parity with dbt, we need to add templating
 to our SQL.  It's best if I don't have to think about _how_ the template is
 injected, I just want a standard place to put stuff and have the python module
 take care of it.  Let's introduce a configuration file:
@@ -539,6 +558,9 @@ to the templated SQL:[^6]
 # myguy.py
 import yaml
 import jinja2
+
+
+# ... other content the same ...
 
 BUILD_DIR = "build"
 PROJECT_DIR = Path(__file__).parent
@@ -572,7 +594,7 @@ And now we use this version of the sql in the `ctas` and `query` functions:
 
 ```python3
 # myguy.py
-# ...other content kept the same ...
+# ...other content the same ...
 
 def query(path: str):
 
@@ -633,12 +655,12 @@ Conclusion
 ==========
 
 There we have it, a simple little dag system for coordinating our project's
-deliverables.  To see a finished version of the code from this article mocked up
-using SQLite as the data source, check out the example repo on [my
-github](https://github.com/renzmann/make-dag).  From here, the next step is to
-add a few more output examples, such as code that produces `.png` files for
-including into presentations, or migrating the `mypy.py` into a fully-fledged,
-pip-installable module - but we'll save that for another article.
+deliverables.  Next week I will add a finished version of the code from this
+article mocked up using SQLite as the data source on the
+[chinook][chinook] dataset.  These examples will also include
+to add a few more output, such as code that produces `.png` files for
+including into presentations and migrating the `mypy.py` into a fully-fledged,
+pip-installable module.
 
 
 [^1]: Except Windows. You'll need to get it via mingw/cygwin or via the Windows
@@ -677,3 +699,4 @@ pip-installable module - but we'll save that for another article.
 [automatic-variable]: <https://www.gnu.org/software/make/manual/html_node/Automatic-Variables.html> "GNU Make: Automatic Variables"
 [wildcard]: <https://www.gnu.org/software/make/manual/html_node/Wildcard-Function.html> "GNU Make: Wildcard Function"
 [patsubst]: <https://www.gnu.org/software/make/manual/html_node/Text-Functions.html> "GNU Make: Text Functions"
+[chinook]: <https://github.com/lerocha/chinook-database> "Chinook on github"
