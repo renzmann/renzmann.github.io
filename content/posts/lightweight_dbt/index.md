@@ -1,5 +1,5 @@
 ---
-title: "Building a poor man's dbt with Make"
+title: "Building a lightweight dbt with Make"
 date: 2022-03-06T14:22:30-05:00
 draft: false
 ---
