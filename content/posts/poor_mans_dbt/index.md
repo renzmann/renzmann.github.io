@@ -60,8 +60,8 @@ Makefile, some python, and a little SQL. By the end of this my hope is to show
 that simple tools can be efficient and reliable, and avoid the overhead of
 learning, installing, configuring, and inevitably debugging something more
 complex.[^2] Ultimately, I wanted to hand this project off in such a way that
-any of my teammates could maintain it if I was unavailable, so it has to be
-short, and stick to the tools I know they have installed.
+any of my teammates could maintain it if I was unavailable, so it had to be
+short, and stick to the tools I know they will always have installed.
 
 Our goal is to produce an Excel file for executive consumption that has a
 meaningful summary of some data pulled out of our analytics warehouse.  Overall,
@@ -93,11 +93,11 @@ basic structure looks like this:
     └── customer_disposition.sql
 ```
 
-Each file in the `sql/` directory is a query we execute and then locally cache
-the results.  Later we'll discuss how to handle the case where all our queries
-are handled remotely, and don't create local files, such as running `CREATE
-TABLE AS` (CTAS) queries prior to building the report, but for now we'll keep it
-simple: query --> file on computer.
+We will execute each file in the `sql/` directory as a query we execute and then
+locally cache the results as CSVs.  Later we'll discuss how to handle the case
+where all our queries are handled remotely, and don't create local files, such
+as running `CREATE TABLE AS` (ctas) queries prior to building the report, but
+for now we'll keep it simple: query --> csv on computer.
 
 Our goal is to make reproducing this report dead simple.  I should only have to
 run this command to rebuild the report at any time:
@@ -128,7 +128,7 @@ If this is your first time seeing make, there are a few terms to know:
   `myguy/__main__.py`.
 
 Our main entry point will be in the python module.  This will handle the program
-runtime for executing queries or pandas hackery.
+runtime for executing queries or doing some pandas hackery.
 
 ```python3
 # myguy.py
@@ -254,7 +254,6 @@ def query(path: str):
     This command will produce a new file foobar.csv in the `myguy.BUILD_DIR` directory:
 
     $ python -m myguy query sql/foobar.sql
-
     """
 
     # Hey look, more fake code for an article about querying data
@@ -272,11 +271,12 @@ def query(path: str):
 ```
 
 Again, imagine that the "sleep" we're doing here is some body of actual code
-that fetches results from the database.  We also don't need `pandas` for such a
-banal use as touching a csv with today's date, but it's there to replicate the
-very common use case of `pd.read_sql -> to_csv`, which is nearly always the most
-efficient way to write a program that acquires a database connection, queries it,
-and writes the results to a csv for analytics-scale work in python like this.
+that fetches results from the database.  We also don't need `pandas` for
+something as banal as touching a csv with today's date, but it's there to
+replicate the very common use case of `pd.read_sql -> to_csv`, which is nearly
+always the most efficient way to write a program that acquires a database
+connection, queries it, and writes the results to a csv for analytics-scale work
+in python like this.
 
 We've also refactored out the
 destination build directory into a variable, so we can have the make script grab
@@ -312,7 +312,7 @@ will do all the hard work of connecting the files together:
 
 ```make
 %.csv: %.sql myguy.py | $(BUILDDIR)
-	python -m myguy query $<
+	@python -m myguy query $<
 ```
 
 This takes care of all three rules at once.
@@ -336,7 +336,6 @@ our queries:
 
 ```
 $ make this_quarter_sales.csv
-python -m myguy query sql/this_quarter_sales.sql
 Finished query for sql/this_quarter_sales.sql and wrote results to build/this_quarter_sales.csv
 ```
 
@@ -470,6 +469,7 @@ last completed successfully:
 
 ```
 # Makefile
+# ... other content the same ...
 include dag.mk
 
 %.csv: %.sql myguy.py | $(BUILDDIR)
@@ -599,6 +599,7 @@ And now we use this version of the sql in the `ctas` and `query` functions:
 def query(path: str):
 
     sql = read_sql_text(path)
+    destination = Path(BUILD_DIR) / Path(path).with_suffix(".csv").name
 
     # Assuming you have some way of acquiring a database connection
     with get_connection() as conn:
