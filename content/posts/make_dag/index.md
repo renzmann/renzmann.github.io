@@ -1,5 +1,5 @@
 ---
-title: "Building a lightweight dbt with Make"
+title: "Building DAGs with Make, SQL, and python"
 date: 2022-03-06T14:22:30-05:00
 draft: false
 ---
