@@ -656,12 +656,11 @@ Conclusion
 ==========
 
 There we have it, a simple little dag system for coordinating our project's
-deliverables.  Next week I will add a finished version of the code from this
-article mocked up using SQLite as the data source on the
-[chinook][chinook] dataset.  These examples will also include
-to add a few more output, such as code that produces `.png` files for
-including into presentations and migrating the `mypy.py` into a fully-fledged,
-pip-installable module.
+deliverables.  For a working example of how to implement this project structure,
+check out the [companion repo][companion-repo], which builds a simple analysis
+on the [chinook][chinook] dataset. This example also includes code that produces
+`.png` files for including into presentations and migrates the `mypy.py` into a
+fully-fledged, pip-installable module.
 
 
 [^1]: Except Windows. You'll need to get it via mingw/cygwin or via the Windows
@@ -701,3 +700,4 @@ pip-installable module.
 [wildcard]: <https://www.gnu.org/software/make/manual/html_node/Wildcard-Function.html> "GNU Make: Wildcard Function"
 [patsubst]: <https://www.gnu.org/software/make/manual/html_node/Text-Functions.html> "GNU Make: Text Functions"
 [chinook]: <https://github.com/lerocha/chinook-database> "Chinook on github"
+[companion-repo]: <https://github.com/renzmann/chinook-make-dag>
