@@ -23,18 +23,61 @@ and hit the file with `vim` if it's text or `open`[^1] if it's something like Ex
 or PowerPoint.  The process of getting that file open from a cold start is
 around 10 seconds.  Let's say it takes on average around 1 minute to find a file
 clicking through a file manager.  That's 50 seconds of savings per file.
-Suppose we only look for three files like this per work day. Now back
+Suppose we only look for around a dozen files like this per work day. Back
 of napkin math tells us:
 
-    50s * 3 files/day * 5 day/wk * 50 work weeks / 60s/hr / 24hr/day = 26 days
+```
+    50 seconds/file
+  * 12 files/day
+  *  5 days/wk
+/ 3600 s/hr
+-------------
+     0.83 hours/wk
+```
 
-A _month_ of time accumulated over a working year, just _opening files_.  Does
-everyone need to use a fuzzy-finder to find and open files?  Certainly not, but
-if you're even a semi-technical user who needs to navigate through lots of
-folders to get things to your colleagues, this investment pays for itself pretty
-quickly
+So assuming you work with roughly the numbers above, one hour of getting
+comfortable with `fzf` will pay for itself in under two weeks.  Scale this
+against the number of files you open and the dividends are much faster.  If your
+work looks anything like mine, you're sifting through at least several dozen
+spreadsheets, presentations, and source code files every day, many of them with
+similar names but with `v3.pptx` or `v_FINAL.xlsx` put at the end.
 
 # TODO side-by-side video of fuzzy find vs. window manager
 
-[1]: This is a macOS command, just type the name of the file on Windows and on
+Does everyone need to use a fuzzy-finder to find and open files?  Certainly not.
+Some Unix die-hards [abhor the use of fuzzy-finders][romainl_comment] in their
+workflow, but I just can't seem to get a pure "unixy" way to work nearly as fast
+as `ctrl+t` followed by slapping the keyboard with letters that _might_ be
+somewhere in that file name.  I also don't think comments in the spirit of the
+linked `/u/romainl` comment have the same set of assumptions about what a
+"typical" working setup looks like.  Often I'm sitting in front of a data
+warehouse I've never connected to before, with 2,000 unique table names, each
+with possibly 200+ columns.  Usually the first thing I do is write a small `fzf`
+window that lets me search columns or table names.  "Are there any features
+related to customer age? Did an excel sheet from last month make it into the
+data lake?"  Interactive, visual feedback as I type these things, followed by a
+`ctrl+u` to clear the search bar is _way_ faster than building a pipe with
+`find` and/or `grep` and examining the results each time.
+
+# python environment management
+	// my new-venv function, transition to `functions` section
+
+# functions as bookmarks to snippets
+	// this section dedicated to `funced` and using it to store useful snippets
+
+# faster navigation with key remap and emacs bindings
+	// maybe do this section last, once we know commands
+	// hint at this section earlier
+
+	// caps -> ctrl
+	// alt+{f,b,d,h} ctrl+{f,b,d,h,a,e,k,y,r,u}
+	// fzf plugin: ctrl+{t,r} alt+c; my install-fzf function
+
+# treating dotfiles like cattle, not pets
+	// git clone setup for all my dots
+	// 
+
+[^1]: This is a macOS command.  On Windows, just type the name of the file.  For
 Linux I usually am on Gnome desktop, which uses `gio open`
+
+[romainl_comment]: <https://www.reddit.com/r/vim/comments/cp1upz/comment/ewnrslj/?utm_source=share&utm_medium=web2x&context=3>
