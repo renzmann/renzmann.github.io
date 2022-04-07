@@ -74,9 +74,30 @@ with a fresh environment"
 deactivate && rm -rf .venv && new-venv && poetry install
 ```
 
-[Raymond Hettinger says][mental_game] we have a buffer in our mind of "about five things, plus
-or minus two". By reducing the process above to only four steps, even on a bad
-day I can remember how to do this.
+[Raymond Hettinger says][mental_game] we have a buffer in our mind of "about
+five things, plus or minus two". By reducing the process above to only four
+steps, even on a bad day I can remember how to do this.
+
+To make sure these aliases/functions are available every time you log in, add
+them to your "rc" file.  For most folks that's `~/.bashrc`, but fish users would
+use `funced` and `funcsave`, `zsh` users have `~/.zshrc`, and on Windows
+there's [a host of options][powershell_profile] (I wouldn't try all this in
+`cmd`).
+
+I actually like the `funced` idea from fish a lot, so I use something
+[similar][funced].  This allows me to edit any function in my
+`~/.bash_functions` folder, which is then loaded up using `load-funcs` (also a
+function), and _that_ is what gets executed by [my `~/.bashrc`][bashrc].  This
+gives me the chance to very quickly save useful snippets like what's above for
+later.  In particular, instead of looking up the right invocation to [install
+poetry][poetry] every time, I just tucked it away into the
+[`install-poetry`][install_poetry] function when I first ran it, and now it's
+ready for me everywhere I take my dotfiles.
 
 
 [mental_game]: <https://youtu.be/UANN2Eu6ZnM?list=PLJHpE8rcAdmY-QUnKBOHgAy_0IEr-uMtF&t=341> "The Mental Game of Python - Raymond Hettinger"
+[powershell_profile]: <https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_profiles?view=powershell-7.2>
+[funced]: <https://github.com/renzmann/renzmann/blob/13e5d003ab9ea395aae0a1106ded585786ed3c20/.bash_functions/funced.sh#L2>
+[bashrc]: <https://github.com/renzmann/renzmann/blob/13e5d003ab9ea395aae0a1106ded585786ed3c20/.bashrc#L16>
+[poetry]: <https://python-poetry.org/docs/master/#installing-with-the-official-installer>
+[install_poetry]: <https://github.com/renzmann/renzmann/blob/394ab71991c41b6c5bb207cd3389ad803045dc06/.bash_functions/install-poetry.sh#L2>
