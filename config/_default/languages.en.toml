@@ -14,7 +14,7 @@ dateFormat = "2 January 2006"
 
 [author]
   name = "Robert Enzmann"
-  image = "img/piano_keys.jpg"
+  image = "img/robb_python_grey.png"
   headline = "Data{Science,Engineering}"
   bio = "I create tools in python that empower data science teams of all levels."
   links = [
