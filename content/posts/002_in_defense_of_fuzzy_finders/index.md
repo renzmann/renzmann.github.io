@@ -1,5 +1,5 @@
 ---
-title: "In defense of fuzzy finders"
+title: "In Defense of Fuzzy Finders"
 date: 2022-04-18T08:35:00-00:00
 draft: false
 ---
