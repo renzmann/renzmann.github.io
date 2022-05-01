@@ -41,24 +41,73 @@ is _usually_ the right approach to any system that's "data first".  While not
 strictly a functional language, python does offer some key functional pieces,
 namely [first-class functions][first-class-funcs] and [currying][currying].
 
+The python solution to `RandomEchoHouse`
+========================================
+
+**TODO:** probably want to reformat this as a TOC
+We're going to cover solutions to Sandy's problem in three broad strokes:
+
+1. What does a literal translation of the object-oriented version look like in
+   python
+1. How can we modify it to a purely functional version?
+1. How to extend the functional version to operate on any number of
+   transformations on the poem, and in any order
+
+</br>
 <div class="flex px-4 py-2 mb-8 text-base rounded-md bg-primary-100 dark:bg-primary-900">
   <span class="flex items-center ltr:pr-3 rtl:pl-3 text-primary-400">
     {{< icon "triangle-exclamation" >}}
   </span>
-    <span class="flex items-center justify-between grow dark:text-neutral-300">
-        <span class="prose dark:prose-invert">
-            This article uses python 3.10 syntax. To run examples on older
-            versions of python, some adjustments to the type annotations are
-            required.
-        </span>
-    </span>
+  <span class="flex items-center justify-between grow dark:text-neutral-300">
+  <span class="prose dark:prose-invert">
+    This article uses python 3.10 syntax. To run examples on older versions of
+    python, some adjustments to the type annotations are required.
+  </span>
   </span>
 </div>
+</br>
 
-# TODO Quick intro on composition, functional style
-# TODO mention that we're dealing with a data pipeline, and functional style is great for that
-# TODO mention python3.10 syntax
-# TODO mention "monomorphization?"
+First, let's set up a new python file with imports we'll need later, and the
+poem's data as a module constant[^1]:
+
+```py3
+#!/usr/bin/env python3
+import random
+from dataclasses import dataclass, field
+from functools import partial, reduce
+from typing import Any, Callable, Optional
+
+HOUSE_POEM = [
+    "the horse and the hound and the horn that belonged to",
+    "the farmer sowing his corn that kept",
+    "the rooster that crowed in the morn that woke",
+    "the judge all shaven and shorn that married",
+    "the man all tattered and torn that kissed",
+    "the maiden all forlorn that milked",
+    "the cow with the crumpled horn that tossed",
+    "the dog that worried the cat that chased",
+    "the rat that ate the cheese that lay in",
+    "the house that Jack built",
+]
+```
+
+And, let's create a couple type aliases to make some future code more readable:
+
+```py3
+Poem = list[str]
+PoemTransform = Callable[[Poem], Poem]
+```
+
+So from now on, a `Poem` is any list of `str` values, just like `HOUSE_POEM`,
+and a `PoemTransform` is any function that takes in a `Poem` as its only
+argument and returns a `Poem`.
+
+Functional RandomEchoHouse
+--------------------------
+
+
+</br>
+</br>
 
 # TODO kill this section
 
@@ -673,3 +722,6 @@ Further reading
 [first-class-funcs]: <https://en.wikipedia.org/wiki/First-class_function>
 [currying]: <https://en.wikipedia.org/wiki/Currying>
 [ridge-src]: <https://github.com/scikit-learn/scikit-learn/blob/920ab2508fe634ad32df68bb0ebd4f4512fbfb53/sklearn/linear_model/_ridge.py#L910>
+
+[^1]: Python doesn't actually have "constants", but by convention an
+  all-uppercase variable is meant to signify it's _supposed_ to be constant
