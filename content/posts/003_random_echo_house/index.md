@@ -35,23 +35,30 @@ Sandy then goes on to define a couple transformations of this poem
 Her presentation is aimed at Ruby, which has a much stricter object-oriented
 model than python does. Interestingly,  taking the raw poem and producing a
 modified version of it is just a data pipeline, and she's tackling the problem
-of composing pieces of this pipeline together.  I tend to believe a functional
-style, where data is immutable and pure functions create new, transformed data
-is _usually_ the right approach to any system that's "data first".  While not
-strictly a functional language, python does offer some key functional pieces,
-namely [first-class functions][first-class-funcs] and [currying][currying].
-
-The python solution to `RandomEchoHouse`
-========================================
-
-**TODO:** probably want to reformat this as a TOC
-We're going to cover solutions to Sandy's problem in three broad strokes:
+of composing pieces of this pipeline together.  So in this article, we're going
+to cover python solutions to this problem in three broad strokes:
 
 1. What does a literal translation of the object-oriented version look like in
-   python
-1. How can we modify it to a purely functional version?
-1. How to extend the functional version to operate on any number of
-   transformations on the poem, and in any order
+   python, while still remaining "pythonic?"
+2. How can we extend the code to swap the order in which transformations happen?
+3. How can we simplify the user API by translating the logic to a pure function?
+
+On points 2 and 3 - I tend to believe a functional style, where data is
+immutable and pure functions create new, transformed data is _usually_ the right
+approach to any system that's "data first".  Also, it reduces overhead for
+_most_ users by avoiding the introduction of a new object type. That's not
+always considered a good thing, but specifically in the context of a _python end
+user_, this means they need only remember the `recite()` function, and not both
+the `House()` object _and_ its `recite()` method.  While not strictly a
+functional language, python does offer some key functional components, namely
+[first-class functions][first-class-funcs] and [currying][currying], so we'll
+take a look at how those can still be useful even when building a more
+object-centric solution.
+
+</br>
+</br>
+
+# The object-oriented python solution to `RandomEchoHouse`
 
 </br>
 <div class="flex px-4 py-2 mb-8 text-base rounded-md bg-primary-100 dark:bg-primary-900">
@@ -67,17 +74,19 @@ We're going to cover solutions to Sandy's problem in three broad strokes:
 </div>
 </br>
 
-First, let's set up a new python file with imports we'll need later, and the
-poem's data as a module constant[^1]:
+First, let's set up a new python file with some imports we'll need, the poem's
+data as a module constant[^1], and a couple type aliases to make some future
+code more readable:
 
 ```py3
 #!/usr/bin/env python3
 import random
-from dataclasses import dataclass, field
-from functools import partial, reduce
-from typing import Any, Callable, Optional
+from typing import Callable
 
-HOUSE_POEM = [
+Poem = list[str]
+PoemTransform = Callable[[Poem], Poem]
+
+HOUSE_POEM: Poem = [
     "the horse and the hound and the horn that belonged to",
     "the farmer sowing his corn that kept",
     "the rooster that crowed in the morn that woke",
@@ -91,20 +100,13 @@ HOUSE_POEM = [
 ]
 ```
 
-And, let's create a couple type aliases to make some future code more readable:
-
-```py3
-Poem = list[str]
-PoemTransform = Callable[[Poem], Poem]
-```
-
 So from now on, a `Poem` is any list of `str` values, just like `HOUSE_POEM`,
 and a `PoemTransform` is any function that takes in a `Poem` as its only
-argument and returns a `Poem`.
+argument and returns a `Poem`.  We don't strictly need the `: Poem` annotation
+on `HOUSE_POEM`, but I've included it for emphasis on what we mean by `Poem`
+throughout the code examples.
 
-Functional RandomEchoHouse
---------------------------
-
+# Functional RandomEchoHouse
 
 </br>
 </br>
