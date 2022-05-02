@@ -1,12 +1,10 @@
 #!/usr/bin/env python3
 import random
-from functools import partial, reduce
 from itertools import chain
-from typing import Any, Callable, Sequence, Tuple
+from typing import Any, Callable, Sequence
 
 Poem = Sequence[str]
 PoemTransform = Callable[[Poem], Poem]
-Pipeline = Sequence[PoemTransform]
 
 
 # TODO separate lines on "That" for better printing?
@@ -46,6 +44,7 @@ def linum_format(poem: Poem) -> Poem:
 
 
 # Attempt 1: Literal translation
+# Introduce code this way - show how we hit a problem when we want numbering + random
 # class House:
 #     def __init__(
 #         self, order: PoemTransform = identity, format: PoemTransform = identity
@@ -53,54 +52,18 @@ def linum_format(poem: Poem) -> Poem:
 #         self.lines = order(format(house_poem()))
 
 #     def stanza(self, stanza: int = 0) -> None:
-#         lines = self.lines[-stanza:]
-#         joined = " ".join(lines)
+#         lines = self.lines[-(stanza + 1):]
+#         joined = "\n".join(lines)
 #         print("This is ", joined, ".", sep="", end="\n\n")
 
 #     def recite(self) -> None:
 #         for i in range(1, len(self.lines) + 1):
 #             self.stanza(i)
 
-
-# reh = House(order=random_order, format=echo_format)
 # House(order=random_order, format=echo_format).recite()
 
 
-# Part 1: functional random echo house
-# def recite(
-#     order: PoemTransform = identity,
-#     format: PoemTransform = identity,
-# ) -> None:
-
-#     # TODO incorrect - need to store the randomized, formatted data
-#     # so that we can recite each line in turn
-#     lines = order(format(HOUSE_POEM))
-
-#     for i in range(1, len(lines) + 1):
-#         joined = " ".join(lines[-i:])
-#         print("This is ", joined, ".", sep="", end="\n\n")
-
-# TODO what about stateful recovery of stanzas?
-
-# Option 3: `build`
-# def build(*funcs: PoemTransform, linesep: str = " ") -> Tuple[Callable[[], None], Callable[[int], None]]:
-#     lines = reduce(lambda l, f: f(l), funcs, house_poem())
-
-#     def stanza(i: int = 0) -> None:
-#         joined = linesep.join(lines[-i:])
-#         print("This is ", joined, ".", sep="", end="\n\n")
-
-#     def recite() -> None:
-#         for i in range(1, len(lines) + 1):
-#             stanza(i)
-
-#     return recite, stanza
-
-
-# rec, stan = build(echo_format)
-# stan(10)
-# rec()
-
+# Attempt 2: Functional version, accepts any number of `PoemTransform`s
 def _recite_stanza(poem: Poem | None = None, stanza: int = 0) -> None:
     if poem is None:
         poem = house_poem()
@@ -118,7 +81,7 @@ def recite(*funcs: PoemTransform, stanza: int | None = None) -> None:
         lines = f(lines)
 
     # TODO note on "clever one-liner"
-    # lines = reduce(lambda l, f: f(l), funcs, HOUSE_POEM)
+    # lines = reduce(lambda lines, f: f(lines), funcs, house_poem())
 
     if stanza is not None:
         _recite_stanza(lines, stanza=stanza)
@@ -135,37 +98,8 @@ def recite(*funcs: PoemTransform, stanza: int | None = None) -> None:
 
 # Performance benchmark?
 
-recite()
-print()
-
-# Option 4: Separate steps and make transparent
-# def transform(data: Poem, *funcs: PoemTransform):
-#     return reduce(lambda l, f: f(l), funcs, data)
-
-# print("-" * 20, "Func House", "-" * 20)
-# random_echo = partial(recite, order=random_order, format=echo_format)
-# random_echo()
-
-# Part 2 - arbitrary ordering and more transformations
-# TODO in the webpage, can we highlight the diff?
-# class PipeHouse:
-#     def __init__(self, *funcs: PoemTransform, sep: str = " "):
-#         self.lines = reduce(lambda l, f: f(l), funcs, house_poem())
-#         self.sep = sep
-
-#     def stanza(self, i: int = 0) -> None:
-#         lines = self.lines[-i:]
-#         joined = self.sep.join(lines)
-#         print("This is ", joined, ".", sep="", end="\n\n")
-
-#     def recite(self) -> None:
-#         for i in range(1, len(self.lines) + 1):
-#             self.stanza(i)
-
-
-# print("-" * 20, "Pipe House", "-" * 20)
-# h = PipeHouse(echo_format, linum_format, random_order, sep="\n")
-
-# h.stanza(4)
-# h.stanza(2)
-
+# `recite` examples
+# recite()
+# recite(stanza=0)
+# recite(random_order, echo_format, stanza=9)
+recite(echo_format, linum_format, random_order, stanza=5)
