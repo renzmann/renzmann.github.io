@@ -1,5 +1,6 @@
 public
 .packages
 .hugo_build.lock
+.venv
 resources
 *#
