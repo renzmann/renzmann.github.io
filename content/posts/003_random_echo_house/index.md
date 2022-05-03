@@ -1,8 +1,14 @@
 ---
-title: "Composition in python data pipelines"
+title: "(Python) Composition and Data Pipelines"
 date: 2022-05-01T00:00:00-00:00
 draft: False
 ---
+
+TODO better title - some working thoughts:
+  - object orientation
+  - random echo house
+  - composition vs. inheritance
+  - data, immutability, functional concepts in python
 
 Some time ago, I saw this fantastic talk by Sandy Metz on object
 composition, specifically her example starting at the 17:00 mark until the end.
