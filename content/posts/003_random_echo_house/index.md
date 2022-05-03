@@ -140,6 +140,8 @@ def echo_format(poem: Poem) -> Poem:
 
 Now we're ready to define a `House` that can `recite()` the poem:
 
+TODO newer version
+
 ```py3
 # --snip--
 class House:
@@ -149,10 +151,6 @@ class House:
         fmt: PoemTransform = identity
     ):
         self.lines = order(fmt(HOUSE_POEM))
-
-    @property
-    def num_stanzas(self) -> int:
-        return len(self.lines)
 
     def _recite_stanza(self, poem: Poem, stanza: int = 0) -> None:
         lines = poem[-(stanza + 1):]
@@ -165,11 +163,13 @@ class House:
             return
 
         # stanza is None - Recite the whole poem
-        for i in range(self.num_stanzas):
+        for i in range(len(self.lines)):
             self._recite_stanza(self.lines, stanza=i)
 ```
 
-TODO: note on the `@property` part?
+TODO Jack Diedrich talk - anyone who's seen this knows that we have an
+_obfuscated function call_. We'll refactor in the next section down to a
+`recite` function, but for now we're demonstrating Sandy's type of object.
 
 Let's see how this class works by dropping into an interactive session:
 
@@ -252,30 +252,94 @@ provide a generic enough API, it's getting used in a way we didn't expect.
 We now have two options:
 
 1. Force an API change that prevents the situation above
+1. Deprecate the `House` class and point users to a newer, better function
 1. Open up the public interface with a little more flexibility, at the expense
    of directly representing business logic
 
-In my experience, #1 is rarely prudent.  So let's explore what it
+In my experience, #1 is rarely prudent.  # 2 may or may not be appropriate,
+depending on what the actual product is - i.e. Did using the `House` in a wacky way
+introduce a security vulnerability?  However, as library authors it's our
+responsibility to we can keep the public interface as consistent as possible over time,
+but improve and extend it.  So let's explore what it
 means to abstract the `__init__` a little to achieve better "pluggability":
 
-TODO copy over functions `recite` and `_recite_stanza`
+</br>
+</br>
+
+Functions first
+===============
+
+Notice that our `House` class utilizes one stateful object - the transformed
+poem after applying the `order` and `fmt` functions.  This gets stored in the
+`self.lines` attribute, and subsequent calls for specific stanzas don't have to
+re-transform the poem.  `_recite_stanza` just reads the data and prints it.  Depending on how expensive
+we expect the functions to be, we can either keep this behavior (memory-bound),
+or switch to a lazy evaluation (compute-bound).  The latter is simpler to
+implement, so we'll start there and add the statefulness next.
+
+```py3
+from functools import reduce
+
+def _recite_stanza(poem: Poem, stanza: int = 0) -> None:
+    stanza_lines = poem[-(stanza + 1) :]
+    joined = "\n".join(stanza_lines)
+    print("This is ", joined, ".", sep="", end="\n\n")
+
+def recite(*funcs: PoemTransform, stanza: int | None = None) -> None:
+    lines = reduce(lambda lines, f: f(lines), funcs, HOUSE_POEM)
+
+    if stanza is not None:
+        _recite_stanza(lines, stanza=stanza)
+        return
+
+    # stanza is None - Recite the whole poem
+    for i in range(len(lines)):
+        _recite_stanza(lines, stanza=i)
+```
 
 TODO note on "clever one liner" with `reduce`
 
-We can then point our customer to the more generic API for their line
-number + random order request:
+Then, we [monomorphize][monomorphize] this generic function into the specific use cases our client asked for:
 
 ```py3
->>> recite(linum_format, random_order)
-This is the 0: ...
+from functools import partial
+
+house = recite
+random_house = partial(recite, random_order)
+echo_house = partial(recite, echo_format)
+random_echo_house = partial(recite, random_order, echo_format)
+random_linum_house = partial(recite, random_order, linum_format)
+linum_random_house = partial(recite, linum_format, random_order)
+brick_house = partial(recite, echo_format, linum_format, random_order)
+```
+
+Any of these can be used just like `recite` before, after initializing a `House`
+
+```py3
+>>> brick_house(9)
+This is 1: the farmer sowing his corn that kept the farmer sowing his corn that kept
+0: the horse and the hound and the horn that belonged to the horse and the hound and the horn that belonged to
+4: the man all tattered and torn that kissed the man all tattered and torn that kissed
+...
+```
+
+Additionally, we should make sure to apply DRY and have the `House` class use
+this more abstract implementation, while keeping its current behavior:
+
+```py3
+from dataclasses import dataclass
+
+@dataclass
+class House:
+    order: PoemTransform = identity
+    fmt: PoemTransform = identity
+
+    def recite(self, stanza: int | None = None) -> None:
+        recite(self.order, self.fmt, stanza=stanza)
 ```
 
 </br>
 </br>
-
-Functional RandomEchoHouse
-==========================
-
 
 A note on mixins
 ================
@@ -291,6 +355,8 @@ TODO scikit-learn example of multiple inheritance
 [first-class-funcs]: <https://en.wikipedia.org/wiki/First-class_function>
 [currying]: <https://en.wikipedia.org/wiki/Currying>
 [ridge-src]: <https://github.com/scikit-learn/scikit-learn/blob/920ab2508fe634ad32df68bb0ebd4f4512fbfb53/sklearn/linear_model/_ridge.py#L910>
+[monomorphize]: <https://en.wikipedia.org/wiki/Monomorphization>
+[stop-writing-classes]: <https://www.youtube.com/watch?v=o9pEzgHorH0>
 
 [^1]: Python doesn't actually have "constants", but by convention an
   all-uppercase variable is meant to signify it's _supposed_ to be constant
