@@ -1,15 +1,15 @@
 ---
-title: "Object-oriented composition with python's multiple inheritance"
+title: "Composition in python data pipelines"
 date: 2022-05-01T00:00:00-00:00
 draft: False
 ---
 
-A little while ago I saw this fantastic talk by Sandy Metz on object
+Some time ago, I saw this fantastic talk by Sandy Metz on object
 composition, specifically her example starting at the 17:00 mark until the end.
 
 {{< youtube "OMPfEXIlTVE?t=1020" >}}
 
-In the video, she uses the cumulative folk tale [_This is the house that Jack Built_][jacks-wiki]
+In the video, she uses the cumulative folk tale [_This Is the House That Jack Built_][jacks-wiki]
 as the basis for transformation. The poem's first few lines looks like this:
 
 > This is the house that Jack built.</br></br>
@@ -32,18 +32,18 @@ Sandy then goes on to define a couple transformations of this poem
 1. "Echo" some lines, so that we get "the cow with the crumpled horn that
    tossed the cow with the crumpled horn"
 
-Her presentation is aimed at Ruby, which has a much stricter object-oriented
-model than python does. Interestingly,  taking the raw poem and producing a
-modified version of it is just a data pipeline, and she's tackling the problem
-of composing pieces of this pipeline together.  So in this article, we're going
-to cover python solutions to this problem in three broad strokes:
+What makes this interesting as a data scientist or engineer is that taking the
+raw poem and producing a modified version of it is just a data pipeline, and
+she's tackling the problem of composing pieces of this pipeline together.  So in
+this article, we're going to cover python solutions to this problem in three
+broad strokes:
 
 1. What does a literal translation of the object-oriented version look like in
    python, while still remaining "pythonic?"
 2. How can we extend the code to swap the order in which transformations happen?
 3. How can we simplify the user API by translating the logic to a pure function?
 
-On points 2 and 3 - I tend to believe a functional style, where data is
+On point 3 - I tend to believe a functional style, where data is
 immutable and pure functions create new, transformed data is _usually_ the right
 approach to any system that's "data first".  Also, it reduces overhead for
 _most_ users by avoiding the introduction of a new object type. That's not
@@ -58,7 +58,8 @@ object-centric solution.
 </br>
 </br>
 
-# The object-oriented python solution to `RandomEchoHouse`
+The object-oriented python solution to `RandomEchoHouse`
+========================================================
 
 </br>
 <div class="flex px-4 py-2 mb-8 text-base rounded-md bg-primary-100 dark:bg-primary-900">
@@ -74,9 +75,9 @@ object-centric solution.
 </div>
 </br>
 
-First, let's set up a new python file with some imports we'll need, the poem's
-data as a module constant[^1], and a couple type aliases to make some future
-code more readable:
+First, let's set up a new python file `random_echo.py` with some imports we'll
+need, the poem's data as a module constant[^1], and a couple type aliases to
+make future code more readable:
 
 ```py3
 #!/usr/bin/env python3
@@ -86,7 +87,7 @@ from typing import Callable
 Poem = list[str]
 PoemTransform = Callable[[Poem], Poem]
 
-HOUSE_POEM: Poem = [
+HOUSE_POEM = [
     "the horse and the hound and the horn that belonged to",
     "the farmer sowing his corn that kept",
     "the rooster that crowed in the morn that woke",
@@ -100,611 +101,175 @@ HOUSE_POEM: Poem = [
 ]
 ```
 
-So from now on, a `Poem` is any list of `str` values, just like `HOUSE_POEM`,
+So from now on, a `Poem` is any list of string values, just like `HOUSE_POEM`,
 and a `PoemTransform` is any function that takes in a `Poem` as its only
-argument and returns a `Poem`.  We don't strictly need the `: Poem` annotation
-on `HOUSE_POEM`, but I've included it for emphasis on what we mean by `Poem`
-throughout the code examples.
+argument and returns a `Poem`.
 
-# Functional RandomEchoHouse
+Our objective is to produce variable versions of this poem using a single
+interface:
 
-</br>
-</br>
+1. Recite the original poem
+1. Recite a version of the poem in random order
+1. Recite a version of the poem with each of the lines "echoed" (duplicated)
+1. Recite the poem both in random order and with duplicated lines
 
-# TODO kill this section
-
-The Idea
-
-We're going to take a look at an object-oriented concept called mixins.
+There are three possible transformations of a poem - we echo it, we randomize
+it, or we do nothing. Ruby has a much stricter object-oriented paradigm than
+python, so Sandy's example uses a dedicated class with a single method for each
+role.  Such ceremony isn't required in python, though. We can just define a pure
+function for each processing step.
 
 ```py3
-class RandomOrderMixin:
-    def order(self, data: list[str]) -> list[str]:
-        return random.sample(data, len(data))
+# --snip--
+def identity(x: Any) -> Any:
+    return x
+
+def random_order(poem: Poem, random_seed: int = 42) -> Poem:
+    random.seed(random_seed)
+    return random.sample(poem, len(poem))
+
+def echo_format(poem: Poem) -> Poem:
+    return [f"{line} {line}" for line in poem]
 ```
 
-This class does only one thing - randomly order a list of strings that come in
-via the order method. The intent is not to use this class on its own, but in
-conjunction with many other classes that implement a small number of methods,
-including a final `__init__` method. Our final class will use python's multiple
-inheritance to mimic the mixin flavor of composition.
+Now we're ready to define a `House` that can `recite()` the poem:
 
 ```py3
-class FinalModel(RandomOrderMixin, FormatterMixin, BaseModel):
-    pass
-
-model = FinalModel() # `model` now has all the methods from the three classes it inherited from
-model.order(["one", "two", "three"]) # calls RandomOrderMixin.order(model, ["one", "two", "three])
-```
-
-# TODO mention "duck-typing" and how it's accepted by python
-For an end user, the fact that model is a `FinalModel` isn't important. All that
-matters is that it has an order method at runtime. In practice, this could go as
-far as loading a persistent version of the object from disk, in which case we
-really don't know the type of model unless we were to inspect it.
-
-```py3
-model = read_from_joblib("my_model.joblib")
-model.order(["a", "new", "list"])
-```
-
-In theory, this means we could swap out `my_model.joblib` for another type that
-implements a different order method, but the generic code of reading the object
-and applying its method remains unchanged.
-
-```py3
-class NonRandomModel(IdentityOrderMixin, FormatterMixin, BaseModel):
-    pass
-
-non_random_model = NonRandomModel()
-non_random_model.save("my_model.joblib")
-```
-
-
-
-Assuming `BaseModel` implements `save`, we've just changed out `RandomOrderMixin` for
-`IdentityOrderMixin`, and created a new object that will still work in the
-`read_from_joblib` example.
-
-Example: Jack's House
-=====================
-
-(Adapted from a great talk on object composition by Sandy Metz)
-
-A popular children's poem is about the house that Jack built. On each verse, a
-new piece is added that reveals all the players around Jack's house:
-
-    This is the house that Jack built.
-
-    This is the rat that ate the cheese that lay in the house that Jack built.
-
-    This is the dog that worried the cat that chased the rat that ate the cheese
-    that lay in the house that Jack built.
-
-    This is the cow with the crumpled horn that tossed the dog that worried the cat
-    that chased the rat that ate the cheese that lay in the house that Jack built.
-
-    This is the maiden all forlorn that milked the cow with the crumpled horn that
-    tossed the dog that worried the cat that chased the rat that ate the cheese that
-    lay in the house that Jack built.
-
-    This is the man all tattered and torn that kissed the maiden all forlorn that
-    milked the cow with the crumpled horn that tossed the dog that worried the cat
-    that chased the rat that ate the cheese that lay in the house that Jack built.
-
-    This is the judge all shaven and shorn that married the man all tattered and
-    torn that kissed the maiden all forlorn that milked the cow with the crumpled
-    horn that tossed the dog that worried the cat that chased the rat that ate the
-    cheese that lay in the house that Jack built.
-
-    This is the rooster that crowed in the morn that woke the judge all shaven and
-    shorn that married the man all tattered and torn that kissed the maiden all
-    forlorn that milked the cow with the crumpled horn that tossed the dog that
-    worried the cat that chased the rat that ate the cheese that lay in the house
-    that Jack built.
-
-    This is the farmer sowing his corn that kept the rooster that crowed in the morn
-    that woke the judge all shaven and shorn that married the man all tattered and
-    torn that kissed the maiden all forlorn that milked the cow with the crumpled
-    horn that tossed the dog that worried the cat that chased the rat that ate the
-    cheese that lay in the house that Jack built.
-
-    This is the horse and the hound and the horn that belonged to the farmer sowing
-    his corn that kept the rooster that crowed in the morn that woke the judge all
-    shaven and shorn that married the man all tattered and torn that kissed the
-    maiden all forlorn that milked the cow with the crumpled horn that tossed the
-    dog that worried the cat that chased the rat that ate the cheese that lay in the
-    house that Jack built.
-
-We've been given the task to implement an object with a recite method that takes
-a verse number as an argument, and prints the appropriate version of the poem.
-Easy enough -
-
-```py3
-POEM = [
- "the horse and the hound and the horn that belonged to",
- "the farmer sowing his corn that kept",
- "the rooster that crowed in the morn that woke",
- "the judge all shaven and shorn that married",
- "the man all tattered and torn that kissed",
- "the maiden all forlorn that milked",
- "the cow with the crumpled horn that tossed",
- "the dog that worried the cat that chased",
- "the rat that ate the cheese that lay in",
- "the house that Jack built",
-]
-
+# --snip--
 class House:
-    def __init__(self, data: list[str] = None):
-        if data is None:
-            data = POEM
+    def __init__(
+        self,
+        order: PoemTransform = identity,
+        fmt: PoemTransform = identity
+    ):
+        self.lines = order(fmt(HOUSE_POEM))
 
-        self.data = data
+    @property
+    def num_stanzas(self) -> int:
+        return len(self.lines)
 
-    def recite(self, num_lines: int = None) -> None:
-        if num_lines is None:
-            num_lines = len(self.data)
+    def _recite_stanza(self, poem: Poem, stanza: int = 0) -> None:
+        lines = poem[-(stanza + 1):]
+        joined = "\n".join(lines)
+        print("This is ", joined, ".", sep="", end="\n\n")
 
-        poem = " ".join(self.data[-num_lines:])
+    def recite(self, stanza: int | None = None) -> None:
+        if stanza is not None:
+            self._recite_stanza(self.lines, stanza=stanza)
+            return
 
-        print("This is ", poem, ".", sep="")
-
-
-house = House()
-
-house.recite(3)
-# This is the dog that worried the cat that chased the rat that ate the
-# cheese that lay in the house that Jack built.
-
-house.recite(5)
-# This is the maiden all forlorn that milked the cow with the crumpled horn
-# that tossed the dog that worried the cat that chased the rat that ate the
-# cheese that lay in the house that Jack built.
+        # stanza is None - Recite the whole poem
+        for i in range(self.num_stanzas):
+            self._recite_stanza(self.lines, stanza=i)
 ```
 
-Fabulous. Our class works and our clients are happy.
+TODO: note on the `@property` part?
 
+Let's see how this class works by dropping into an interactive session:
 
-New Feature Request: RandomHouse
-================================
-
-"The `House` is fantastic!" our clients say. "Just one thing - could we make
-it so that the lines are randomly ordered before we recite the poem? Thanks."
-
-Now, we don't really want to remove our original House, we just want a slightly
-modified version that's capable of randomizing the data at initialization. So
-there are two specializations:
-
-1. A House whose line order is identical to the original version
-1. A house whose line order is random
-
-The role we're looking for is somebody to handle the ordering of our data at instantiation.
-
-```py3
-from typing import Callable
-
-class House:
-
-    order: Callable[[list[str]], list[str]]
-
-    def __init__(self, data: list[str] = None):
-        if data is None:
-            data = POEM
-
-        self.data = self.order(data)
-
-        def recite(self, lines: int = None) -> None:
-            # same as above
-            ...
 ```
+$ python3 -i random_echo.py
+>>> house = House()
+>>> house.recite()  # the whole tale
+This is the house that Jack built.
+...
+the rat that ate the cheese that lay in
+the house that Jack built.
 
-# TODO there was a reason for not using abstract methods ... Why?
+>>> house.recite(2)  # just stanza 2
+This is the dog that worried the cat that chased
+the rat that ate the cheese that lay in
+the house that Jack built.
 
-Now we've explicitly said that House needs a partner mixin that implements an
-order method, which gets called by `__init__` as it sets the data attribute.
+>>> # We can "plug in" any function for the `order` role
+>>> random_house = House(order=random_order)
+>>> random_house.recite(4)
+This is the maiden all forlorn that milked
+the rat that ate the cheese that lay in
+the rooster that crowed in the morn that woke
+the judge all shaven and shorn that married
+the dog that worried the cat that chased.
 
-```py3
-class IdentityOrder:
-    def order(self, data: list[str]) -> list[str]:
-        return data
+>>> # Similarly for the `fmt` role
+>>> echo_house = House(fmt=echo_format)
+>>> echo_house.recite(3)
+This is the cow with the crumpled horn that tossed the cow with the crumpled horn that tossed
+the dog that worried the cat that chased the dog that worried the cat that chased
+the rat that ate the cheese that lay in the rat that ate the cheese that lay in
+the house that Jack built the house that Jack built.
 
-class RandomOrder:
-    def order(self, data: list[str]) -> list[str]:
-        cp = data.copy()
-        random.shuffle(cp)
-        return cp
-
-
-class DefaultHouse(IdentityOrder, House):
-    pass
-
-
-class RandomHouse(RandomOrder, House):
-    pass
-
-
-default_house = DefaultHouse()
-default_house.recite() # Prints the poem just as before
-
-random_house = RandomHouse()
-random_house.recite() # Prints the poem in a random order
+>>> # Including both at once
+>>> random_echo_house = House(order=random_order, fmt=echo_format)
+>>> random_echo_house.recite()
+This is the dog that ...
 ```
-
-Making either a `RandomHouse` or `DefaultHouse` is just a matter of picking what
-does the ordering of data when we're composing our final class.
-
-New Feature Request: `EchoHouse`
-==============================
-
-"Actually," the client says, "we'd like to have lines repeated when they're
-recited. The random part is great, but it just doesn't fit our needs at the
-moment."
-
-"No problem," we say, "we'll just swap out the ordering part for a formatting
-role."
-
-In truth, we already know that the ordering role can stay, we just use the
-`IdentityOrder` mixin. What we actually need, is to include a formatting role into
-the `__init__`, like we did before.
-
-```py3
-class House:
-
-    order: Callable[[list[str]], list[str]]
-    format_: Callable[[list[str]], list[str]]  # Trailing `_` avoids conflict with the python built-in `format`
-
-    def __init__(self, data: list[str] = None):
-        if data is None:
-            data = POEM
-
-        self.data = self.format_(self.order(data))
-
-    def recite(self, lines: int = None) -> None:
-        # same as above
-        ...
-```
-
-
-```py3
-class IdentityFormat:
-    def format_(self, data: list[str]) -> list[str]:
-        return data
-
-
-class EchoFormat:
-    def format_(self, data: list[str]) -> list[str]:
-        return [" ".join([line, line]) for line in data]
-
-
-class EchoHouse(EchoFormat, IdentityOrder, House):
-    pass
-
-
-eh = EchoHouse()
-eh.recite(2)
-
-# This is the rat that ate the cheese that lay in the rat
-
-# that ate the cheese that lay in the house that Jack built
-
-# the house that Jack built.
-```
-
-New Feature Request: `RandomEchoHouse`
-====================================
-
-Pleased with our progress so far, the client comes back to us and says, "hey,
-you remember that random thing? Can we get that back?"
-
-The moment we've been waiting for. "Of course we can!" we say with a smile.
-
-```py3
-class RandomEchoHouse(EchoFormat, RandomOrder, House):
-    pass
-
-
-random_echo_house = RandomEchoHouse()
-random_echo_house.recite()
-```
-
-# TODO kill this section, copied from "nirvana"
-In the Model Composition story, we built a RandomEchoHouse out of composable
-blocks with two known roles in the base class: formatting and ordering. Each
-time a new role became clear, we had to edit the original House object with a
-data processing step. The __init__ method had two distinct stages:
-
-class House:
-
- def __init__(self, data: list[str] = None):
-
- if data is None:
-
- data = POEM
-
- self.data = self.format_(self.order(data))
-
-I find it annoying that if we wanted to add a new role to our House, we'd need
-to go edit the self.format_(self.order(data)) again. What if we could compose
-data processing steps without explicitly declaring them in the base object we
-are inheriting from? Is it really the role of the House to understand what's
-happening to the data at instantiation, or is it good enough to just have it
-access and recite? I think the latter is plausible, and more in line with what
-Sandy Metz was getting at in her original talk.
-
-Here's a fake example of what could happen.
 
 Feature Request: Line Numbers
-=============================
+-----------------------------
 
 "Can we get line numbers before each of the chunks even when randomizing? It
 makes it easier to read."
 
-Easy. We just make a new formatter mixin:
+Easy. We just make a new formatter:
 
-class LineNumberFormat:
-
- def format_(self, data: list[str]) -> list[str]:
-
- return [f"{i}: {line}\n" for i, line in enumerate(data)]
-
-class NumberedRandomHouse(LineNumberFormat, RandomOrder, House):
-
- pass
-
-We hand this off and call it a day. What could go wrong?
+```
+>>> def linum_format(poem: Poem) -> Poem:
+...     return [f"{i}: {line}" for i, line in enumerate(poem)]
+>>> random_line_house = House(fmt=linum_format, order=random_order)
+>>> random_line_house.recite(9)
+This is 0: the farmer sowing his corn that kept
+1: the horse and the hound and the horn that belonged to
+2: the man all tattered and torn that kissed
+...
+```
 
 "We noticed something," our client says. "It looks like the randomization
 happens before the line numbers are made. What we really wanted was to keep the
-original line numbers, so we know what happened. But, we have people already
-relying on the current way it works, so we'll need a version like that too."
+original line numbers, so we know what happened. But that's fine, we were able
+to just swap the two functions and now it's working great!"
 
-Uh oh. We've baked the ordering into House.__init__, and isn't something we can
-fix with the composition method we've already set out on. We'll have to make
-House more generic, so that all these future requests can happen at a layer of
-abstraction above House, and so that we never have to go back to it.
+To our horror, we open their code and see this:
 
-In case you want to copy the code and don't want to go back to the first
-article, here's the poem data and the imports you need:
+```
+>>> myhouse = House(fmt=random_order, order=linum_format)
+>>> myhouse.recite(9)
+This is 1: the farmer sowing his corn that kept
+0: the horse and the hound and the horn that belonged to
+4: the man all tattered and torn that kissed
+...
+```
 
-import random
+And worse: TODO manual composition of two functions into one and passing that into one of the keywords
 
-POEM = [
+Uh oh. We baked the ordering into `House.__init__`, and because we didn't
+provide a generic enough API, it's getting used in a way we didn't expect.
+We now have two options:
 
- "the horse and the hound and the horn that belonged to",
+1. Force an API change that prevents the situation above
+1. Open up the public interface with a little more flexibility, at the expense
+   of directly representing business logic
 
- "the farmer sowing his corn that kept",
+In my experience, #1 is rarely prudent.  So let's explore what it
+means to abstract the `__init__` a little to achieve better "pluggability":
 
- "the rooster that crowed in the morn that woke",
+TODO copy over functions `recite` and `_recite_stanza`
 
- "the judge all shaven and shorn that married",
+TODO note on "clever one liner" with `reduce`
 
- "the man all tattered and torn that kissed",
-
- "the maiden all forlorn that milked",
-
- "the cow with the crumpled horn that tossed",
-
- "the dog that worried the cat that chased",
-
- "the rat that ate the cheese that lay in",
-
- "the house that Jack built",
-
-]
-
-Challenge: Implement RandomEchoHouse and NumberedRandomHouse Without Modifying House
-====================================================================================
-
-Our original House just declared a recite method after initializing the data.
-Suppose for good measure the author of House expected overrides to data and
-provided getter and setter methods ("descriptors" in python) for it:
-
-class House:
-
- def __init__(self, data: list[str] = None):
-
- if data is None:
-
- data = POEM
-
- self.data = data
-
- def recite(self, lines: int = None) -> None:
-
- if lines is None:
-
- lines = len(self.data)
-
- poem = " ".join(self.data[-lines:])
-
- print("This is ", poem, ".", sep="")
-
- @property
-
- def data(self) -> list[str]:
-
- return self.__data
-
- @data.setter
-
- def data(self, value: list[str]):
-
- self.__data = value
-
-Some find the dunder __data method of storing "private" information distasteful, because it invokes python's name-mangling. I like it, since now future inheritors are still free to use their own _data (single underscore) attribute, should they need it. We're going to be overriding the behavior of the data descriptors, so we won't need to access the underlying __data (dunder) version anyway.
-
-Consider the task we originally set out for: we have two data processing steps, each of which performs some processing at initialization time, and saving the processed result into self.data. We're going to super-charge the overriding behavior by calling up the method resolution order (MRO) stack to apply all data processing steps from our mixin classes. Then, the order of inheritance allows us to change whether the formatting or randomization happens first.
-
-Goal: Customizable Behavior via MRO
-
-Ultimately, we want to be able to build our client's final classes with a single call each:
-
-class NumberedRandomHouse(LineNumberFormat, RandomOrder, House):
-
- pass
-
-class RandomNumberedHouse(RandomOrder, LineNumberFormat, House):
-
- pass
-
-The first class will add the line numbers first, then randomly order. The latter will do the opposite.
-
-Defining data Descriptors
-
-Let's tackle the RandomOrder first, since I have a feeling the formatting classes will closely follow suit. The easy part is accessing the data if it's already been set:
-
-class RandomOrder:
-
- @property
-
- def data(self) -> list[str]:
-
- return super().data
-
-If we are mixing this class alone with House, then the House.data method will be overridden. But House is in charge of storing the actual data, since we used the name-mangled __data attribute to store it. Calling super() searches up the MRO for any declaration of a data descriptor, and pulls data from that. Since our House class has such a property, we'll get back the value of House._House__data when we call on the data attribute from a RandomHouse.
-
-Harder is the setting component of this. How do we apply this mixin's processing step and all of the other processing steps above this mixin when we go to set the data? Again, we turn to super(), but we'll also need a bit of knowledge on how descriptors work. The @property decorator along with a partnering @<name>.setter actually turns the data method into an object with __get__ and __set__ methods, that tell python what to do when accessing the decorated name. We can use that information to define our mixin's setter:
-
-class RandomOrder:
-
- @property
-
- def data(self) -> list[str]:
-
- return super().data
-
- @data.setter
-
- def data(self, value) -> None:
-
- cp = value.copy()
-
- random.shuffle(cp)
-
- super(RandomOrder, self.__class__).data.__set__(self, cp)
-
-The setter is the same as our original RandomOrder.order(), except we call up the MRO and tell it to continue processing the data via __set__. If the next class we inherited from is House, then it doesn't do any more processing and just saves the data. If the next class is an EchoFormat or LineFormat, then we'll get some formatting after the randomization.
-
-Let's check that this works as expected:
-
-class RandomHouse(RandomOrder, House):
-
- pass
-
-random_house = RandomHouse()
-
-random_house.recite()
-
-# This is the ...
-
-Now the fun part - let's do the same for our line formatting role:
-
-class LineNumberFormat:
-
- @property
-
- def data(self):
-
- return super().data
-
- @data.setter
-
- def data(self, value: list[str]):
-
- numbered = [f"\n{i + 1}: {line}" for i, line in enumerate(value)]
-
- super(LineNumberFormat, self.__class__).data.__set__(self, numbered)
-
-class NumberedRandomHouse(LineNumberFormat, RandomOrder, House):
-
- pass
-
-num_rand_house = NumberedRandomHouse()
-
-num_rand_house.recite(2)
-
-# This is
-
-# 6: the maiden all forlorn that milked
-
-# 4: the judge all shaven and shorn that married.
-
-class RandomNumberedHouse(RandomOrder, LineNumberFormat, House):
-
- pass
-
-rand_num_house = RandomNumberedHouse()
-
-rand_num_house.recite(2)
-
-# This is
-
-# 9: the cow with the crumpled horn that tossed
-
-# 10: the farmer sowing his corn that kept.
-
-We'll leave it as an exercise to verify that the the line numbers match the original in the first example, questionable as the ethics of the resulting poem might be when reciting to children. The second example, rand_num_house also matches what we expect. The lines were randomized, but we're only printing out the last two, so we get lines 9 and 10 after the randomization.
-
-Further Composability
-
-We've achieved our original goal, but we've actually gotten more from it than we first expected. We can even make numbered echo houses, or echoed number houses too:
-
-class EchoFormat:
-
- @property
-
- def data(self):
-
- return super().data
-
- @data.setter
-
- def data(self, value: list[str]):
-
- numbered = [f"{line} {line}" for line in value]
-
- super(LineNumberFormat, self.__class__).data.__set__(self, numbered)
-
-class EchoNumberHouse(EchoFormat, LineNumberFormat, House):
-
- pass
-
-class NumberEchoHouse(LineNumberFormat, EchoFormat, House):
-
- pass
-
-Decomposing Our Composables
-
-Each of our mixins has a lot of copy-paste going on, with just a single line in the setter method changing between them. That's a sign of a missing abstraction. The getting/setting boilerplate seems to be a common functionality that's mixed in just like everything else. So let's separate those duties:
+We can then point our customer to the more generic API for their line
+number + random order request:
 
 ```py3
-class DataProcessor:
-    process_data: Callable[[list[str]], list[str]]
-
-    @property
-    def data(self) -> list[str]:
-        return super().data
-
-    @data.setter
-        def data(self, value) -> None:
-            processed = self.process_data(value)
-            super(RandomOrder, self.__class__).data.__set__(self, processed)
-
-
-class RandomOrder(DataProcessor):
-    def process_data(self, value: list[str]) -> list[str]:
-        return random.sample(value, len(value))
-
-
-class EchoFormat(DataProcessor):
-    def process_data(self, value: list[str]) -> list[str]:
-        return [f"{line} {line}" for line in value]
-
-
-class LineNumberFormat(DataProcessor):
-    def process_data(self, value: list[str]) -> list[str]:
-        return [f"\n{i + 1}: {line}" for i, line in enumerate(value)]
+>>> recite(linum_format, random_order)
+This is the 0: ...
 ```
+
+</br>
+</br>
+
+Functional RandomEchoHouse
+==========================
+
 
 A note on mixins
 ================
@@ -713,12 +278,8 @@ At around the 23:35 mark, an audience member shouts out "just use multiple
 inheritance!" to which Sandy says "just stop that - we're not using multiple
 inheritance here, it's not the right solution for this problem.
 
-# TODO scikit-learn example of multiple inheritance
+TODO scikit-learn example of multiple inheritance
 
-Further reading
-===============
-
-[Real python article on first-class functions]
 
 [jacks-wiki]: <https://en.wikipedia.org/wiki/This_Is_the_House_That_Jack_Built>
 [first-class-funcs]: <https://en.wikipedia.org/wiki/First-class_function>
