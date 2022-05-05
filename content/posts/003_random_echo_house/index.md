@@ -27,7 +27,7 @@ looks like this:
 > ...
 
 For the rest of the talk, she focuses on the problem of programming a class that
-can perform any selection of the following two transformations on the poem:
+can perform two transformations on the poem:
 
 1. Randomize the order in which lines are added, so that the "rat that ate the
    cheese" might come before the "maiden all forlorn"
@@ -213,15 +213,16 @@ makes it easier to read."
 
 Easy. We just make a new formatter:
 
-```
->>> def linum_format(poem: Poem) -> Poem:
-...     return [f"{i}: {line}" for i, line in enumerate(poem)]
->>> random_line_house = House(fmt=linum_format, order=random_order)
->>> random_line_house.recite(9)
-This is 0: the farmer sowing his corn that kept
-1: the horse and the hound and the horn that belonged to
-2: the man all tattered and torn that kissed
-...
+```py3
+def linum_format(poem: Poem) -> Poem:
+    return [f"{i}: {line}" for i, line in enumerate(poem)]
+
+random_line_house = House(fmt=linum_format, order=random_order)
+random_line_house.recite(9)
+# This is 0: the farmer sowing his corn that kept
+# 1: the horse and the hound and the horn that belonged to
+# 2: the man all tattered and torn that kissed
+# ...
 ```
 
 "We noticed something," our client says. "It looks like the randomization
@@ -231,13 +232,13 @@ to just swap the two functions and now it's working great!"
 
 To our horror, we open their code and see this:
 
-```
->>> myhouse = House(fmt=random_order, order=linum_format)
->>> myhouse.recite(9)
-This is 1: the farmer sowing his corn that kept
-0: the horse and the hound and the horn that belonged to
-4: the man all tattered and torn that kissed
-...
+```py3
+myhouse = House(fmt=random_order, order=linum_format)
+myhouse.recite(9)
+# This is 1: the farmer sowing his corn that kept
+# 0: the horse and the hound and the horn that belonged to
+# 4: the man all tattered and torn that kissed
+# ...
 ```
 
 And even worse:
@@ -271,8 +272,11 @@ Functions First
 ===============
 
 I want to take it all the way back to the drawing board.  What's the simplest
-part we can keep the same?  Probably the `recite` function.  Given a `Poem`,
-just print it out on the correct `stanza`.
+part we can keep the same?  Probably all of `linum_format`, `echo_format`, and
+`random_order` remain unchanged.
+
+Following that, we need a small adjustment to the `recite` function:  given a
+`Poem`, just print it out on the correct `stanza`.
 
 ```py3
 #!/usr/bin/env python3
@@ -292,11 +296,11 @@ def recite(poem: Poem, stanza: int| Sequence[int] | None = None) -> None:
 ```
 
 With that totally compartmentalized, now we can focus entirely on the
-transformation part.
+composition part.
 
-Notice that our `House` class utilizes one stateful object - the transformed
-poem after applying the `order` and `fmt` functions.  This gets stored in the
-`self.lines` attribute, and subsequent calls for specific stanzas don't have to
+Notice that the `House` class utilized one stateful object - the transformed
+poem after applying the `order` and `fmt` functions.  This got stored in the
+`self.lines` attribute, and subsequent calls for specific stanzas didn't have to
 re-transform the poem.  `_recite_stanza` just read the data and printed it.
 Depending on how expensive we expect the functions to be, we can either keep
 this behavior, or switch to a version where we transform the poem each time we
@@ -359,7 +363,7 @@ function application from left-to-right rather than inside-out (mathematicians
 being the notable holdout here), some may prefer this.  If our functions had
 varying input and output types, I would keep the slightly clunkier version where
 we explicitly compose functions via `def` and `return f1(f2(...))` solely for
-the reason of having the `pyright` static type checker ensure that I've chained
+the reason of having the [`pyright`][pyright] static type checker ensure that I've chained
 inputs and outputs correctly.  Since all of our functions are `PoemTransform`,
 though, we don't need to worry about type checking within the `compose`
 function. That is, all the input and output types are `Poem`, so the resulting
@@ -386,6 +390,7 @@ its coefficient of determination and `fit()` method.
 [ridge-src]: <https://github.com/scikit-learn/scikit-learn/blob/920ab2508fe634ad32df68bb0ebd4f4512fbfb53/sklearn/linear_model/_ridge.py#L910>
 [monomorphize]: <https://en.wikipedia.org/wiki/Monomorphization>
 [stop-writing-classes]: <https://www.youtube.com/watch?v=o9pEzgHorH0>
+[pyright]: <https://github.com/Microsoft/pyright>
 
 [^1]: Python doesn't actually have "constants", but by convention an
   all-uppercase variable is meant to signify it's _supposed_ to be constant
