@@ -1,22 +1,17 @@
 ---
-title: "(Python) Composition and Data Pipelines"
+title: "Data Pipelines as Function Composition"
 date: 2022-05-01T00:00:00-00:00
 draft: False
 ---
 
-TODO better title - some working thoughts:
-  - object orientation
-  - random echo house
-  - composition vs. inheritance
-  - data, immutability, functional concepts in python
-
-Some time ago, I saw this fantastic talk by Sandy Metz on object
-composition, specifically her example starting at the 17:00 mark until the end.
+Some time ago, I saw this fantastic talk by Sandy Metz on favoring object
+composition over inheritance.
 
 {{< youtube "OMPfEXIlTVE?t=1020" >}}
 
-In the video, she uses the cumulative folk tale [_This Is the House That Jack Built_][jacks-wiki]
-as the basis for transformation. The poem's first few lines looks like this:
+At the 17:00 mark, she introduces the cumulative folk tale 
+[_This Is the House That Jack Built_][jacks-wiki], the first few lines of which
+looks like this:
 
 > This is the house that Jack built.</br></br>
 > This is the rat that ate the cheese that lay in the house that Jack
@@ -31,57 +26,56 @@ as the basis for transformation. The poem's first few lines looks like this:
 > that lay in the house that Jack built.</br></br>
 > ...
 
-Sandy then goes on to define a couple transformations of this poem
+For the rest of the talk, she focuses on the problem of programming a class that
+can perform any selection of the following two transformations on the poem:
 
 1. Randomize the order in which lines are added, so that the "rat that ate the
    cheese" might come before the "maiden all forlorn"
-1. "Echo" some lines, so that we get "the cow with the crumpled horn that
+1. "Echo" each line, so that we get "the cow with the crumpled horn that
    tossed the cow with the crumpled horn"
 
-What makes this interesting as a data scientist or engineer is that taking the
-raw poem and producing a modified version of it is just a data pipeline, and
-she's tackling the problem of composing pieces of this pipeline together.  So in
-this article, we're going to cover python solutions to this problem in three
-broad strokes:
+That is, a user should be able to instantiate a class that can recite the poem
+verbatim, recite a randomized poem, recite an echoed poem, or recite a poem
+that's both random and echoed.  What makes this interesting as a
+data scientist or engineer is that she's tackling the problem of object
+composition in the context of a data pipeline.  So in this article, I'm going
+to cover Python solutions to this problem in three broad strokes:
 
 1. What does a literal translation of the object-oriented version look like in
-   python, while still remaining "pythonic?"
+   Python, while still remaining "pythonic?"
 2. How can we extend the code to swap the order in which transformations happen?
-3. How can we simplify the user API by translating the logic to a pure function?
+3. How can we simplify the user experience by translating the logic to pure functions?
 
 On point 3 - I tend to believe a functional style, where data is
 immutable and pure functions create new, transformed data is _usually_ the right
-approach to any system that's "data first".  Also, it reduces overhead for
-_most_ users by avoiding the introduction of a new object type. That's not
-always considered a good thing, but specifically in the context of a _python end
+approach to any system that's "data first".  It also reduces overhead for
+most users by avoiding the introduction of a new object type. That's not
+always a good thing, but specifically in the context of a _Python end
 user_, this means they need only remember the `recite()` function, and not both
 the `House()` object _and_ its `recite()` method.  While not strictly a
-functional language, python does offer some key functional components, namely
+functional language, Python does offer some key functional components, namely
 [first-class functions][first-class-funcs] and [currying][currying], so we'll
 take a look at how those can still be useful even when building a more
 object-centric solution.
 
 </br>
-</br>
 
-The object-oriented python solution to `RandomEchoHouse`
+The Object-Oriented Python Solution to `RandomEchoHouse`
 ========================================================
 
-</br>
 <div class="flex px-4 py-2 mb-8 text-base rounded-md bg-primary-100 dark:bg-primary-900">
   <span class="flex items-center ltr:pr-3 rtl:pl-3 text-primary-400">
     {{< icon "triangle-exclamation" >}}
   </span>
   <span class="flex items-center justify-between grow dark:text-neutral-300">
   <span class="prose dark:prose-invert">
-    This article uses python 3.10 syntax. To run examples on older versions of
-    python, some adjustments to the type annotations are required.
+    This article uses Python 3.10 syntax. To run examples on older versions of
+    Python, some adjustments to the type annotations are required.
   </span>
   </span>
 </div>
-</br>
 
-First, let's set up a new python file `random_echo.py` with some imports we'll
+First, let's set up a new Python file `random_echo.py` with some imports we'll
 need, the poem's data as a module constant[^1], and a couple type aliases to
 make future code more readable:
 
@@ -89,6 +83,9 @@ make future code more readable:
 #!/usr/bin/env python3
 import random
 from typing import Callable
+
+# requires pip install of `more-itertools`
+from more_itertools import always_iterable
 
 Poem = list[str]
 PoemTransform = Callable[[Poem], Poem]
@@ -111,18 +108,19 @@ So from now on, a `Poem` is any list of string values, just like `HOUSE_POEM`,
 and a `PoemTransform` is any function that takes in a `Poem` as its only
 argument and returns a `Poem`.
 
-Our objective is to produce variable versions of this poem using a single
-interface:
+Our objective is to produce variations on this poem using a single interface:
 
 1. Recite the original poem
 1. Recite a version of the poem in random order
-1. Recite a version of the poem with each of the lines "echoed" (duplicated)
+1. Recite a version of the poem with each line "echoed" (duplicated)
 1. Recite the poem both in random order and with duplicated lines
 
 There are three possible transformations of a poem - we echo it, we randomize
-it, or we do nothing. Ruby has a much stricter object-oriented paradigm than
-python, so Sandy's example uses a dedicated class with a single method for each
-role.  Such ceremony isn't required in python, though. We can just define a pure
+it, or we do nothing.  The fourth option is a composition of the two other
+non-identity transformations, so we don't consider it a separate object.
+Ruby has a much stricter object-oriented paradigm than
+Python, so Sandy's example uses a dedicated class with a single method for each
+role.  Such ceremony isn't required in Python, though. We can just define a pure
 function for each processing step.
 
 ```py3
@@ -138,9 +136,8 @@ def echo_format(poem: Poem) -> Poem:
     return [f"{line} {line}" for line in poem]
 ```
 
-Now we're ready to define a `House` that can `recite()` the poem:
-
-TODO newer version
+To start, let's look at a literal translation of Sandy's `House` class into
+Python:
 
 ```py3
 # --snip--
@@ -148,30 +145,28 @@ class House:
     def __init__(
         self,
         order: PoemTransform = identity,
-        fmt: PoemTransform = identity
+        fmt: PoemTransform = identity,
     ):
         self.lines = order(fmt(HOUSE_POEM))
 
-    def _recite_stanza(self, poem: Poem, stanza: int = 0) -> None:
-        lines = poem[-(stanza + 1):]
-        joined = "\n".join(lines)
-        print("This is ", joined, ".", sep="", end="\n\n")
+    def recite(self, stanza: int | Sequence[int] | None = None) -> None:
+        if stanza is None:
+            indices = range(len(self.lines))
+        else:
+            indices = always_iterable(stanza)
 
-    def recite(self, stanza: int | None = None) -> None:
-        if stanza is not None:
-            self._recite_stanza(self.lines, stanza=stanza)
-            return
-
-        # stanza is None - Recite the whole poem
-        for i in range(len(self.lines)):
-            self._recite_stanza(self.lines, stanza=i)
+        for i in indices:
+            stanza_lines = self.lines[-(i + 1) :]
+            joined = "\n".join(stanza_lines)
+            print("This is ", joined, ".", sep="", end="\n\n")
 ```
 
-TODO Jack Diedrich talk - anyone who's seen this knows that we have an
-_obfuscated function call_. We'll refactor in the next section down to a
-`recite` function, but for now we're demonstrating Sandy's type of object.
-
-Let's see how this class works by dropping into an interactive session:
+Anyone who's seen Jack Diederich's [_Stop Writing
+Classes_][stop-writing-classes] should notice a red flag here.  We have two
+methods, one of which is `__init__()`, so that means this class is really just an
+obfuscated call to a `recite` function.  In the next section we'll refactor
+this down to a flatter API, but for the moment  let's just examine how this
+class works by dropping into an interactive session:
 
 ```
 $ python3 -i random_echo.py
@@ -245,11 +240,19 @@ This is 1: the farmer sowing his corn that kept
 ...
 ```
 
-And worse: TODO manual composition of two functions into one and passing that into one of the keywords
+And even worse:
+
+```py3
+def mynumbers(p):
+    return linum_format(echo_format(x))
+
+myhouse2 = House(order=mynumbers, fmt=random_order)
+```
 
 Uh oh. We baked the ordering into `House.__init__`, and because we didn't
-provide a generic enough API, it's getting used in a way we didn't expect.
-We now have two options:
+provide a generic enough API for composing functions, it's getting used in a way
+we didn't expect, which will certainly put mental burden on future maintainers
+as well.  We now have three options:
 
 1. Force an API change that prevents the situation above
 1. Deprecate the `House` class and point users to a newer, better function
@@ -257,98 +260,124 @@ We now have two options:
    of directly representing business logic
 
 In my experience, #1 is rarely prudent.  # 2 may or may not be appropriate,
-depending on what the actual product is - i.e. Did using the `House` in a wacky way
-introduce a security vulnerability?  However, as library authors it's our
-responsibility to we can keep the public interface as consistent as possible over time,
-but improve and extend it.  So let's explore what it
-means to abstract the `__init__` a little to achieve better "pluggability":
+depending on what the actual product is.  However, as library authors it's our
+responsibility to keep the public interface as consistent as possible over time.
+So let's explore what it means to abstract our code a little to achieve better
+"pluggability":
 
 </br>
-</br>
 
-Functions first
+Functions First
 ===============
+
+I want to take it all the way back to the drawing board.  What's the simplest
+part we can keep the same?  Probably the `recite` function.  Given a `Poem`,
+just print it out on the correct `stanza`.
+
+```py3
+#!/usr/bin/env python3
+
+# Identical to the `House` class version, but doesn't 
+# rely on stateful `self.lines`
+def recite(poem: Poem, stanza: int| Sequence[int] | None = None) -> None:
+    if stanza is None:
+        indices = range(len(poem))
+    else:
+        indices = always_iterable(stanza)
+
+    for i in indices:
+        stanza_lines = poem[-(i + 1) :]
+        joined = "\n".join(stanza_lines)
+        print("This is ", joined, ".", sep="", end="\n\n")
+```
+
+With that totally compartmentalized, now we can focus entirely on the
+transformation part.
 
 Notice that our `House` class utilizes one stateful object - the transformed
 poem after applying the `order` and `fmt` functions.  This gets stored in the
 `self.lines` attribute, and subsequent calls for specific stanzas don't have to
-re-transform the poem.  `_recite_stanza` just reads the data and prints it.  Depending on how expensive
-we expect the functions to be, we can either keep this behavior (memory-bound),
-or switch to a lazy evaluation (compute-bound).  The latter is simpler to
-implement, so we'll start there and add the statefulness next.
+re-transform the poem.  `_recite_stanza` just read the data and printed it.
+Depending on how expensive we expect the functions to be, we can either keep
+this behavior, or switch to a version where we transform the poem each time we
+pass it in to `recite`.  All in all, though, it's impossible for us as library
+authors to predict which of these cases our users will be bound to, so it's
+actually a poor design in the first place to force this data to persist in
+memory without their consent.  The `recite` function now takes _any_ poem.  So
+we can pass in a transient, quickly garbage-collected one like this:
 
 ```py3
-from functools import reduce
-
-def _recite_stanza(poem: Poem, stanza: int = 0) -> None:
-    stanza_lines = poem[-(stanza + 1) :]
-    joined = "\n".join(stanza_lines)
-    print("This is ", joined, ".", sep="", end="\n\n")
-
-def recite(*funcs: PoemTransform, stanza: int | None = None) -> None:
-    lines = reduce(lambda lines, f: f(lines), funcs, HOUSE_POEM)
-
-    if stanza is not None:
-        _recite_stanza(lines, stanza=stanza)
-        return
-
-    # stanza is None - Recite the whole poem
-    for i in range(len(lines)):
-        _recite_stanza(lines, stanza=i)
+recite(echo_format(HOUSE_POEM))
 ```
 
-TODO note on "clever one liner" with `reduce`
-
-Then, we [monomorphize][monomorphize] this generic function into the specific use cases our client asked for:
+Or collect a transformed version, persist it, and pass that in:
 
 ```py3
-from functools import partial
-
-house = recite
-random_house = partial(recite, random_order)
-echo_house = partial(recite, echo_format)
-random_echo_house = partial(recite, random_order, echo_format)
-random_linum_house = partial(recite, random_order, linum_format)
-linum_random_house = partial(recite, linum_format, random_order)
-brick_house = partial(recite, echo_format, linum_format, random_order)
+random_echo_house = echo_format(random_order(HOUSE_POEM))
+recite(random_echo_house)
 ```
 
-Any of these can be used just like `recite` before, after initializing a `House`
+In the end, only the developers implementing the data (`HOUSE_POEM`) and the
+functions that act on it (`random_order` and `echo_format`) will know which of
+the two approaches above is appropriate, so we should give them that freedom.
+
+Next, we have the problem of arbitrary function composition.  It's a bit clunky
+to manually produce each composition like this:
 
 ```py3
->>> brick_house(9)
-This is 1: the farmer sowing his corn that kept the farmer sowing his corn that kept
-0: the horse and the hound and the horn that belonged to the horse and the hound and the horn that belonged to
-4: the man all tattered and torn that kissed the man all tattered and torn that kissed
-...
+def random_echo(poem: Poem) -> Poem:
+    return echo_format(random_order(poem))
+
+def echo_linum(poem: Poem) -> Poem:
+    return linum_format(echo_format(poem))
+
+# ... likewise for other combinations
 ```
 
-Additionally, we should make sure to apply DRY and have the `House` class use
-this more abstract implementation, while keeping its current behavior:
+Can we provide a generic factory that lets users define a new transformation
+pipeline on the fly?  How about a function that takes a variable set of
+functions as arguments, and returns a `PoemTransform`?
 
 ```py3
-from dataclasses import dataclass
+def compose(*funcs: PoemTransform) -> PoemTransform:
+    def pipeline(poem: Poem) -> Poem:
+        for f in funcs:
+            poem = f(poem)
+        return poem
+    return pipeline
 
-@dataclass
-class House:
-    order: PoemTransform = identity
-    fmt: PoemTransform = identity
-
-    def recite(self, stanza: int | None = None) -> None:
-        recite(self.order, self.fmt, stanza=stanza)
+linum_echo_random = compose(linum_format, echo_format, random_order)
+recite(linum_echo_random(HOUSE_POEM), stanza=9)
+# This is 1: the farmer sowing his corn that kept 1: the farmer sowing his corn that kept
+# 0: the horse and the hound and the horn that belonged to 0: the horse and the hound and the horn that belonged to
+# 4: the man all tattered and torn that kissed 4: the man all tattered and torn that kissed
+# ...
 ```
 
-</br>
+It might not look like much, but because most programmers prefer reading
+function application from left-to-right rather than inside-out (mathematicians
+being the notable holdout here), some may prefer this.  If our functions had
+varying input and output types, I would keep the slightly clunkier version where
+we explicitly compose functions via `def` and `return f1(f2(...))` solely for
+the reason of having the `pyright` static type checker ensure that I've chained
+inputs and outputs correctly.  Since all of our functions are `PoemTransform`,
+though, we don't need to worry about type checking within the `compose`
+function. That is, all the input and output types are `Poem`, so the resulting
+function chain is safe.
+
 </br>
 
 A note on mixins
 ================
 
-At around the 23:35 mark, an audience member shouts out "just use multiple
+At around the 23:35 mark, an audience member shouts out "use multiple
 inheritance!" to which Sandy says "just stop that - we're not using multiple
-inheritance here, it's not the right solution for this problem.
+inheritance here, it's not the right solution for this problem."
 
-TODO scikit-learn example of multiple inheritance
+It's interesting to note that `scikit-learn` [does exactly this][ridge-src] as a
+way of composing model behavior.  Every ridge regression is a regression, after
+all, and it will always need the attributes that come with a regression, such as
+its coefficient of determination and `fit()` method.
 
 
 [jacks-wiki]: <https://en.wikipedia.org/wiki/This_Is_the_House_That_Jack_Built>
