@@ -347,7 +347,6 @@ to the templated SQL:<sup id=fnref:6><a href=#fn:6 class=footnote-ref role=doc-n
 </span></span><span class=line><span class=cl>
 </span></span><span class=line><span class=cl>
 </span></span><span class=line><span class=cl><span class=k>def</span> <span class=nf>get_config</span><span class=p>():</span>
-</span></span><span class=line><span class=cl>
 </span></span><span class=line><span class=cl>    <span class=k>with</span> <span class=nb>open</span><span class=p>(</span><span class=n>PROJECT_DIR</span> <span class=o>/</span> <span class=s2>&#34;config.yml&#34;</span><span class=p>)</span> <span class=k>as</span> <span class=n>f</span><span class=p>:</span>
 </span></span><span class=line><span class=cl>        <span class=n>config</span> <span class=o>=</span> <span class=n>yaml</span><span class=o>.</span><span class=n>safe_load</span><span class=p>(</span><span class=n>f</span><span class=p>)</span>
 </span></span><span class=line><span class=cl>
@@ -372,7 +371,6 @@ to the templated SQL:<sup id=fnref:6><a href=#fn:6 class=footnote-ref role=doc-n
 </span></span><span class=line><span class=cl><span class=c1># ...other content the same ...</span>
 </span></span><span class=line><span class=cl>
 </span></span><span class=line><span class=cl><span class=k>def</span> <span class=nf>query</span><span class=p>(</span><span class=n>path</span><span class=p>:</span> <span class=nb>str</span><span class=p>):</span>
-</span></span><span class=line><span class=cl>
 </span></span><span class=line><span class=cl>    <span class=n>sql</span> <span class=o>=</span> <span class=n>read_sql_text</span><span class=p>(</span><span class=n>path</span><span class=p>)</span>
 </span></span><span class=line><span class=cl>    <span class=n>destination</span> <span class=o>=</span> <span class=n>Path</span><span class=p>(</span><span class=n>BUILD_DIR</span><span class=p>)</span> <span class=o>/</span> <span class=n>Path</span><span class=p>(</span><span class=n>path</span><span class=p>)</span><span class=o>.</span><span class=n>with_suffix</span><span class=p>(</span><span class=s2>&#34;.csv&#34;</span><span class=p>)</span><span class=o>.</span><span class=n>name</span>
 </span></span><span class=line><span class=cl>
@@ -382,7 +380,6 @@ to the templated SQL:<sup id=fnref:6><a href=#fn:6 class=footnote-ref role=doc-n
 </span></span><span class=line><span class=cl>
 </span></span><span class=line><span class=cl>
 </span></span><span class=line><span class=cl><span class=k>def</span> <span class=nf>ctas</span><span class=p>(</span><span class=n>path</span><span class=p>:</span> <span class=nb>str</span><span class=p>):</span>
-</span></span><span class=line><span class=cl>
 </span></span><span class=line><span class=cl>    <span class=n>path</span> <span class=o>=</span> <span class=n>Path</span><span class=p>(</span><span class=n>path</span><span class=p>)</span>
 </span></span><span class=line><span class=cl>    <span class=n>sql</span> <span class=o>=</span> <span class=sa>f</span><span class=s2>&#34;CREATE TABLE `</span><span class=si>{</span><span class=n>path</span><span class=o>.</span><span class=n>stem</span><span class=si>}</span><span class=s2>` AS </span><span class=si>{</span><span class=n>read_sql_text</span><span class=p>(</span><span class=n>path</span><span class=p>)</span><span class=si>}</span><span class=s2>&#34;</span>
 </span></span><span class=line><span class=cl>
