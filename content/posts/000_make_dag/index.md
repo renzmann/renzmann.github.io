@@ -498,8 +498,6 @@ def ctas(path: str):
     sleep(3)  # imagine the query is running
 ```
 
-*** TODO could also do it via adding another directory under target for the csv queries*** 
-
 And one last thing - our `$(TARGETS)` assignment has no way of
 telling which sql files it should or shouldn't tie to CSVs.  The easiest way to
 make this distinction is to actually just remove $(TARGETS) altogether, and have
