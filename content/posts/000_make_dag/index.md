@@ -498,8 +498,6 @@ def ctas(path: str):
     sleep(3)  # imagine the query is running
 ```
 
-*** TODO could also do it via adding another directory under target for the csv queries*** 
-
 And one last thing - our `$(TARGETS)` assignment has no way of
 telling which sql files it should or shouldn't tie to CSVs.  The easiest way to
 make this distinction is to actually just remove $(TARGETS) altogether, and have
@@ -567,7 +565,6 @@ PROJECT_DIR = Path(__file__).parent
 
 
 def get_config():
-
     with open(PROJECT_DIR / "config.yml") as f:
         config = yaml.safe_load(f)
 
@@ -597,7 +594,6 @@ And now we use this version of the sql in the `ctas` and `query` functions:
 # ...other content the same ...
 
 def query(path: str):
-
     sql = read_sql_text(path)
     destination = Path(BUILD_DIR) / Path(path).with_suffix(".csv").name
 
@@ -607,7 +603,6 @@ def query(path: str):
 
 
 def ctas(path: str):
-
     path = Path(path)
     sql = f"CREATE TABLE `{path.stem}` AS {read_sql_text(path)}"
 
