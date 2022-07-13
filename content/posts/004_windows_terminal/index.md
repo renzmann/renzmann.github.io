@@ -4,8 +4,7 @@ date: 2022-07-12T14:22:30-05:00
 draft: false
 ---
 
-Motivators
-----------
+# Motivators
 + I use all of Windows, macOS, Linux desktop (mostly ubuntu) and Linux via SSH in
   an almost even 25%/25%/25%/25% split.
 + I often log into brand new machines that have none of my favorite configuration
@@ -13,8 +12,7 @@ Motivators
   login
 
 
-Need to cover
--------------
+# Need to cover
 + Package manager
   - Windows: chocolatey
   - macOS: Homebrew
