@@ -13,18 +13,21 @@ draft: false
 
 
 # Need to cover
++ Terminal emulator
+  - windows terminal from windows store
+  - kitty for macOS and linux
++ Fonts
+  - detecting nerd fonts
+  - devicons
 + Package manager
   - Windows: chocolatey
   - macOS: Homebrew
   - Linux: whatever you use (pacman, apt-get, yum)
++ Shell
+  - Windows: powershell
+  - macOS/Linux: bash  (old school but reliable)
 + Editor: nvim and justification
   - Cross platform
   - installs fast
   - lua is very easy
   - configuration/keybindings
-+ Shell
-  - Windows: powershell
-  - macOS/Linux: bash  (old school but reliable)
-+ Fonts
-  - detecting nerd fonts
-  - devicons
