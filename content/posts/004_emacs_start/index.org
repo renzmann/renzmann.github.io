@@ -5,14 +5,49 @@
 #+draft: true
 #+variable: value
 
+ *TODO* images of neovim, emacs, jupyter setups
 
-I'm pretty happy with my (neo)vim setup. I can walk into basically any code base
-with it and usually I can be useful wielding it. There comes a point, though,
-where we hit a wall and we look at things like Jupyter or VSCode and think
-"damn, that actually is pretty useful."  This has started happening more
-frequently than not as more of my workflow transitioned to terminal-based
-tooling and suddenly I found myself lacking some of the basics we need to do
-useful data science, like rich text (math) and images (plots).
+I'm pretty happy with my (neo)vim setup.  Wielding it, I can walk into
+most code bases and be useful.  There comes a point, though, where we
+hit a wall, look at Jupyter or VSCode and think "damn, that actually
+is pretty useful."  This started happening more frequently as my
+workflow transitioned to terminal-based tooling for python and away
+from Jupyter and PyCharm. Suddenly, I found myself lacking some of the
+basics we need to do useful data science, like rich text (math) and
+images (plots).  I don't want to give up my precious /all-about-me/
+editing experience, though, and if I can avoid proprietary software, I
+will.
 
-What I've decided to do is go on a journey to finally tame the beast, and build
-a rocking emacs setup specifically with the common data scientist in mind.
+Like most fledgling data scientists, my journey began on a Jupyter
+notebook, followed by JupyterLab, when it came out.  After learning
+that "hey, I can make my own libraries too!", I found Spyder from the
+Anaconda ecosystem, jumped to PyCharm for a couple years, all the
+while using a little dash of Vim on the side.  Recently, I went all-in
+on a lua configuration for Neovim, and that's been my home for the
+last couple years now, except for when I just need a notebook.
+Typically I still turn to JupyterLab when I need a [[https://en.wikipedia.org/wiki/Literate_programming][literate
+programming]] environment, with access to plotting inline with code.
+Sometimes a notebook is just the right thing for the job.  Other
+times, I need a text editor and a language server for some back-end
+code.  I want a [[https://en.wikipedia.org/wiki/Free_software][free/libre]] environment that supports both of these,
+and right now I don't think the options are great.
+
++ [[https://www.spyder-ide.org/][Spyder]] is probably the closest right now, but I have the least
+  experience with it.  The messaging from their website is wholly
+  python-centric, however, and I'm looking for a much more generic
+  tool.  I also have no idea how well it handles remote project
+  development.
++ VSCode is currently the gold standard in terms of "just working" out
+  of the box.  I haven't seen anything integrate with remote
+  development, including Jupyter notebooks, as well as this one does.
+  It doesn't meet the "libre" component, though, and Microsoft has no
+  plans for opening its pylance server either.
++ PyCharm is a behemoth powerhouse for working on a local codebase.
+  It absolutely falls apart when trying to work on remote projects.
++ Vim and Neovim are terminal editors, and by their very nature are
+  not designed for displaying images.  Really, they are designed to
+  encompass the physical act of /editing text/, and leave the other
+  components of your development workflow to be integrated some other
+  way (i.e. running commands in one tmux window and vim in the other)
++ I think [[https://www.juliapackages.com/p/pluto][Pluto]] is incredibly slick, and I wish more notebooking
+  environments operated like it
