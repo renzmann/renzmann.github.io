@@ -9,9 +9,9 @@
 
 I'm pretty happy with my (neo)vim setup.  Wielding it, I can walk into
 most code bases and be useful.  There comes a point, though, where we
-hit a wall, look at Jupyter or VSCode and think "damn, that actually
+hit a wall, look at Jupyter or VSCode, and think "damn, that actually
 is pretty useful."  This started happening more frequently as my
-workflow transitioned to terminal-based tooling for python and away
+workflow transitioned to terminal-based tooling for Python and away
 from Jupyter and PyCharm. Suddenly, I found myself lacking some of the
 basics we need to do useful data science, like rich text (math) and
 images (plots).  I don't want to give up my precious /all-about-me/
@@ -21,9 +21,9 @@ will.
 Like most fledgling data scientists, my journey began on a Jupyter
 notebook, followed by JupyterLab, when it came out.  After learning
 that "hey, I can make my own libraries too!", I found Spyder from the
-Anaconda ecosystem, jumped to PyCharm for a couple years, all the
-while using a little dash of Vim on the side.  Recently, I went all-in
-on a lua configuration for Neovim, and that's been my home for the
+Anaconda ecosystem, jumped to PyCharm for a while, all the
+while using a dash of Vim on the side.  Recently, I went all-in
+on a [[https://github.com/renzmann/config-nvim][lua configuration for Neovim]], and that's been my home for the
 last couple years now, except for when I just need a notebook.
 Typically I still turn to JupyterLab when I need a [[https://en.wikipedia.org/wiki/Literate_programming][literate
 programming]] environment, with access to plotting inline with code.
@@ -34,7 +34,7 @@ and right now I don't think the options are great.
 
 + [[https://www.spyder-ide.org/][Spyder]] is probably the closest right now, but I have the least
   experience with it.  The messaging from their website is wholly
-  python-centric, however, and I'm looking for a much more generic
+  python-centric, though, and I'm looking for a much more generic
   tool.  I also have no idea how well it handles remote project
   development.
 + VSCode is currently the gold standard in terms of "just working" out
@@ -51,3 +51,11 @@ and right now I don't think the options are great.
   way (i.e. running commands in one tmux window and vim in the other)
 + I think [[https://www.juliapackages.com/p/pluto][Pluto]] is incredibly slick, and I wish more notebooking
   environments operated like it
+
+So where does this leave us? [[https://www.gnu.org/software/emacs/][Emacs]] has:
+
++ Rich text and image display (as GUI program)
++ Inline literate programming via =org-mode=, and many Jupyter integration projects
++ Support for basically every programming language on the planet
++ Tree-sitter and Language Server Protocol (LSP) support, with the option to choose our own server
++ A fully featured general programming language for configuration and extension (Emacs LISP)
