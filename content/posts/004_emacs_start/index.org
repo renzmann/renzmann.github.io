@@ -1,0 +1,18 @@
+#+title: Emacs Has Been Waiting for Data Science
+#+author: Robb Enzmann
+#+date: 2022-07-29
+#+categories[]: emacs python org-mode
+#+draft: true
+#+variable: value
+
+
+I'm pretty happy with my (neo)vim setup. I can walk into basically any code base
+with it and usually I can be useful wielding it. There comes a point, though,
+where we hit a wall and we look at things like Jupyter or VSCode and think
+"damn, that actually is pretty useful."  This has started happening more
+frequently than not as more of my workflow transitioned to terminal-based
+tooling and suddenly I found myself lacking some of the basics we need to do
+useful data science, like rich text (math) and images (plots).
+
+What I've decided to do is go on a journey to finally tame the beast, and build
+a rocking emacs setup specifically with the common data scientist in mind.
