@@ -1,11 +1,8 @@
 #+title: Emacs Has Been Waiting for Data Science
 #+author: Robb Enzmann
-#+date: 2022-07-29
-#+categories[]: emacs python org-mode
-#+draft: true
-#+variable: value
-
- *TODO* images of neovim, emacs, jupyter setups
+#+date: 2022-07-31
+#+categories[]: emacs python org-mode data science
+#+draft: false
 
 I'm pretty happy with my (neo)vim setup.  Wielding it, I can walk into
 most code bases and be useful.  There comes a point, though, where we
@@ -29,24 +26,24 @@ Typically I still turn to JupyterLab when I need a [[https://en.wikipedia.org/wi
 programming]] environment, with access to plotting inline with code.
 Sometimes a notebook is just the right thing for the job.  Other
 times, I need a text editor and a language server for some back-end
-code.  I want a [[https://en.wikipedia.org/wiki/Free_software][free/libre]] environment that supports both of these,
+work.  I want a [[https://en.wikipedia.org/wiki/Free_software][free/libre]] environment that supports both of these,
 and right now I don't think the options are great.
 
 + [[https://www.spyder-ide.org/][Spyder]] is probably the closest right now, but I have the least
   experience with it.  The messaging from their website is wholly
   python-centric, though, and I'm looking for a much more generic
   tool.  I also have no idea how well it handles remote project
-  development.
+  development
 + VSCode is currently the gold standard in terms of "just working" out
   of the box.  I haven't seen anything integrate with remote
   development, including Jupyter notebooks, as well as this one does.
-  It doesn't meet the "libre" component, though, and Microsoft has no
-  plans for opening its pylance server either.
+  It doesn't meet the "libre" requirement, though, and Microsoft has no
+  plans for opening its pylance server either
 + PyCharm is a behemoth powerhouse for working on a local codebase.
-  It absolutely falls apart when trying to work on remote projects.
+  It absolutely falls apart when trying to work on remote projects
 + Vim and Neovim are terminal editors, and by their very nature are
   not designed for displaying images.  Really, they are designed to
-  encompass the physical act of /editing text/, and leave the other
+  address the physical act of /editing text/, and leave the other
   components of your development workflow to be integrated some other
   way (i.e. running commands in one tmux window and vim in the other)
 + I think [[https://www.juliapackages.com/p/pluto][Pluto]] is incredibly slick, and I wish more notebooking
@@ -54,8 +51,43 @@ and right now I don't think the options are great.
 
 So where does this leave us? [[https://www.gnu.org/software/emacs/][Emacs]] has:
 
-+ Rich text and image display (as GUI program)
-+ Inline literate programming via =org-mode=, and many Jupyter integration projects
++ Rich text and image display (as a GUI program)
++ Inline literate programming via =org-mode=, and many Jupyter
+  integration projects
 + Support for basically every programming language on the planet
-+ Tree-sitter and Language Server Protocol (LSP) support, with the option to choose our own server
-+ A fully featured general programming language for configuration and extension (Emacs LISP)
++ Tree-sitter and Language Server Protocol (LSP) support, with the
+  option to choose our own server
++ A fully featured general programming language for configuration and
+  extension (Emacs LISP)
++ An enormous integrated help and documentation system
++ Cross-platform to Windows, Linux, and macOS
++ Libre license (GNU GPL 3.0)
++ Built-in remote development support (via TRAMP)
++ Terminal emulation via any of `M-x term`, `M-x shell`, or `M-x eshell`
+
+All that to say Emacs is a tempting offer, and I'm going to try diving
+in so that you don't have to.  The plan is to build an emacs
+configuration from scratch with the goal of a data science workstation
+in mind, and will be aimed at folks like me - people who /want/ to
+learn how this crazy emacs monster works, and are maybe a strong
+Vimmer, but haven't had the chance to really sit down an learn emacs
+yet.  As such, this will be more than a "follow-along" configuration
+guide; rather I'm aiming to dig into the details, and weigh the merits
+of choosing one thing over another, especially as they compare against
+their (neo)vim counterparts.  As long as I can keep up, the plan is
+one post a week, focusing on a single component to integrate, such as
+LSP, auto-complete, remote workflow, notebooks, packaging,
+Windows-specific forays, and so on.  I may reference back to this
+article and change it up a bit as we learn more, so that this article
+can be the one-stop-shop on justification for /"why emacs"/?
+
+At the end of the day, though, this whole process is largely to
+document my own learning process, so I can come back and say "why on
+earth did I do it this way? Oh, that's right..."  There are already an
+enormous number of excellent learning materials out there for picking
+up emacs, so my recommendation for other people like me is to also
+give them a shot:
+
++ The official [[https://www.gnu.org/software/emacs/manual/emacs.html][Emacs manual]]
++ [[https://www.gnu.org/software/emacs/manual/eintr.html][An Introduction to Programming in Emacs Lisp]]
++ [[https://www.masteringemacs.org/][Mastering Emacs]]
