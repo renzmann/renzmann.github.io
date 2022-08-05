@@ -233,8 +233,8 @@ should read elisp.
 
 We're going to do a combination of letting the customization menus
 manage the blocks like we showed above and writing a little
-configuration ourselves, so I'm going to redirect custom to a different file, then
-load it from there:
+configuration ourselves, so I'm going to redirect custom to a
+different file, then load it from there:
 
 #+begin_src elisp
   ;; ~/.emacs.d/init.el
@@ -250,12 +250,26 @@ In =~/.emacs.d/custom.el=, I placed all the contents of what was
 written by "custom" - the block that originally went to =~/.emacs=
 after saving the custom theme.
 
+** Edit what packages we use interactively
+
+*** TODO =package-install=, =package-delete=, and my =C-c p=
+
+*** package-install also edits custom, as does package-delete
+
+*** show off the changed value in custom.el
+
+*** show off package-autoremove
+
+** Customize packages with =use-package=
+
+Clear up confusion I initially had about the role of use-package
+
 
 * TODO Our position - use builtin as we can to learn the editor, but don't be /afraid/ of packages
 * TODO Need to keep Windows cross-platform compatibility in mind
 * TODO Interactive customization - images, code, and setting up =custom.el=
-* TODO =package-install=, =package-delete=, and my =C-c p=
-* TODO A tiny bit of elip intro
+
+* DONE A tiny bit of elip intro
 
 [fn:TECO] It's also likely that its predecessor [[https://en.wikipedia.org/wiki/TECO_(text_editor)][TECO]] from the 60's was
 developed on a terminal on which the "Ctrl" key was located just to
