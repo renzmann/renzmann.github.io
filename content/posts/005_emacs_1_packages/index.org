@@ -1,4 +1,4 @@
-#+title: Emacs Part 1: Setting up a Packages Workflow
+#+title: Emacs Part 1: The Keyboard and Packages
 #+author: Robb Enzmann
 #+date: 2022-08-03
 #+startup: inlineimages
@@ -56,8 +56,6 @@ similar attitude to some extent, but is still somewhat nascent,
 especially with the recent Vim9/Lua debacle.
 
 
-* TODO Our position - use builtin as we can to learn the editor, but don't be /afraid/ of packages
-* TODO Need to keep Windows cross-platform compatibility in mind
 
 * A brief note about keyboard shortcuts and finger contortion
 
@@ -66,10 +64,11 @@ it's something I desparately wish had been laid out for me when I was
 first starting Emacs.  There are a lot of key combinations in Emacs
 that rely on consistent, easy access to the Ctrl and Alt (option on
 macOS) keys.  What I was lacking was a guide along the lines of "use
-your left little finger for this modifier, followed by your thumb for this one."
-Starting out, some of the combinations looked impossibly slow to be useful, just because
-of the muscle memory I already built around using Ctrl and Alt. For instance, imagine
-seeing this keyboard shortcut for navigating up three lines in Emacs:
+your left little finger for this modifier, followed by your thumb for
+this one."  Starting out, some of the combinations looked impossibly
+slow to be useful, just because of the muscle memory I already built
+around using Ctrl and Alt. For instance, imagine seeing this keyboard
+shortcut for navigating up three lines in Emacs:
 
 1. Ctrl + 3
 2. Ctrl + p
@@ -79,11 +78,11 @@ on Ctrl and left middle finger on the "3", and using my left little
 finger for Ctrl+p, that this seemed like a lot of wasted arm movement
 just to do what would normally be =3k= in Vim.  In reality, nearly
 every Emacs user has the "Ctrl" key just to the left of their little
-finger on the home row.[fn:TECO]  This is where most American keyboards place
-the "Caps Lock" key, which is typically just dead useless.  Regardless
-of whether you use something like Vim or Emacs, this is a good key to
-remap, and I do it on every workstation with one of these pieces
-of software:
+finger on the home row.[fn:TECO] This is where most American keyboards
+place the "Caps Lock" key, which is typically just dead useless.
+Regardless of whether you use something like Vim or Emacs, this is a
+good key to remap, and I do it on every workstation with one of these
+pieces of software:
 
 + macOS: [[https://karabiner-elements.pqrs.org/][Karabiner Elements]] (Third party)
 + Windows: [[https://docs.microsoft.com/en-us/windows/powertoys/keyboard-manager][PowerToys]] (included with Windows 10)
@@ -102,20 +101,60 @@ I can perform this version just as fast as =3k= in Vim - since the
 "Ctrl" and "3" can happen at the same time.  Changing the position of
 the Ctrl key is absolutely critical because of just /how many/
 commands rely on easy access to the Ctrl and Alt (option on macOS)
-keys.
+keys.  Below I've listed my general "finger flow" to maintain tempo
+while using Emacs.  For the rest of the article I'm going to use
+Emacs-style notation, which means =C-x= is "Ctrl" plus "x" at the same
+time, and =M-x= for "Alt" plus "x" at the same time.  The =M= is short
+for "Meta", a vestigial artifact from Emacs' history as a screen
+terminal program, and a common point of befuddlement for young, unwary
+travelers like me.
 
-Emacs is an old program; it predates the common paradigm of =C-c=
-("Ctrl" + "c") being "copy" and =C-x= ("Ctrl" + "x") being "paste."
-Moreover, it uses the letter "M", short for "Meta", to represent
-Alt/option, much to the befuddlement of young, unwary travelers like
-me.  Heck, even /Vim/ uses the term "Alt".
++ Left little finger for "Ctrl", left of "a" on American QWERTY
+  keyboard in /almost all/ cases
++ Left thumb on "Meta" (Alt/option), just to the left of the spacebar
+  for /most/ cases
++ Left little finger to use "Cmd" (Windows key, emacs calls this
+  "super") just to the left of "Meta", when modifying a right-hand
+  letter, i.e. =⌘-p=
++ Either right little finger or right thumb to use "Cmd" when I need a
+  left-hand modified character, like =⌘-w=, depending on the keyboard
+  I'm using
++ For =C-x= and =C-c= specifically, I have my right enter key bound to
+  "Ctrl" on hold, "Enter" on tap, so that I can type the =x= and =c=
+  characters as I normally would, without stretching my left little
+  finger upwards and to the left at the same time
++ For =M-x= (that's "Alt" and "x" together, or "option" + "x" on a
+  mac, which Emacs calls "Meta") specifically, I will usually use
+  either my right thumb or right little finger on the Alt/option key,
+  depending on the keyboard and how wide the spacebar is, because I find
+  that more comfortable than crossing over on my left hand to hit both
+  keys.  Similarly, I find =M-q=, =M-w=, and =M-z= all easier by using
+  both hands
+
+
+* Actually setting up the config
+
+Now that we've made it past the first hurdle of /using the keyboard/,
+we can actually open Emacs and start configuring it.  The most radical
+departure from my experience in Vim/Neovim starts here, with the [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Easy-Customization.html][Easy
+Customize]] interactive system.  Emacs has a significant interactive
+component, backed by plain text and data - which was a pleasant
+discovery when I saw this.  VSCode also rediscovered this type of
+system by providing an easy customization UI representing a swath of
+JSON configuration under the hood, which has proved immensely popular.
+By comparison, I would argue that the Emacs interface is downright
+hideous, but easier to grok.
+
+By way of example, let's walk what it looks like to customize the color theme
+just via interactive commands.  First, we hit =M-x=, Emacs' equivalent of the
+"Command Palette", if you're coming from something like VSCode or Jupyter, and
+enter =customize-theme= to head to a menu that shows all the default color themes we could
+use
 
 
 
-* TODO Brief note on C-x, C-c, keyboard bindings in general
-
-Actually setting up the config:
-
+* TODO Our position - use builtin as we can to learn the editor, but don't be /afraid/ of packages
+* TODO Need to keep Windows cross-platform compatibility in mind
 * TODO Interactive customization - images, code, and setting up =custom.el=
 * TODO =package-install=, =package-delete=, and my =C-c p=
 * TODO A tiny bit of elip intro
