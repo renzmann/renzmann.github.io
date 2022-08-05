@@ -3,6 +3,8 @@
 #+date: 2022-08-03
 #+startup: inlineimages
 
+TODO: Note to windows users on pathing and =~=
+
 This is the first part of a series in building an emacs configuration
 around the data science toolkit, which I introduced in [[https://robbmann.io/posts/004_emacs_start][another
 article.]]  I won't be covering the /absolute/ basics here, like how to
@@ -54,7 +56,6 @@ frameworks that work in that way for them.  That level of community
 acceptance and support is encouraging to see, and Neovim has adopted a
 similar attitude to some extent, but is still somewhat nascent,
 especially with the recent Vim9/Lua debacle.
-
 
 
 * A brief note about keyboard shortcuts and finger contortion
@@ -134,23 +135,120 @@ travelers like me.
 
 * Actually setting up the config
 
-Now that we've made it past the first hurdle of /using the keyboard/,
-we can actually open Emacs and start configuring it.  The most radical
-departure from my experience in Vim/Neovim starts here, with the [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Easy-Customization.html][Easy
-Customize]] interactive system.  Emacs has a significant interactive
-component, backed by plain text and data - which was a pleasant
-discovery when I saw this.  VSCode also rediscovered this type of
-system by providing an easy customization UI representing a swath of
-JSON configuration under the hood, which has proved immensely popular.
-By comparison, I would argue that the Emacs interface is downright
-hideous, but easier to grok.
+TODO: put this whole section before the keyboard part - Now that we've
+made it past the first hurdle of /using the keyboard/, we can actually
+open Emacs and start configuring it.  The most radical departure from
+my experience in Vim/Neovim starts here, with the [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Easy-Customization.html][Easy Customize]]
+interactive system.  Emacs has a significant interactive component,
+backed by plain text and data - which was a pleasant discovery when I
+saw this.  VSCode also rediscovered this type of system by providing
+an easy customization UI representing a swath of JSON configuration
+under the hood, which has proved immensely popular.  By comparison, I
+would argue that the Emacs interface is downright hideous, but easier
+to grok.
 
-By way of example, let's walk what it looks like to customize the color theme
-just via interactive commands.  First, we hit =M-x=, Emacs' equivalent of the
-"Command Palette", if you're coming from something like VSCode or Jupyter, and
-enter =customize-theme= to head to a menu that shows all the default color themes we could
-use
+By way of example, let's walk what it looks like to customize the
+color theme just via interactive commands.  First, we hit =M-x=,
+Emacs' equivalent of the "Command Palette", if you're coming from
+something like VSCode or Jupyter, and enter =customize-theme= to get a
+menu that shows all the default color themes we could use.  Another
+option, barring the use of =M-x=, is to use the menu bar and mouse
+just like we would in any other GUI program: "Options -> Customize
+Emacs -> Custom Themes" takes us to the same place.
 
+#+CAPTION: The "Custom Themes" screen
+#+attr_html: :width 500px
+#+attr_latex: :width 500px
+[[./customize-themes.png]]
+
+Clicking the check box next to "tango-dark" and then clicking the
+"Save Theme Settings" results in a modified color theme that looks
+like this:
+
+#+CAPTION: The "Custom Themes" screen
+#+attr_html: :width 500px
+#+attr_latex: :width 500px
+[[./after-setting-theme.png]]
+
+There are now two new things in your home directory:
+
+1. A file called =.emacs=
+2. A directory called =.emacs.d/=
+
+Opening the former using "File -> Open File..." (which may require
+turning on a "Show Hidden Files" option, depending on your system)
+shows us this set of text:
+
+#+begin_src elisp
+  (custom-set-variables
+   ;; custom-set-variables was added by Custom.
+   ;; If you edit it by hand, you could mess it up, so be careful.
+   ;; Your init file should contain only one such instance.
+   ;; If there is more than one, they won't work right.
+   '(custom-enabled-themes '(tango-dark)))
+  (custom-set-faces
+   ;; custom-set-faces was added by Custom.
+   ;; If you edit it by hand, you could mess it up, so be careful.
+   ;; Your init file should contain only one such instance.
+   ;; If there is more than one, they won't work right.
+   )
+#+end_src
+
+The code here is Emacs LISP - a programming language in its own
+right - and the main configuration language for the Emacs editor.
+Coming from Vim, where the /only/ method of configuration is by
+manually editing your =~/.vimrc=, this really blew my socks off.  The
+implication here is that we can use interactive menus, backed by a
+proper programming language (not just JSON data), which can take
+effect right next to my hand-tuned configuration, and I'm free to
+modify it however I like later on.  It is a bit cumbersome to have two
+locations dedicated to configuration, though, so the first thing I do
+here is "File -> Save As..." and write it to =~/.emacs.d/init.el=,
+then delete the =~/.emacs= file.  Emacs will automatically detect this
+and load the correct file the next time we start it up.
+
+** A short foray into elisp
+
+Usually, the first symbol inside parenthesis is a function, and the
+remaining symbols its arguments. So, broadly, when first learning the
+language coming from more traditional languages like Java, Python, C,
+etc., I tended to visualize it this way:
+
+#+begin_example
+   elisp version      Kinda like
+   -------------      ----------
+   (foo)              foo()
+   (foo "bar")        foo("bar")
+   (foo "bar" 2)      foo("bar", 2)
+#+end_example
+
+I say "usually" because there are other constructs, such as [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Special-Forms.html][special
+forms]] and [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Macros.html][macros]], but I'm definitely not getting to those for a while.
+I also say "Kinda like" because I'm pretty sure an experienced
+elisp-er would look at what I've written and say "yeah, no", but as
+I'm just starting out this was a helpful way to mentally frame how I
+should read elisp.
+
+** Redirect "custom" to separate the interactive stuff from our hand-edited parts
+
+We're going to do a combination of letting the customization menus
+manage the blocks like we showed above and writing a little
+configuration ourselves, so I'm going to redirect custom to a different file, then
+load it from there:
+
+#+begin_src elisp
+  ;; ~/.emacs.d/init.el
+  ;; Redirect custom so it doesn't edit this file
+  (setq custom-file "~/.emacs.d/custom.el")
+
+  ;; Load the custom file
+  (when (file-exists-p custom-file)
+    (load custom-file))
+#+end_src
+
+In =~/.emacs.d/custom.el=, I placed all the contents of what was
+written by "custom" - the block that originally went to =~/.emacs=
+after saving the custom theme.
 
 
 * TODO Our position - use builtin as we can to learn the editor, but don't be /afraid/ of packages
