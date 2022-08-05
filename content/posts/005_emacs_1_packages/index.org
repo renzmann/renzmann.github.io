@@ -1,0 +1,125 @@
+#+title: Emacs Part 1: Setting up a Packages Workflow
+#+author: Robb Enzmann
+#+date: 2022-08-03
+#+startup: inlineimages
+
+This is the first part of a series in building an emacs configuration
+around the data science toolkit, which I introduced in [[https://robbmann.io/posts/004_emacs_start][another
+article.]]  I won't be covering the /absolute/ basics here, like how to
+download and install Emacs, but just my thoughts as I start building
+my configuration from a brand new =~/.emacs.d/init.el=.
+
+If this /is/ your first exposure to Emacs, this is what it looks like
+when you download it, and boot up without configuring it at all:
+
+#+CAPTION: The default emacs startup screen on Ubuntu/Gnome desktop
+#+attr_html: :width 500px
+#+attr_latex: :width 500px
+[[./default-emacs.png]]
+
+At this point, the world is your oyster - they provide a few helpful
+links to get a new user started, but basically we can take this
+program and make it do /whatever we want/, including writing and
+building this website!
+
+So, where do we start?  When Emacs boots up, it reads a configuration
+file, canonically placed at =$HOME/.emacs.d/init.el=.  As the [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Init-File.html][Emacs
+manual]] mentions, there /are/ other places we could put the
+configuration, but this is the one I'm going to use.  Now Emacs is
+pretty big, but coming from Neovim I know there's going to be features
+it doesn't provide off the shelf that I'll want to add in, especially:
+
+1. Language server stuff - like [[https://github.com/microsoft/pyright][pyright]] for python editing
+2. Custom color themes - gotta have eye candy
+3. Intellisense-like code completion
+
+That means we need to get comfortable with whatever plugin or package
+system emacs supports.  In fact, my experience so far with exploring
+Reddit, package author sites, and github demonstrated an incredibly
+favorable view of throwing whatever kitchen sink stuff you like into
+your configuration, as long as you feel happy.
+
+This is a strikingly different attitude compared to (especially
+vanilla) Vim configuration advice. In the Vim circles, typically when
+asking for advice you'll first be greeted with "you aught to try this
+built-in capability first".  There are also notably vocal members who
+will argue against using /any/ plugin that doesn't serve some critical
+missing functionality of the editor.  When dipping into the Emacs
+forums, quite to the contrary, I've seen members mention "I know
+person A does it like X because of Y, but I do W because Z", often
+from a place of understanding or empathy to a particular use case.
+One user even mentioned that they /need/ vertical popup to assist with
+voice-powered coding tools, and hence will only consider auto-complete
+frameworks that work in that way for them.  That level of community
+acceptance and support is encouraging to see, and Neovim has adopted a
+similar attitude to some extent, but is still somewhat nascent,
+especially with the recent Vim9/Lua debacle.
+
+
+* TODO Our position - use builtin as we can to learn the editor, but don't be /afraid/ of packages
+* TODO Need to keep Windows cross-platform compatibility in mind
+
+* A brief note about keyboard shortcuts and finger contortion
+
+I'm including this section about "how to use your fingers" because
+it's something I desparately wish had been laid out for me when I was
+first starting Emacs.  There are a lot of key combinations in Emacs
+that rely on consistent, easy access to the Ctrl and Alt (option on
+macOS) keys.  What I was lacking was a guide along the lines of "use
+your left little finger for this modifier, followed by your thumb for this one."
+Starting out, some of the combinations looked impossibly slow to be useful, just because
+of the muscle memory I already built around using Ctrl and Alt. For instance, imagine
+seeing this keyboard shortcut for navigating up three lines in Emacs:
+
+1. Ctrl + 3
+2. Ctrl + p
+
+At the time, I was so used to hitting Ctrl+3 with right little finger
+on Ctrl and left middle finger on the "3", and using my left little
+finger for Ctrl+p, that this seemed like a lot of wasted arm movement
+just to do what would normally be =3k= in Vim.  In reality, nearly
+every Emacs user has the "Ctrl" key just to the left of their little
+finger on the home row.[fn:TECO]  This is where most American keyboards place
+the "Caps Lock" key, which is typically just dead useless.  Regardless
+of whether you use something like Vim or Emacs, this is a good key to
+remap, and I do it on every workstation with one of these pieces
+of software:
+
++ macOS: [[https://karabiner-elements.pqrs.org/][Karabiner Elements]] (Third party)
++ Windows: [[https://docs.microsoft.com/en-us/windows/powertoys/keyboard-manager][PowerToys]] (included with Windows 10)
++ Linux: On Ubuntu/Gnome it's usually as easy as Tweaks -> Keyboard &
+  Mouse -> Additional Layout options
++ [[https://qmk.fm/][QMK Firmware]] - when I'm on one of my fancy programmable keyboards
+
+Given that remapping, the combination /should/ work like this:
+
+1. Left little finger holds down "Ctrl"
+2. Press "3" with left middle finger
+3. Press "p" with right ring finger
+4. Release "Ctrl"
+
+I can perform this version just as fast as =3k= in Vim - since the
+"Ctrl" and "3" can happen at the same time.  Changing the position of
+the Ctrl key is absolutely critical because of just /how many/
+commands rely on easy access to the Ctrl and Alt (option on macOS)
+keys.
+
+Emacs is an old program; it predates the common paradigm of =C-c=
+("Ctrl" + "c") being "copy" and =C-x= ("Ctrl" + "x") being "paste."
+Moreover, it uses the letter "M", short for "Meta", to represent
+Alt/option, much to the befuddlement of young, unwary travelers like
+me.  Heck, even /Vim/ uses the term "Alt".
+
+
+
+* TODO Brief note on C-x, C-c, keyboard bindings in general
+
+Actually setting up the config:
+
+* TODO Interactive customization - images, code, and setting up =custom.el=
+* TODO =package-install=, =package-delete=, and my =C-c p=
+* TODO A tiny bit of elip intro
+
+[fn:TECO] It's also likely that its predecessor [[https://en.wikipedia.org/wiki/TECO_(text_editor)][TECO]] from the 60's was
+developed on a terminal on which the "Ctrl" key was located just to
+the left of =a=
