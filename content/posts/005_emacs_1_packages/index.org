@@ -3,18 +3,19 @@
 #+date: 2022-08-03
 #+startup: inlineimages
 
-* TODO Note to windows users on pathing and =~=
-
 * Philosophy
 
 This is the first part of a series in building an emacs configuration
 around the data science toolkit, which I introduced in [[https://robbmann.io/posts/004_emacs_start][another
 article.]]  I won't be covering the /absolute/ basics here, like how to
 download and install Emacs, but just my thoughts as I start building
-my configuration from a brand new =~/.emacs.d/init.el=.[fn:windows-path]
+my configuration from a brand new
+=~/.emacs.d/init.el=[fn:windows-path].  In many ways, this is a
+notes-as-I-go type of article, and I may gloss over details I don't
+find important yet or would become obvious after a little Googling.
 
 If this /is/ your first exposure to Emacs, this is what it looks like
-when you download it, and boot up without configuring it at all:
+when you download it and start it without configuring it at all:
 
 #+CAPTION: The default emacs startup screen on Ubuntu/Gnome desktop
 #+attr_html: :width 500px
@@ -29,12 +30,12 @@ building this website!
 So, where do we start?  When Emacs boots up, it reads a configuration
 file, canonically placed at =$HOME/.emacs.d/init.el=.  As the [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Init-File.html][Emacs
 manual]] mentions, there /are/ other places we could put the
-configuration, but this is the one I'm going to use.  Now Emacs is
-pretty big, but coming from Neovim I know there's going to be features
-it doesn't provide off the shelf that I'll want to add in, especially:
+configuration, but this is the one I'm going to use.  While Emacs is a
+fairly feature-rich editor by itself, I know there are features it
+doesn't provide off the shelf that I want to include, especially:
 
 1. Language server stuff - like [[https://github.com/microsoft/pyright][pyright]] for python editing
-2. Custom color themes - gotta have eye candy
+2. A git management UI
 3. Intellisense-like code completion
 
 That means we need to get comfortable with whatever plugin or package
@@ -44,8 +45,8 @@ favorable view of throwing whatever kitchen sink stuff you like into
 your configuration, as long as you feel happy.
 
 This is a strikingly different attitude compared to (especially
-vanilla) Vim configuration advice. In the Vim circles, typically when
-asking for advice you'll first be greeted with "you aught to try this
+vanilla) Vim configuration advice. Typically when asking for advice in
+the Vim circles you'll first be greeted with "you aught to try this
 built-in capability first".  There are also notably vocal members who
 will argue against using /any/ plugin that doesn't serve some critical
 missing functionality of the editor.  When dipping into the Emacs
@@ -76,16 +77,16 @@ shortcut for navigating up three lines in Emacs:
 1. Ctrl + 3
 2. Ctrl + p
 
-At the time, I was so used to hitting Ctrl+3 with right little finger
-on Ctrl and left middle finger on the "3", and using my left little
-finger for Ctrl+p, that this seemed like a lot of wasted arm movement
-just to do what would normally be =3k= in Vim.  In reality, nearly
-every Emacs user has the "Ctrl" key just to the left of their little
-finger on the home row.[fn:TECO] This is where most American keyboards
-place the "Caps Lock" key, which is typically just dead useless.
-Regardless of whether you use something like Vim or Emacs, this is a
-good key to remap, and I do it on every workstation with one of these
-pieces of software:
+At the time, I was so used to hitting Ctrl+3 with my right little
+finger on the Ctrl in the lower right and left middle finger on the
+"3", and using my left little finger for Ctrl+p, that this seemed like
+a lot of wasted arm movement just to do what would normally be =3k= in
+Vim.  In reality, nearly every Emacs user has the "Ctrl" key just to
+the left of their little finger on the home row.[fn:TECO] This is
+where most American keyboards place the "Caps Lock" key, which in my
+opinion is just dead useless.  Regardless of whether you use something
+like Vim or Emacs, this is a good key to remap, and I do it on every
+workstation with one of these pieces of software:
 
 + macOS: [[https://karabiner-elements.pqrs.org/][Karabiner Elements]] (Third party)
 + Windows: [[https://docs.microsoft.com/en-us/windows/powertoys/keyboard-manager][PowerToys]] (included with Windows 10)
@@ -95,7 +96,8 @@ pieces of software:
 
 Given that remapping, the combination /should/ work like this:
 
-1. Left little finger holds down "Ctrl"
+1. Left little finger holds down "Ctrl," using what is normally the
+   "Caps Lock" key
 2. Press "3" with left middle finger
 3. Press "p" with right ring finger
 4. Release "Ctrl"
@@ -103,14 +105,14 @@ Given that remapping, the combination /should/ work like this:
 I can perform this version just as fast as =3k= in Vim - since the
 "Ctrl" and "3" can happen at the same time.  Changing the position of
 the Ctrl key is absolutely critical because of just /how many/
-commands rely on easy access to the Ctrl and Alt (option on macOS)
-keys.  Below I've listed my general "finger flow" to maintain tempo
-while using Emacs.  For the rest of the article I'm going to use
-Emacs-style notation, which means =C-x= is "Ctrl" plus "x" at the same
-time, and =M-x= for "Alt" plus "x" at the same time.  The =M= is short
-for "Meta", a vestigial artifact from Emacs' history as a screen
-terminal program, and a common point of befuddlement for young, unwary
-travelers like me.
+commands rely on easy access to the Ctrl and Alt keys.  Below I've
+listed my general "finger flow" to maintain tempo while using Emacs.
+For the rest of the article I'm going to use Emacs-style notation,
+which means =C-x= is "Ctrl" plus "x" at the same time, and =M-x= for
+"Alt" plus "x" at the same time.  The =M= is short for "Meta", a
+vestigial artifact from Emacs' history as a screen terminal program,
+and a common point of befuddlement for young, unwary travelers like
+me.
 
 + Left little finger for "Ctrl", left of "a" on American QWERTY
   keyboard in /almost all/ cases
@@ -125,7 +127,9 @@ travelers like me.
 + For =C-x= and =C-c= specifically, I have my right enter key bound to
   "Ctrl" on hold, "Enter" on tap, so that I can type the =x= and =c=
   characters as I normally would, without stretching my left little
-  finger upwards and to the left at the same time
+  finger upwards and to the left at the same time.  When I don't have
+  the ability to program my Enter key this way, I'll hop between using
+  the right Ctrl and modified Caps Lock key
 + For =M-x= (that's "Alt" and "x" together, or "option" + "x" on a
   mac, which Emacs calls "Meta") specifically, I will usually use
   either my right thumb or right little finger on the Alt/option key,
@@ -140,12 +144,12 @@ travelers like me.
 Now that we've made it past the first hurdle of /using the keyboard/,
 we can actually open Emacs and start configuring it.  The most radical
 departure from my experience in Vim/Neovim starts here, with the [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Easy-Customization.html][Easy
-Customize]] interactive system.  Emacs has a significant interactive
-component, backed by plain text and data - which was a pleasant
-discovery when I saw this.  VSCode also rediscovered this type of
-system by providing an easy customization UI representing a swath of
-JSON configuration under the hood, which has proved immensely popular.
-By comparison, I would argue that the Emacs interface is downright
+Customize]] interactive system.  Emacs leans heavily on its interactive
+components, backed by plain text and data - which was admittedly a
+pleasant discovery.  VSCode rediscovered this type of system by
+providing an easy customization UI representing a swath of JSON
+configuration under the hood, which has proved immensely popular.  By
+comparison, I would argue that the Emacs interface is downright
 hideous, but easier to grok.
 
 By way of example, let's walk what it looks like to customize the
@@ -181,18 +185,18 @@ turning on a "Show Hidden Files" option, depending on your system)
 shows us this set of text:
 
 #+begin_src elisp
-  (custom-set-variables
-   ;; custom-set-variables was added by Custom.
-   ;; If you edit it by hand, you could mess it up, so be careful.
-   ;; Your init file should contain only one such instance.
-   ;; If there is more than one, they won't work right.
-   '(custom-enabled-themes '(tango-dark)))
-  (custom-set-faces
-   ;; custom-set-faces was added by Custom.
-   ;; If you edit it by hand, you could mess it up, so be careful.
-   ;; Your init file should contain only one such instance.
-   ;; If there is more than one, they won't work right.
-   )
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(custom-enabled-themes '(tango-dark)))
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ )
 #+end_src
 
 The code here is Emacs LISP - a programming language in its own
@@ -211,24 +215,22 @@ and load the correct file the next time we start it up.
 ** A short foray into elisp
 
 Usually, the first symbol inside parenthesis is a function, and the
-remaining symbols its arguments. So, broadly, when first learning the
-language coming from more traditional languages like Java, Python, C,
-etc., I tended to visualize it this way:
+remaining symbols its arguments. So, coming from more traditional
+languages like Java, Python, C, etc., I tend to visualize it this way:
 
 #+begin_example
-   elisp version      Kinda like
-   -------------      ----------
-   (foo)              foo()
-   (foo "bar")        foo("bar")
-   (foo "bar" 2)      foo("bar", 2)
+elisp version      Kinda like
+-------------      ----------
+(foo)              foo()
+(foo "bar")        foo("bar")
+(foo "bar" 2)      foo("bar", 2)
 #+end_example
 
 I say "usually" because there are other constructs, such as [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Special-Forms.html][special
 forms]] and [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Macros.html][macros]], but I'm definitely not getting to those for a while.
 I also say "Kinda like" because I'm pretty sure an experienced
 elisp-er would look at what I've written and say "yeah, no", but as
-I'm just starting out this was a helpful way to mentally frame how I
-should read elisp.
+I'm just starting out this is a helpful mental thesaurus.
 
 ** Redirect "custom" to separate the interactive stuff from our hand-edited parts
 
@@ -238,13 +240,13 @@ configuration ourselves, so I'm going to redirect custom to a
 different file, then load it from there:
 
 #+begin_src elisp
-  ;; ~/.emacs.d/init.el
-  ;; Redirect custom so it doesn't edit this file
-  (setq custom-file "~/.emacs.d/custom.el")
+;; ~/.emacs.d/init.el
+;; Redirect custom so it doesn't edit this file
+(setq custom-file "~/.emacs.d/custom.el")
 
-  ;; Load the custom file
-  (when (file-exists-p custom-file)
-    (load custom-file))
+;; Load the custom file
+(when (file-exists-p custom-file)
+  (load custom-file))
 #+end_src
 
 In =~/.emacs.d/custom.el=, I placed all the contents of what was
@@ -256,16 +258,16 @@ customizing emacs:
   We never touch this one by hand
 + =~/.emacs.d/init.el= - customization we /do/ write by hand
 
-Later on I'll cover some other common things we might want to set in
-the =init.el= file, but for now we'll leave it be to address more
-important things.  Namely, let's start plugging in new packages.
+Later on I'll cover some other common settings for the =init.el= file,
+but for now we'll leave it be to address more important things.
+Namely, let's start plugging in new packages.
 
 ** Edit what packages we use interactively
 
 Unlike most package managers in the Vim world, it's rare nowadays to
 grab code directly off github or submoduling/unzipping some tarball
 into your configuration directory.  Rather, there's a central
-repository called ELPA, located at at http://elpa.gnu.org/, which
+repository called ELPA, located at http://elpa.gnu.org/, which
 hosts well-known packages we can install right away (Python folks can
 think of ELPA a bit like PyPI).  By running =M-x list-packages=, we're
 prompted with this lovely screen:
@@ -284,7 +286,7 @@ when using =M-x= or =C-x C-f= (finding files), a lot like the "command
 palette" you get in other editors like VSCode, Jupyter, and JetBrains,
 when selecting generic actions to take.  As of Emacs 28, there's a built-in
 vertical FIDO mode that mostly does this, but I kept getting a delay between
-pressing =M-x= and the minibuffer popping up, so I'm opting for a third party
+pressing =M-x= and the minibuffer popping up, so I opted for a third party
 package called =vertico= that I'm very happy with.  To install it, all I had
 to do was use the =M-x list-packages= buffer posted above and click on "install",
 or use =M-x package-install RET vertico= (that's =M-x package-install=, followed
@@ -302,11 +304,11 @@ That last one is mind-blowing.  Emacs edited a variable called
 by the very nature of installing it interactively
 
 #+begin_src elisp
-  ;; ~/.emacs.d/custom.el
-  ;; --snip--
-  '(package-selected-packages
-    '(vertico))
-  ;; --snip--
+;; ~/.emacs.d/custom.el
+;; --snip--
+'(package-selected-packages
+  '(vertico))
+;; --snip--
 #+end_src
 
 This means I can use all of Emacs' interactive features, even while
@@ -315,32 +317,32 @@ of my choosing.  It also leaves the possibility of managing this
 variable manually via =~/.emacs.d/init.el= open, but we aren't there
 yet.  At any point, I can also use =M-x package-delete= or the
 packages buffer to interactively remove a package from Emacs and
-=~/.emacs.d/custom.el= variable will stay up to date.  Since I'd like
+=~/.emacs.d/custom.el=.  Since I'd like
 to ship my Emacs configuration to many workstations, I'd like Emacs
 to automatically install these selected plugins, and remove obsolete ones,
 at boot.  There are a couple functions that allow me to do this:
 
 #+begin_src elisp
-  ;; ~/.emacs.d/init.el
-  ;; Enable built-in package manager
-  (require 'package)
+;; ~/.emacs.d/init.el
+;; Enable built-in package manager
+(require 'package)
 
-  ;; Redirect custom so it doesn't edit this file
-  (setq custom-file "~/.emacs.d/custom.el")
+;; Redirect custom so it doesn't edit this file
+(setq custom-file "~/.emacs.d/custom.el")
 
-  ;; Load the custom file
-  (when (file-exists-p custom-file)
-    (load custom-file))
-  ;; At this point, package-selected-packages has been set by loading the custom-file
+;; Load the custom file
+(when (file-exists-p custom-file)
+  (load custom-file))
+;; At this point, package-selected-packages has been set by loading the custom-file
 
-  ;; Remove any packages that are installed, but aren't listed in package-selected-packages
-  (package-autoremove)
+;; Remove any packages that are installed, but aren't listed in package-selected-packages
+(package-autoremove)
 
-  ;; Keep our registry up-to-date
-  (package-refresh-contents)
+;; Keep our registry up-to-date
+(package-refresh-contents)
 
-  ;; Install selected packages
-  (package-install-selected-packages)
+;; Install selected packages
+(package-install-selected-packages)
 #+end_src
 
 As far as I'm concerned at the moment, this is all the package management
@@ -352,7 +354,7 @@ do in Neovim.[fn:package-managers]
 
 There is also a community-maintained, much larger selection of plugins
 on something called "Milkypostman's Emacs Lisp Package Archive",
-usually abbreviated to MELPA, which servers an almost identical role
+usually abbreviated to MELPA, which serves an almost identical role
 as ELPA, but doesn't require going through the official GNU channels to
 get your project hosted.  As such, most projects on GitHub require you
 to enable fetching packages from MELPA before installing.  There are
@@ -362,19 +364,19 @@ configuration and understand what the difference between "stable" and
 "not-stable" is, I'm going to just stick with "stable".
 
 #+begin_src elisp
-  ;; ~/.emacs.d/init.el
-  ;; --snip--
-  ;; Keep our registry up-to-date
-  (add-to-list 'package-archives '("melpa-stable" . "https://stable.melpa.org/packages/") t)
-  (package-refresh-contents)
-  ;; --snip--
+;; ~/.emacs.d/init.el
+;; --snip--
+;; Keep our registry up-to-date
+(add-to-list 'package-archives '("melpa-stable" . "https://stable.melpa.org/packages/") t)
+(package-refresh-contents)
+;; --snip--
 #+end_src
 
 There's a decent amount of elisp witchcraft in the =add-to-list=
-statement alone that's out of scope for this article, but in essence
+statement alone, but in essence
 it just enables Emacs to "see" what's on the community MELPA archive
 when we run =M-x list-packages= or =M-x package-install=.  After
-adding this and digging around \/r/emacs and github, I have a minimal
+adding this and digging around /r/emacs and github, I have a minimal
 set of packages that are enabling me to be productive without too much
 configuration so far[fn:further]
 
@@ -391,9 +393,9 @@ configuration so far[fn:further]
   the hang of it)
 + [[https://github.com/iqbalansari/restart-emacs][restart-emacs]]
 + [[https://github.com/rust-lang/rust-mode][rust-mode]]
-+ [[https://github.com/emacs-tree-sitter/elisp-tree-sitter][tree-sitter]]
++ [[https://github.com/emacs-tree-sitter/elisp-tree-sitter][tree-sitter]] (more intelligent code highlighting)
 + [[https://github.com/emacs-tree-sitter/tree-sitter-langs][tree-sitter-langs]]
-+ [[https://github.com/jwiegley/use-package][use-package]] (a configuration /macro/, see below)
++ [[https://github.com/jwiegley/use-package][use-package]] (a configuration macro, see below)
 + [[https://github.com/joostkremers/writeroom-mode][writeroom-mode]] (distraction-free writing, which I use for this blog)
 
 I am also trying out both [[https://github.com/emacs-lsp/lsp-mode][lsp-mode]] with [[https://github.com/emacs-lsp/lsp-pyright][lsp-pyright]] and [[https://github.com/joaotavora/eglot][eglot]] for
@@ -403,69 +405,58 @@ tend to shy away from exceptionally large frameworks, so [[https://emacs-helm.gi
 look appealing at first glance.  I'd rather pick exactly the pieces I
 want to include and get them working one-by-one.
 
-** COMMENT Configuring packages we've installed
+** Configuring packages we've installed
 
-One thing that confused me more than anything while starting out is
-what the heck [[https://github.com/jwiegley/use-package][=use-package=]] actually is or does.  Many users online
+The one piece that confused me more than anything while starting out
+is what the heck [[https://github.com/jwiegley/use-package][=use-package=]] actually is or does.  Many users online
 would refer to it as "their package manager", however it is
-emphaitcally /not/ a package manager, as the very first section of
-their README notes.  It took me a while to figure out that
+emphatically /not/ a package manager, as the very first section of
+their README notes.  Because I had just been copying =use-package=
+snippets from around the internet before I took a minute to read the
+=use-package= documentation, it took me a while to figure out that
 =use-package= is meant to be used /in conjunction/ with a package
-manager, which in our case is the built-in =package.el= from the
-previous sections.  Installing a package is just one step, however.  Most
-packages will also have options that we can configure to suit our tastes, and /that/
-is what we ask =use-package= to do for us.
+manager, which in our case is the built-in =package.el=.  After
+=package.el= installs a new package, it's likely there are ways to
+tweak that package that suit our tastes, and /that/ is what we ask
+=use-package= to do for us.
 
 Without diving into too much detail, it's easy to imagine how complex managing
 package start up, configuration, and order-of-operations could be:
 
-+ Did I make sure load this package after it's prerequisites?
++ Did I make sure load this package after its prerequisites?
 + How do enable keybindings only when this package is active?
-+ How can I delay loading this big, expensive package until only when
-  I load a buffer that needs it?
++ How can I delay loading this big, expensive package until I actually
+  need it?
 
-Even just these three simple things require careful thought and a
-little hand-tuning in the =~/.emacs.d/init.el=.  Solving these types
-of problems is what =use-package= is designed for, /not/ for ensuring
-we download, install, update, and uninstall packages altogether - we
-have =package.el= for that.  Here's an example of how I configure
+It bears mentioning that there /are/ ways to have =use-package=
+[[https://github.com/jwiegley/use-package#package-installation][interface with =package.el=]], but I'm going to hold off on those until
+I feel like I need them.  Here's an example of how I configure
 tree-sitter to add spiffy highlighting everywhere I go, without
 bogging down startup time of emacs:
 
 #+begin_src elisp
-  (use-package tree-sitter
-    :init (global-tree-sitter-mode)
-    :hook (tree-sitter-after-on . tree-sitter-hl-mode)
-    :config
-    (use-package tree-sitter-hl)
-    (use-package tree-sitter-langs)
-    (use-package tree-sitter-debug)
-    (use-package tree-sitter-query))
+(use-package tree-sitter
+  :init (global-tree-sitter-mode)
+  :hook (tree-sitter-after-on . tree-sitter-hl-mode)
+  :config
+  (use-package tree-sitter-hl)
+  (use-package tree-sitter-langs)
+  (use-package tree-sitter-debug)
+  (use-package tree-sitter-query))
 #+end_src
 
 The README on the =use-package= GitHub page explains all the special
 =:<section>= bits, but in essence this is a clean way of saying:
 
 + Run =(global-tree-sitter-mode)= on startup
-+ Turn on =tree-sitter-hl-mode= after booting up =tree-sitter=
++ Turn on =tree-sitter-hl-mode= whenever we boot up =tree-sitter=
 + Configure =tree-sitter= to also use four other useful packages
 
 There are many, many capabilities bundles into =use-package=, and even
 very minimal configurations will tend to include it, because of the
 brevity it brings to advanced package configuration.
 
-*** DONE =package-install=, =package-delete=, and my =C-c p=
-*** DONE =list-packages= shortcuts, seeing what's installed/removing stuff
-*** DONE package-refresh-contents
-*** DONE MELPA and third-party
-*** DONE list of packages I'm using now
-*** DONE use-package - Clear up confusion I initially had about the role of use-package
-*** DONE show off package-autoremove
-*** DONE package-install also edits custom, as does package-delete
 
-
-* TODO Need to keep Windows cross-platform compatibility in mind
-* DONE Interactive customization - images, code, and setting up =custom.el=
 
 [fn:windows-path] For our resident Microsoft Windows users - I'll be
 using Unix-style paths, which means =~= is the home directory, like
