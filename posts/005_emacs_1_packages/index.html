@@ -1,0 +1,276 @@
+<!doctype html><html lang=en dir=ltr class=scroll-smooth data-default-appearance=light data-auto-appearance=true><head><meta charset=utf-8><meta http-equiv=content-language content="en"><meta name=viewport content="width=device-width,initial-scale=1"><meta http-equiv=x-ua-compatible content="ie=edge"><title>Emacs Part 1: The Keyboard and Packages &#183; robbmann</title><meta name=title content="Emacs Part 1: The Keyboard and Packages &#183; robbmann"><meta name=description content="It's Robb, man!"><link rel=canonical href=https://robbmann.io/posts/005_emacs_1_packages/><link type=text/css rel=stylesheet href=/css/main.bundle.min.39b7a5b20cc3e1243a974332de8d5e458dd9f15f0f8e06962e8afb4c2b9ce9805c65a0f9359b396ceb5d5f8c16f9ede5d854c208fb561f4fbc5b9a05f4c3cdec.css integrity="sha512-ObelsgzD4SQ6l0My3o1eRY3Z8V8PjgaWLor7TCuc6YBcZaD5NZs5bOtdX4wW+e3l2FTCCPtWH0+8W5oF9MPN7A=="><script type=text/javascript src=/js/appearance.min.badab316c9287a5a42a843e4eb45da65bb3d194a5a0f5fa4a3e516160e67df0b8c65f4f19a8e146436e29d583699e6cb41d6bbe99e05e1dbaa877763bad9f8e2.js integrity="sha512-utqzFskoelpCqEPk60XaZbs9GUpaD1+ko+UWFg5n3wuMZfTxmo4UZDbinVg2mebLQda76Z4F4duqh3djutn44g=="></script>
+<script defer type=text/javascript id=script-bundle src=/js/main.bundle.min.7f87078c7ae70d0d31bda6cc767aa21c8bd11a951a80225366dfcc842251d9a837d792488bd94cd976ced7bff1c4e659f285c1649f49119622f35076775e7726.js integrity="sha512-f4cHjHrnDQ0xvabMdnqiHIvRGpUagCJTZt/MhCJR2ag315JIi9lM2XbO17/xxOZZ8oXBZJ9JEZYi81B2d153Jg==" data-copy=Copy data-copied=Copied></script>
+<link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=manifest href=/site.webmanifest><meta property="og:title" content="Emacs Part 1: The Keyboard and Packages"><meta property="og:description" content="Philosophy This is the first part of a series in building an emacs configuration around the data science toolkit, which I introduced in another article."><meta property="og:type" content="article"><meta property="og:url" content="https://robbmann.io/posts/005_emacs_1_packages/"><meta property="article:section" content="posts"><meta property="article:published_time" content="2022-08-03T00:00:00+00:00"><meta property="article:modified_time" content="2022-08-03T00:00:00+00:00"><meta property="og:site_name" content="robbmann"><meta name=twitter:card content="summary"><meta name=twitter:title content="Emacs Part 1: The Keyboard and Packages"><meta name=twitter:description content="Philosophy This is the first part of a series in building an emacs configuration around the data science toolkit, which I introduced in another article."><script type=application/ld+json>[{"@context":"https://schema.org","@type":"Article","articleSection":"Posts","name":"Emacs Part 1: The Keyboard and Packages","headline":"Emacs Part 1: The Keyboard and Packages","abstract":"Philosophy This is the first part of a series in building an emacs configuration around the data science toolkit, which I introduced in another article.","inLanguage":"en","url":"https:\/\/robbmann.io\/posts\/005_emacs_1_packages\/","author":{"@type":"Person","name":"Robert Enzmann"},"copyrightYear":"2022","dateCreated":"2022-08-03T00:00:00\u002b00:00","datePublished":"2022-08-03T00:00:00\u002b00:00","dateModified":"2022-08-03T00:00:00\u002b00:00","mainEntityOfPage":"true","wordCount":"3113"}]</script><meta name=generator content="Hugo 0.101.0"><meta name=author content="Robert Enzmann"><link href=mailto:robbenzmann@gmail.com rel=me><link href=https://github.com/renzmann rel=me><link href=https://www.linkedin.com/in/renzmann rel=me></head><body class="flex flex-col h-screen px-6 m-auto text-lg leading-7 bg-neutral text-neutral-900 sm:px-14 md:px-24 lg:px-32 dark:bg-neutral-800 dark:text-neutral max-w-7xl"><div id=the-top class="absolute flex self-center"><a class="px-3 py-1 text-sm -translate-y-8 rounded-b-lg bg-primary-200 dark:bg-neutral-600 focus:translate-y-0" href=#main-content><span class="font-bold ltr:pr-2 rtl:pl-2 text-primary-600 dark:text-primary-400">&darr;</span>Skip to main content</a></div><header class="flex justify-between py-6 font-semibold sm:items-center sm:py-10 text-neutral-900 dark:text-neutral print:hidden"><div><a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" rel=me href=/>robbmann</a></div><nav><ul class="flex flex-col list-none sm:flex-row"><li class="mb-1 ltr:text-right rtl:text-left sm:mb-0 ltr:sm:mr-7 ltr:sm:last:mr-0 rtl:sm:ml-7 rtl:sm:last:ml-0"><a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=/posts/ title=Posts>Posts</a></li><li class="mb-1 ltr:text-right rtl:text-left sm:mb-0 ltr:sm:mr-7 ltr:sm:last:mr-0 rtl:sm:ml-7 rtl:sm:last:ml-0"><a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=/resume.pdf title>Resume</a></li><li class="ltr:text-right rtl:text-left ltr:sm:mr-7 ltr:sm:last:mr-0 rtl:sm:ml-7 rtl:sm:last:ml-0"><button id=search-button class="text-base hover:text-primary-600 dark:hover:text-primary-400" title="Search (/)">
+<span class="relative inline-block align-text-bottom icon"><svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="search" class="svg-inline--fa fa-search fa-w-16" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M505 442.7 405.3 343c-4.5-4.5-10.6-7-17-7H372c27.6-35.3 44-79.7 44-128C416 93.1 322.9.0 208 0S0 93.1.0 208s93.1 208 208 208c48.3.0 92.7-16.4 128-44v16.3c0 6.4 2.5 12.5 7 17l99.7 99.7c9.4 9.4 24.6 9.4 33.9.0l28.3-28.3c9.4-9.4 9.4-24.6.1-34zM208 336c-70.7.0-128-57.2-128-128 0-70.7 57.2-128 128-128 70.7.0 128 57.2 128 128 0 70.7-57.2 128-128 128z"/></svg></span></button></li></ul></nav></header><main id=main-content class="relative grow"><article><header class=max-w-prose><h1 class="mt-0 text-4xl font-extrabold text-neutral-900 dark:text-neutral">Emacs Part 1: The Keyboard and Packages</h1><div class="mt-8 mb-12 text-base text-neutral-500 dark:text-neutral-400 print:hidden"><div class="flex flex-row flex-wrap items-center"><time datetime="2022-08-03 00:00:00 +0000 UTC">3 August 2022</time><span class="px-2 text-primary-500">&#183;</span><span title="Reading time">15 mins</span></div></div></header><section class="flex flex-col max-w-full mt-0 prose lg:flex-row dark:prose-invert"><div class="min-w-0 min-h-0 max-w-prose"><div id=outline-container-headline-1 class=outline-2><h2 id=headline-1>Philosophy</h2><div id=outline-text-headline-1 class=outline-text-2><p>This is the first part of a series in building an emacs configuration
+around the data science toolkit, which I introduced in <a href=https://robbmann.io/posts/004_emacs_start>another
+article.</a> I won't be covering the <em>absolute</em> basics here, like how to
+download and install Emacs, but just my thoughts as I start building
+my configuration from a brand new
+<code class=verbatim>~/.emacs.d/init.el</code><sup class=footnote-reference><a id=footnote-reference-1 href=#footnote-1>1</a></sup>. In many ways, this is a
+notes-as-I-go type of article, and I may gloss over details I don't
+find important yet or would become obvious after a little Googling.</p><p>If this <em>is</em> your first exposure to Emacs, this is what it looks like
+when you download it and start it without configuring it at all:</p><p><img src=./default-emacs.png alt=./default-emacs.png title=./default-emacs.png></p><p>At this point, the world is your oyster - they provide a few helpful
+links to get a new user started, but basically we can take this
+program and make it do <em>whatever we want</em>, including writing and
+building this website! While Emacs is a fairly feature-rich editor by
+itself, I know there are features it doesn't provide off the shelf
+that I want to include, especially:</p><ol><li>Language server stuff - like <a href=https://github.com/microsoft/pyright>pyright</a> for Python editing</li><li>A git management UI</li><li>Intellisense-like code completion</li></ol><p>That means we need to get comfortable with whatever plugin or package
+system emacs supports. My first impression exploring Reddit, package
+author sites, and github is that most Emacs-ers have an incredibly
+favorable view of throwing whatever kitchen sink you like into your
+configuration, as long as you feel happy.</p><p>This is a strikingly different attitude compared to (especially
+vanilla) Vim configuration advice. Typically when asking for advice in
+the Vim circles you'll first be greeted with "you aught to try this
+built-in capability first". There are also notably vocal members who
+will argue against using <em>any</em> plugin that doesn't serve some critical
+missing functionality of the editor. When dipping into the Emacs
+forums, quite to the contrary, I've seen members mention "I know
+person A does it like X because of Y, but I do W because Z", often
+from a place of understanding or empathy to a particular use case.
+One user even mentioned that they <em>need</em> vertical popup to assist with
+voice-powered coding tools, and hence will only consider auto-complete
+frameworks that work in that way for them. That level of community
+acceptance and support is encouraging to see, and Neovim has adopted a
+similar attitude to some extent, but is still somewhat nascent,
+especially with the recent Vim9/Lua debacle.</p></div></div><div id=outline-container-headline-2 class=outline-2><h2 id=headline-2>A brief note about keyboard shortcuts and finger contortion</h2><div id=outline-text-headline-2 class=outline-text-2><p>I'm including this section about "how to use your fingers" because
+it's something I desparately wish had been laid out for me when I was
+first starting Emacs. There are a lot of key combinations in Emacs
+that rely on consistent, easy access to the Ctrl and Alt (option on
+macOS) keys. What I was lacking was a guide along the lines of "use
+your left little finger for this modifier, followed by your thumb for
+this one." Starting out, some of the combinations looked impossibly
+slow to be useful, just because of the muscle memory I already built
+around using Ctrl and Alt. For instance, imagine seeing this keyboard
+shortcut for navigating up three lines in Emacs:</p><ol><li>Ctrl + 3</li><li>Ctrl + p</li></ol><p>At the time, I was used to hitting Ctrl+3 with my right little finger
+on the Ctrl in the lower right and left middle finger on the "3", and
+then using the left Ctrl for Ctrl+p. That seemed like a lot of wasted
+arm movement just to do what would normally be <code class=verbatim>3k</code> in Vim. In
+reality, nearly every Emacs user has the "Ctrl" key just to the left
+of their little finger on the home row.<sup class=footnote-reference><a id=footnote-reference-2 href=#footnote-2>2</a></sup> This is where most
+American keyboards place the "Caps Lock" key, which in my opinion is
+just dead useless. Regardless of whether you use something like Vim
+or Emacs, this is a good key to remap, and I do it on every
+workstation with one of these pieces of software:</p><ul><li>macOS: <a href=https://karabiner-elements.pqrs.org/>Karabiner Elements</a> (Third party)</li><li>Windows: <a href=https://docs.microsoft.com/en-us/windows/powertoys/keyboard-manager>PowerToys</a> (included with Windows 10)</li><li>Linux: On Ubuntu/Gnome it's usually as easy as Tweaks -> Keyboard &
+Mouse -> Additional Layout options</li><li><a href=https://qmk.fm/>QMK Firmware</a> - when I'm on one of my fancy programmable keyboards</li></ul><p>Given that remapping, the combination <em>should</em> work like this:</p><ol><li>Left little finger holds down "Ctrl," using what is normally the
+"Caps Lock" key</li><li>Press "3" with left middle finger</li><li>Press "p" with right ring finger</li><li>Release "Ctrl"</li></ol><p>I can perform this version just as fast as <code class=verbatim>3k</code> in Vim - since the
+"Ctrl" and "3" can happen at the same time. Below I've listed my
+general "finger flow" to maintain tempo while using Emacs. For the
+rest of the article I'm going to use Emacs-style notation, which means
+<code class=verbatim>C-x</code> is "Ctrl" plus "x" at the same time, and <code class=verbatim>M-x</code> for "Alt" plus
+"x" at the same time. The <code class=verbatim>M</code> is short for "Meta", a vestigial
+artifact of Emacs' history as a screen terminal program, and a
+common point of befuddlement for young, unwary travelers like me.</p><ul><li>Left little finger for "Ctrl", left of "a" on American QWERTY
+keyboard in <em>almost all</em> cases</li><li>Left thumb on "Meta" (Alt/option), just to the left of the spacebar
+for <em>most</em> cases</li><li>Left little finger to use "Cmd" (Windows key, emacs calls this
+"super") just to the left of "Meta", when modifying a right-hand
+letter, i.e. <code class=verbatim>⌘-p</code></li><li>Either right little finger or right thumb to use "Cmd" when I need a
+left-hand modified character, like <code class=verbatim>⌘-w</code>, depending on the keyboard
+I'm using</li><li>For <code class=verbatim>C-x</code> and <code class=verbatim>C-c</code> specifically, I have my right enter key bound to
+"Ctrl" on hold, "Enter" on tap, so that I can type the <code class=verbatim>x</code> and <code class=verbatim>c</code>
+characters as I normally would, without stretching my left little
+finger upwards and to the left at the same time. When I don't have
+the ability to program my Enter key this way, I'll hop between using
+the right Ctrl and modified Caps Lock key</li><li>For <code class=verbatim>M-x</code> (that's "Alt" and "x" together, or "option" + "x" on a
+mac, which Emacs calls "Meta") specifically, I will usually use
+either my right thumb or right little finger on the Alt/option key,
+depending on the keyboard and how wide the spacebar is, because I find
+that more comfortable than crossing over on my left hand to hit both
+keys. Similarly, I find <code class=verbatim>M-q</code>, <code class=verbatim>M-w</code>, and <code class=verbatim>M-z</code> all easier by using
+both hands</li></ul></div></div><div id=outline-container-headline-3 class=outline-2><h2 id=headline-3>Actually setting up the config</h2><div id=outline-text-headline-3 class=outline-text-2><p>Now that we've made it past the first hurdle of <em>using the keyboard</em>,
+we can actually open Emacs and start configuring it. The most radical
+departure from my experience in Vim/Neovim starts here, with the <a href=https://www.gnu.org/software/emacs/manual/html_node/emacs/Easy-Customization.html>Easy
+Customize</a> interactive system. Emacs leans heavily on its interactive
+components, backed by plain text and data - which was admittedly a
+pleasant discovery. VSCode rediscovered this type of system by
+providing an easy customization UI representing a swath of JSON
+configuration under the hood, which has proved immensely popular. By
+comparison, I would argue that the Emacs interface is downright
+hideous, but easier to grok.</p><p>By way of example, let's walk what it looks like to customize the
+color theme just via interactive commands. First, we hit <code class=verbatim>M-x</code>,
+Emacs' equivalent of the "Command Palette", if you're coming from
+something like VSCode or Jupyter, and enter <code class=verbatim>customize-theme</code> to get a
+menu that shows all the default color themes we could use. Another
+option, barring the use of <code class=verbatim>M-x</code>, is to use the menu bar and mouse
+just like we would in any other GUI program: "Options -> Customize
+Emacs -> Custom Themes" takes us to the same place.</p><p><img src=./customize-themes.png alt=./customize-themes.png title=./customize-themes.png></p><p>Clicking the check box next to "tango-dark" and then clicking the
+"Save Theme Settings" results in a modified color theme that looks
+like this:</p><p><img src=./after-setting-theme.png alt=./after-setting-theme.png title=./after-setting-theme.png></p><p>There are now two new things in your home directory:</p><ol><li>A file called <code class=verbatim>.emacs</code></li><li>A directory called <code class=verbatim>.emacs.d/</code></li></ol><p>Opening the former using "File -> Open File…" (which may require
+turning on a "Show Hidden Files" option, depending on your system)
+shows us this set of text:</p><div class="src src-elisp"><div class=highlight><pre tabindex=0 class=chroma><code class=language-elisp data-lang=elisp><span class=line><span class=cl><span class=p>(</span><span class=nv>custom-set-variables</span>
+</span></span><span class=line><span class=cl> <span class=c1>;; custom-set-variables was added by Custom.</span>
+</span></span><span class=line><span class=cl> <span class=c1>;; If you edit it by hand, you could mess it up, so be careful.</span>
+</span></span><span class=line><span class=cl> <span class=c1>;; Your init file should contain only one such instance.</span>
+</span></span><span class=line><span class=cl> <span class=c1>;; If there is more than one, they won&#39;t work right.</span>
+</span></span><span class=line><span class=cl> <span class=o>&#39;</span><span class=p>(</span><span class=nv>custom-enabled-themes</span> <span class=o>&#39;</span><span class=p>(</span><span class=nv>tango-dark</span><span class=p>)))</span>
+</span></span><span class=line><span class=cl><span class=p>(</span><span class=nv>custom-set-faces</span>
+</span></span><span class=line><span class=cl> <span class=c1>;; custom-set-faces was added by Custom.</span>
+</span></span><span class=line><span class=cl> <span class=c1>;; If you edit it by hand, you could mess it up, so be careful.</span>
+</span></span><span class=line><span class=cl> <span class=c1>;; Your init file should contain only one such instance.</span>
+</span></span><span class=line><span class=cl> <span class=c1>;; If there is more than one, they won&#39;t work right.</span>
+</span></span><span class=line><span class=cl> <span class=p>)</span></span></span></code></pre></div></div><p>The code here is Emacs LISP - a programming language in its own
+right - and the main configuration language for the Emacs editor.
+Coming from Vim, where the <em>only</em> method of configuration is by
+manually editing your <code class=verbatim>~/.vimrc</code>, this really blew my socks off. The
+implication here is that we can use interactive menus, backed by a
+proper programming language (not just JSON data), which can take
+effect right next to my hand-tuned configuration, and I'm free to
+modify it however I like later on. It is a bit cumbersome to have two
+folders dedicated to configuration, though, so the first thing I do
+here is "File -> Save As…" and write it to <code class=verbatim>~/.emacs.d/init.el</code>,
+then delete the <code class=verbatim>~/.emacs</code> file. Emacs will automatically detect this
+and load the correct file the next time we start it up.</p><div id=outline-container-headline-4 class=outline-3><h3 id=headline-4>A short foray into elisp</h3><div id=outline-text-headline-4 class=outline-text-3><p>Usually, the first symbol inside parenthesis is a function, and the
+remaining symbols its arguments. So, coming from more traditional
+languages like Java, Python, C, etc., I tend to visualize it this way:</p><pre class=example>
+elisp version      Kinda like
+-------------      ----------
+(foo)              foo()
+(foo &#34;bar&#34;)        foo(&#34;bar&#34;)
+(foo &#34;bar&#34; 2)      foo(&#34;bar&#34;, 2)
+</pre><p>I say "usually" because there are other constructs, such as <a href=https://www.gnu.org/software/emacs/manual/html_node/elisp/Special-Forms.html>special
+forms</a> and <a href=https://www.gnu.org/software/emacs/manual/html_node/elisp/Macros.html>macros</a>, but I'm definitely not getting to those for a while.
+I also say "Kinda like" because I'm pretty sure an experienced
+elisp-er would look at what I've written and say "yeah, no", but as
+I'm just starting out this is a helpful mental thesaurus.</p></div></div><div id=outline-container-headline-5 class=outline-3><h3 id=headline-5>Redirect "custom" to separate the interactive stuff from our hand-edited parts</h3><div id=outline-text-headline-5 class=outline-text-3><p>We're going to do a combination of letting the customization menus
+manage the blocks like we showed above and writing a little
+configuration ourselves, so I'm going to redirect custom to a
+different file, then load it from there:</p><div class="src src-elisp"><div class=highlight><pre tabindex=0 class=chroma><code class=language-elisp data-lang=elisp><span class=line><span class=cl><span class=c1>;; ~/.emacs.d/init.el</span>
+</span></span><span class=line><span class=cl><span class=c1>;; Redirect custom so it doesn&#39;t edit this file</span>
+</span></span><span class=line><span class=cl><span class=p>(</span><span class=nb>setq</span> <span class=nv>custom-file</span> <span class=s>&#34;~/.emacs.d/custom.el&#34;</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1>;; Load the custom file</span>
+</span></span><span class=line><span class=cl><span class=p>(</span><span class=nb>when</span> <span class=p>(</span><span class=nf>file-exists-p</span> <span class=nv>custom-file</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>  <span class=p>(</span><span class=nf>load</span> <span class=nv>custom-file</span><span class=p>))</span></span></span></code></pre></div></div><p>In <code class=verbatim>~/.emacs.d/custom.el</code>, I placed all the contents of what was
+written by "custom" - the block that originally went to <code class=verbatim>~/.emacs</code>
+after saving the custom theme. Now we have two distinct spots for
+customizing emacs:</p><ul><li><code class=verbatim>~/.emacs.d/custom.el</code> - managed by the interactive customization menus.
+We never touch this one by hand</li><li><code class=verbatim>~/.emacs.d/init.el</code> - customization we <em>do</em> write by hand</li></ul><p>Later on I'll cover some other common settings for the <code class=verbatim>init.el</code> file,
+but for now we'll leave it be to address more important things.
+Namely, let's start plugging in new packages.</p></div></div><div id=outline-container-headline-6 class=outline-3><h3 id=headline-6>Edit what packages we use interactively</h3><div id=outline-text-headline-6 class=outline-text-3><p>Unlike most package managers in the Vim world, it's rare nowadays to
+grab code directly off github or submoduling/unzipping some tarball
+into your configuration directory. Rather, there's a central
+repository called ELPA, located at <a href=http://elpa.gnu.org/,>http://elpa.gnu.org/,</a> which
+hosts well-known packages we can install right away (Python folks can
+think of ELPA a bit like PyPI). By running <code class=verbatim>M-x list-packages</code>, we're
+prompted with this lovely screen:</p><p><img src=packages-screen.png alt=packages-screen.png title=packages-screen.png></p><p>There are a few <a href=https://www.gnu.org/software/emacs/manual/html_node/emacs/Package-Menu.html>special key commands</a>, the most common of which I am
+using are <code class=verbatim>/n</code> to filter by name and <code class=verbatim>/s installed</code> to look for
+packages I currently have installed.</p><p>The first thing I wanted was a vertical pop-up style for my minibuffer
+when using <code class=verbatim>M-x</code> or <code class=verbatim>C-x C-f</code> (finding files), a lot like the "command
+palette" you get in other editors like VSCode, Jupyter, and JetBrains,
+when selecting generic actions to take. As of Emacs 28, there's a built-in
+vertical FIDO mode that mostly does this, but I kept getting a delay between
+pressing <code class=verbatim>M-x</code> and the minibuffer popping up, so I opted for a third party
+package called <code class=verbatim>vertico</code> that I'm very happy with. To install it, all I had
+to do was use the <code class=verbatim>M-x list-packages</code> buffer posted above and click on "install",
+or use <code class=verbatim>M-x package-install RET vertico</code> (that's <code class=verbatim>M-x package-install</code>, followed
+by hitting "enter", then typing <code class=verbatim>vertico</code> and hitting enter again), and Emacs
+has automatically done three things for me:</p><ol><li>Fetched the latest version of the package from ELPA and downloaded
+it</li><li>Byte-compiled and installed the package into my editor</li><li><strong>Edited ~/.emacs.d/custom.el to signal that I selected and
+installed a new package</strong></li></ol><p>That last one is mind-blowing. Emacs edited a variable called
+<code class=verbatim>package-selected-packages</code> and put it into my <code class=verbatim>custom.el</code> file, just
+by the very nature of installing it interactively</p><div class="src src-elisp"><div class=highlight><pre tabindex=0 class=chroma><code class=language-elisp data-lang=elisp><span class=line><span class=cl><span class=c1>;; ~/.emacs.d/custom.el</span>
+</span></span><span class=line><span class=cl><span class=c1>;; --snip--</span>
+</span></span><span class=line><span class=cl><span class=o>&#39;</span><span class=p>(</span><span class=nv>package-selected-packages</span>
+</span></span><span class=line><span class=cl>  <span class=o>&#39;</span><span class=p>(</span><span class=nv>vertico</span><span class=p>))</span>
+</span></span><span class=line><span class=cl><span class=c1>;; --snip--</span></span></span></code></pre></div></div><p>This means I can use all of Emacs' interactive features, even while
+keeping my configuration under the proper text-based version control
+of my choosing. It also leaves the possibility of managing this
+variable manually via <code class=verbatim>~/.emacs.d/init.el</code> open, but we aren't there
+yet. At any point, I can also use <code class=verbatim>M-x package-delete</code> or the
+packages buffer to interactively remove a package from Emacs and
+<code class=verbatim>~/.emacs.d/custom.el</code>. Since I'd like
+to ship my Emacs configuration to many workstations, I'd like Emacs
+to automatically install these selected plugins, and remove obsolete ones,
+at boot. There are a couple functions that allow me to do this:</p><div class="src src-elisp"><div class=highlight><pre tabindex=0 class=chroma><code class=language-elisp data-lang=elisp><span class=line><span class=cl><span class=c1>;; ~/.emacs.d/init.el</span>
+</span></span><span class=line><span class=cl><span class=c1>;; Enable built-in package manager</span>
+</span></span><span class=line><span class=cl><span class=p>(</span><span class=nb>require</span> <span class=ss>&#39;package</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1>;; Redirect custom so it doesn&#39;t edit this file</span>
+</span></span><span class=line><span class=cl><span class=p>(</span><span class=nb>setq</span> <span class=nv>custom-file</span> <span class=s>&#34;~/.emacs.d/custom.el&#34;</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1>;; Load the custom file</span>
+</span></span><span class=line><span class=cl><span class=p>(</span><span class=nb>when</span> <span class=p>(</span><span class=nf>file-exists-p</span> <span class=nv>custom-file</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>  <span class=p>(</span><span class=nf>load</span> <span class=nv>custom-file</span><span class=p>))</span>
+</span></span><span class=line><span class=cl><span class=c1>;; At this point, package-selected-packages has been set by loading the custom-file</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1>;; Remove any packages that are installed, but aren&#39;t listed in package-selected-packages</span>
+</span></span><span class=line><span class=cl><span class=p>(</span><span class=nv>package-autoremove</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1>;; Keep our registry up-to-date</span>
+</span></span><span class=line><span class=cl><span class=p>(</span><span class=nv>package-refresh-contents</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1>;; Install selected packages</span>
+</span></span><span class=line><span class=cl><span class=p>(</span><span class=nv>package-install-selected-packages</span><span class=p>)</span></span></span></code></pre></div></div><p>As far as I'm concerned at the moment, this is all the package management
+I need! The built-in support is so good that I don't find myself wanting
+to reach towards an external package manager at all, like I would typically
+do in Neovim.<sup class=footnote-reference><a id=footnote-reference-3 href=#footnote-3>3</a></sup></p></div></div><div id=outline-container-headline-7 class=outline-3><h3 id=headline-7>Community packages</h3><div id=outline-text-headline-7 class=outline-text-3><p>There is also a community-maintained, much larger selection of plugins
+on something called "Milkypostman's Emacs Lisp Package Archive",
+usually abbreviated to MELPA, which serves an almost identical role
+as ELPA, but doesn't require going through the official GNU channels to
+get your project hosted. As such, most projects on GitHub require you
+to enable fetching packages from MELPA before installing. There are
+two versions of MELPA - <code class=verbatim>stable.melpa.org/packages</code> and the <em>unstable</em>
+<code class=verbatim>melpa.org/packages</code>. Until I get a better grounding in my
+configuration and understand what the difference between "stable" and
+"not-stable" is, I'm going to just stick with "stable".</p><div class="src src-elisp"><div class=highlight><pre tabindex=0 class=chroma><code class=language-elisp data-lang=elisp><span class=line><span class=cl><span class=c1>;; ~/.emacs.d/init.el</span>
+</span></span><span class=line><span class=cl><span class=c1>;; --snip--</span>
+</span></span><span class=line><span class=cl><span class=c1>;; Keep our registry up-to-date</span>
+</span></span><span class=line><span class=cl><span class=p>(</span><span class=nv>add-to-list</span> <span class=ss>&#39;package-archives</span> <span class=o>&#39;</span><span class=p>(</span><span class=s>&#34;melpa-stable&#34;</span> <span class=o>.</span> <span class=s>&#34;https://stable.melpa.org/packages/&#34;</span><span class=p>)</span> <span class=no>t</span><span class=p>)</span>
+</span></span><span class=line><span class=cl><span class=p>(</span><span class=nv>package-refresh-contents</span><span class=p>)</span>
+</span></span><span class=line><span class=cl><span class=c1>;; --snip--</span></span></span></code></pre></div></div><p>There's a decent amount of elisp witchcraft in the <code class=verbatim>add-to-list</code>
+statement alone, but in essence
+it just enables Emacs to "see" what's on the community MELPA archive
+when we run <code class=verbatim>M-x list-packages</code> or <code class=verbatim>M-x package-install</code>. After
+adding this and digging around /r/emacs and github, I have a minimal
+set of packages that are enabling me to be productive without too much
+configuration so far<sup class=footnote-reference><a id=footnote-reference-4 href=#footnote-4>4</a></sup></p><ul><li><a href=https://github.com/minad/corfu>corfu</a> (intellisense-like autocomplete; plays well with <code class=verbatim>orderless</code>
+below)</li><li><a href=https://github.com/purcell/exec-path-from-shell>exec-path-from-shell</a> (macOS specific)</li><li><a href=https://github.com/dominikh/go-mode.el>go-mode</a></li><li><a href=https://github.com/magit/magit>magit</a> (UI for git, I think basically everyone grabs this)</li><li><a href=https://github.com/minad/marginalia>marginalia</a> (preview that works amazingly well with <code class=verbatim>vertico</code>, shows
+me things like documentation and keybindings next to commands when I
+open <code class=verbatim>M-x</code>)</li><li><a href=https://jblevins.org/projects/markdown-mode/>markdown-mode</a></li><li><a href=https://github.com/oantolin/orderless>orderless</a> (a "completion style" that's pretty nifty, once you get
+the hang of it)</li><li><a href=https://github.com/iqbalansari/restart-emacs>restart-emacs</a></li><li><a href=https://github.com/rust-lang/rust-mode>rust-mode</a></li><li><a href=https://github.com/emacs-tree-sitter/elisp-tree-sitter>tree-sitter</a> (more intelligent code highlighting)</li><li><a href=https://github.com/emacs-tree-sitter/tree-sitter-langs>tree-sitter-langs</a></li><li><a href=https://github.com/jwiegley/use-package>use-package</a> (a configuration macro, see below)</li><li><a href=https://github.com/joostkremers/writeroom-mode>writeroom-mode</a> (distraction-free writing, which I use for this blog)</li></ul><p>I am also trying out both <a href=https://github.com/emacs-lsp/lsp-mode>lsp-mode</a> with <a href=https://github.com/emacs-lsp/lsp-pyright>lsp-pyright</a> and <a href=https://github.com/joaotavora/eglot>eglot</a> for
+language server stuff to see which one I like better, but haven't
+finalized it yet so we'll keep them in our back pocket for now. I
+tend to shy away from exceptionally large frameworks, so <a href=https://emacs-helm.github.io/helm/>helm</a> didn't
+look appealing at first glance. I'd rather pick exactly the pieces I
+want to include and get them working one-by-one.</p></div></div><div id=outline-container-headline-8 class=outline-3><h3 id=headline-8>Configuring packages we've installed</h3><div id=outline-text-headline-8 class=outline-text-3><p>The one piece that confused me more than anything while starting out
+is what the heck <a href=https://github.com/jwiegley/use-package><code class=verbatim>use-package</code></a> actually is or does. Many users online
+would refer to it as "their package manager", however it is
+emphatically <em>not</em> a package manager, as the very first section of
+their README notes. Because I had just been copying <code class=verbatim>use-package</code>
+snippets from around the internet before I took a minute to read the
+<code class=verbatim>use-package</code> documentation, it took me a while to figure out that
+<code class=verbatim>use-package</code> is meant to be used <em>in conjunction</em> with a package
+manager, which in our case is the built-in <code class=verbatim>package.el</code>. After
+<code class=verbatim>package.el</code> installs a new package, it's likely there are ways to
+tweak that package that suit our tastes, and <em>that</em> is what we ask
+<code class=verbatim>use-package</code> to do for us.</p><p>Without diving into too much detail, it's easy to imagine how complex managing
+package start up, configuration, and order-of-operations could be:</p><ul><li>Did I make sure load this package after its prerequisites?</li><li>How do enable keybindings only when this package is active?</li><li>How can I delay loading this big, expensive package until I actually
+need it?</li></ul><p>It bears mentioning that there <em>are</em> ways to have <code class=verbatim>use-package</code>
+<a href=https://github.com/jwiegley/use-package#package-installation>interface with <code class=verbatim>package.el</code></a>, but I'm going to hold off on those until
+I feel like I need them. Here's an example of how I configure
+tree-sitter to add spiffy highlighting everywhere I go, without
+bogging down startup time of emacs:</p><div class="src src-elisp"><div class=highlight><pre tabindex=0 class=chroma><code class=language-elisp data-lang=elisp><span class=line><span class=cl><span class=p>(</span><span class=nb>use-package</span> <span class=nv>tree-sitter</span>
+</span></span><span class=line><span class=cl>  <span class=nb>:init</span> <span class=p>(</span><span class=nv>global-tree-sitter-mode</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>  <span class=nb>:hook</span> <span class=p>(</span><span class=nv>tree-sitter-after-on</span> <span class=o>.</span> <span class=nv>tree-sitter-hl-mode</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>  <span class=nb>:config</span>
+</span></span><span class=line><span class=cl>  <span class=p>(</span><span class=nb>use-package</span> <span class=nv>tree-sitter-hl</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>  <span class=p>(</span><span class=nb>use-package</span> <span class=nv>tree-sitter-langs</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>  <span class=p>(</span><span class=nb>use-package</span> <span class=nv>tree-sitter-debug</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>  <span class=p>(</span><span class=nb>use-package</span> <span class=nv>tree-sitter-query</span><span class=p>))</span></span></span></code></pre></div></div><p>The README on the <code class=verbatim>use-package</code> GitHub page explains all the special
+<code class=verbatim>:&lt;section></code> bits, but in essence this is a clean way of saying:</p><ul><li>Run <code class=verbatim>(global-tree-sitter-mode)</code> on startup</li><li>Turn on <code class=verbatim>tree-sitter-hl-mode</code> whenever we boot up <code class=verbatim>tree-sitter</code></li><li>Configure <code class=verbatim>tree-sitter</code> to also use four other useful packages</li></ul><p>There are many, many capabilities bundled into <code class=verbatim>use-package</code>, and even
+very minimal configurations will tend to include it, because of the
+brevity it brings to advanced package configuration.</p></div></div></div></div><div class=footnotes><hr class=footnotes-separatator><div class=footnote-definitions><div class=footnote-definition><sup id=footnote-1><a href=#footnote-reference-1>1</a></sup><div class=footnote-body><p>For our resident Microsoft Windows users - I'll be
+using Unix-style paths, which means <code class=verbatim>~</code> is the home directory, like
+<code class=verbatim>C:\Users\Robb</code>, and <code class=verbatim>/</code> as path separators. Fret not, as Emacs will
+understand this style of pathing and the <code class=verbatim>~</code>, even on Windows</p></div></div><div class=footnote-definition><sup id=footnote-2><a href=#footnote-reference-2>2</a></sup><div class=footnote-body><p>It's also likely that its predecessor <a href=https://en.wikipedia.org/wiki/TECO_(text_editor)>TECO</a> from the 60's was
+developed on a terminal on which the "Ctrl" key was located just to
+the left of <code class=verbatim>a</code></p></div></div><div class=footnote-definition><sup id=footnote-3><a href=#footnote-reference-3>3</a></sup><div class=footnote-body><p>Such as <a href=https://github.com/wbthomason/packer.nvim>packer.nvim</a> (inspired by <code class=verbatim>use-package</code>)
+or <a href=https://github.com/junegunn/vim-plug>vim-plug</a></p></div></div><div class=footnote-definition><sup id=footnote-4><a href=#footnote-reference-4>4</a></sup><div class=footnote-body><p>I'll use another article to cover specific, intersting
+configuration on a per-package basis</p></div></div></div></div></div></section><footer class="pt-8 max-w-prose print:hidden"><div class=flex><img class="w-24 h-24 !mt-0 !mb-0 ltr:mr-4 rtl:ml-4 rounded-full" width=96 height=96 alt=Author src=/img/robb_python_grey_huf4e52b91f6345de53e62f8c2a64f08ae_471021_192x192_fill_box_smart1_3.png><div class=place-self-center><div class="text-[0.6rem] leading-3 text-neutral-500 dark:text-neutral-400 uppercase">Author</div><div class="font-semibold leading-6 text-neutral-800 dark:text-neutral-300">Robert Enzmann</div><div class="text-sm text-neutral-700 dark:text-neutral-400">I create tools in python that empower data science teams of all levels.</div><div class="text-2xl sm:text-lg"><div class="flex flex-wrap text-neutral-400 dark:text-neutral-500"><a class="px-1 hover:text-primary-700 dark:hover:text-primary-400" href=mailto:robbenzmann@gmail.com target=_blank aria-label=Email rel="me noopener noreferrer"><span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M207.8 20.73c-93.45 18.32-168.7 93.66-187 187.1-27.64 140.9 68.65 266.2 199.1 285.1 19.01 2.888 36.17-12.26 36.17-31.49l1e-4-.6631c0-15.74-11.44-28.88-26.84-31.24-84.35-12.98-149.2-86.13-149.2-174.2.0-102.9 88.61-185.5 193.4-175.4 91.54 8.869 158.6 91.25 158.6 183.2v16.16c0 22.09-17.94 40.05-40 40.05s-40.01-17.96-40.01-40.05v-120.1c0-8.847-7.161-16.02-16.01-16.02l-31.98.0036c-7.299.0-13.2 4.992-15.12 11.68-24.85-12.15-54.24-16.38-86.06-5.106-38.75 13.73-68.12 48.91-73.72 89.64-9.483 69.01 43.81 128 110.9 128 26.44.0 50.43-9.544 69.59-24.88 24 31.3 65.23 48.69 109.4 37.49C465.2 369.3 496 324.1 495.1 277.2V256.3c0-149.2-133.9-265.632-287.3-235.57zM239.1 304.3c-26.47.0-48-21.56-48-48.05s21.53-48.05 48-48.05 48 21.56 48 48.05-20.6 48.05-48 48.05z"/></svg></span></a><a class="px-1 hover:text-primary-700 dark:hover:text-primary-400" href=https://github.com/renzmann target=_blank aria-label=Github rel="me noopener noreferrer"><span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><path fill="currentcolor" d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6.0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6.0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3.0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1.0-6.2-.3-40.4-.3-61.4.0.0-70 15-84.7-29.8.0.0-11.4-29.1-27.8-36.6.0.0-22.9-15.7 1.6-15.4.0.0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5.0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9.0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4.0 33.7-.3 75.4-.3 83.6.0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6.0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9.0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg></span></a><a class="px-1 hover:text-primary-700 dark:hover:text-primary-400" href=https://www.linkedin.com/in/renzmann target=_blank aria-label=Linkedin rel="me noopener noreferrer"><span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path fill="currentcolor" d="M416 32H31.9C14.3 32 0 46.5.0 64.3v383.4C0 465.5 14.3 480 31.9 480H416c17.6.0 32-14.5 32-32.3V64.3c0-17.8-14.4-32.3-32-32.3zM135.4 416H69V202.2h66.5V416zm-33.2-243c-21.3.0-38.5-17.3-38.5-38.5S80.9 96 102.2 96c21.2.0 38.5 17.3 38.5 38.5.0 21.3-17.2 38.5-38.5 38.5zm282.1 243h-66.4V312c0-24.8-.5-56.7-34.5-56.7-34.6.0-39.9 27-39.9 54.9V416h-66.4V202.2h63.7v29.2h.9c8.9-16.8 30.6-34.5 62.9-34.5 67.2.0 79.7 44.3 79.7 101.9V416z"/></svg></span></a></div></div></div></div><div class=pt-8><hr class="border-dotted border-neutral-300 dark:border-neutral-600"><div class="flex justify-between pt-3"><span><a class="flex group" href=/posts/004_emacs_start/><span class="mr-3 ltr:inline rtl:hidden text-neutral-700 dark:text-neutral group-hover:text-primary-600 dark:group-hover:text-primary-400">&larr;</span>
+<span class="ml-3 ltr:hidden rtl:inline text-neutral-700 dark:text-neutral group-hover:text-primary-600 dark:group-hover:text-primary-400">&rarr;</span>
+<span class="flex flex-col"><span class="mt-[0.1rem] leading-6 group-hover:underline group-hover:decoration-primary-500">Emacs Has Been Waiting for Data Science</span>
+<span class="mt-[0.1rem] text-xs text-neutral-500 dark:text-neutral-400"><time datetime="2022-07-31 00:00:00 +0000 UTC">31 July 2022</time></span></span></a></span>
+<span></span></div></div></footer></article><div class="absolute top-[110vh] ltr:right-0 rtl:left-0 w-12 pointer-events-none bottom-[-5.5rem]"><a href=#the-top class="w-12 h-12 sticky pointer-events-auto top-[calc(100vh-5rem)] bg-neutral/50 dark:bg-neutral-800/50 backdrop-blur rounded-full text-xl flex items-center justify-center text-neutral-700 dark:text-neutral hover:text-primary-600 dark:hover:text-primary-400" aria-label="Scroll to top" title="Scroll to top">&uarr;</a></div></main><div id=search-wrapper class="fixed inset-0 z-50 flex flex-col p-4 sm:p-6 md:p-[10vh] lg:p-[12vh] w-screen h-screen cursor-default bg-neutral-500/50 backdrop-blur-sm dark:bg-neutral-900/50 invisible" data-url=https://robbmann.io><div id=search-modal class="flex flex-col w-full max-w-3xl min-h-0 mx-auto border rounded-md shadow-lg border-neutral-200 top-20 bg-neutral dark:bg-neutral-800 dark:border-neutral-700"><header class="relative z-10 flex items-center justify-between flex-none px-2"><form class="flex items-center flex-auto min-w-0"><div class="flex items-center justify-center w-8 h-8 text-neutral-400"><span class="relative inline-block align-text-bottom icon"><svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="search" class="svg-inline--fa fa-search fa-w-16" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M505 442.7 405.3 343c-4.5-4.5-10.6-7-17-7H372c27.6-35.3 44-79.7 44-128C416 93.1 322.9.0 208 0S0 93.1.0 208s93.1 208 208 208c48.3.0 92.7-16.4 128-44v16.3c0 6.4 2.5 12.5 7 17l99.7 99.7c9.4 9.4 24.6 9.4 33.9.0l28.3-28.3c9.4-9.4 9.4-24.6.1-34zM208 336c-70.7.0-128-57.2-128-128 0-70.7 57.2-128 128-128 70.7.0 128 57.2 128 128 0 70.7-57.2 128-128 128z"/></svg></span></div><input type=search id=search-query class="flex flex-auto h-12 mx-1 bg-transparent appearance-none focus:outline-dotted focus:outline-transparent focus:outline-2" placeholder=Search tabindex=0></form><button id=close-search-button class="flex items-center justify-center w-8 h-8 text-neutral-700 dark:text-neutral hover:text-primary-600 dark:hover:text-primary-400" title="Close (Esc)">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><path fill="currentcolor" d="M310.6 361.4c12.5 12.5 12.5 32.75.0 45.25C304.4 412.9 296.2 416 288 416s-16.38-3.125-22.62-9.375L160 301.3 54.63 406.6C48.38 412.9 40.19 416 32 416S15.63 412.9 9.375 406.6c-12.5-12.5-12.5-32.75.0-45.25l105.4-105.4L9.375 150.6c-12.5-12.5-12.5-32.75.0-45.25s32.75-12.5 45.25.0L160 210.8l105.4-105.4c12.5-12.5 32.75-12.5 45.25.0s12.5 32.75.0 45.25l-105.4 105.4L310.6 361.4z"/></svg></span></button></header><section class="flex-auto px-2 overflow-auto"><ul id=search-results></ul></section></div></div><footer class="py-10 print:hidden"><div class="flex justify-between"><div><p class="text-sm text-neutral-500 dark:text-neutral-400">&copy;
+2022
+Robert Enzmann</p><p class="text-xs text-neutral-500 dark:text-neutral-400">Powered by <a class="hover:underline hover:decoration-primary-400 hover:text-primary-500" href=https://gohugo.io/ target=_blank rel="noopener noreferrer">Hugo</a> & <a class="hover:underline hover:decoration-primary-400 hover:text-primary-500" href=https://git.io/hugo-congo target=_blank rel="noopener noreferrer">Congo</a></p></div><div class="text-sm cursor-pointer text-neutral-700 dark:text-neutral hover:text-primary-600 dark:hover:text-primary-400 ltr:mr-14 rtl:ml-14"><button id=appearance-switcher class="w-12 h-12" type=button title="Switch to dark appearance">
+<span class="inline dark:hidden"><span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M32 256C32 132.2 132.3 32 255.8 32c11.36.0 29.7 1.668 40.9 3.746 9.616 1.777 11.75 14.63 3.279 19.44C245 86.5 211.2 144.6 211.2 207.8c0 109.7 99.71 193 208.3 172.3 9.561-1.805 16.28 9.324 10.11 16.95C387.9 448.6 324.8 480 255.8 480 132.1 480 32 379.6 32 256z"/></svg></span></span><span class="hidden dark:inline"><span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M256 159.1c-53.02.0-95.1 42.98-95.1 95.1s41.2 96.9 95.1 96.9 95.1-42.98 95.1-95.1S309 159.1 256 159.1zM509.3 347l-63.2-91.9 63.15-91.01c6.332-9.125 1.104-21.74-9.826-23.72l-109-19.7-19.7-109c-1.975-10.93-14.59-16.16-23.72-9.824L256 65.89 164.1 2.736c-9.125-6.332-21.74-1.107-23.72 9.824L121.6 121.6 12.56 141.3C1.633 143.2-3.596 155.9 2.736 164.1L65.89 256 2.74 347.01c-6.332 9.125-1.105 21.74 9.824 23.72l109 19.7 19.7 109c1.975 10.93 14.59 16.16 23.72 9.824L256 446.1l91.01 63.15c9.127 6.334 21.75 1.107 23.72-9.822l19.7-109 109-19.7C510.4 368.8 515.6 356.1 509.3 347zM256 383.1c-70.69.0-127.1-57.31-127.1-127.1.0-70.69 57.31-127.1 127.1-127.1S383.1 186.2 383.1 256c0 70.7-56.4 127.1-127.1 127.1z"/></svg></span></span></button></div></div></footer></body></html>
