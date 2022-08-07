@@ -1,6 +1,6 @@
 #+title: Emacs Part 1: The Keyboard and Packages
 #+author: Robb Enzmann
-#+date: 2022-08-03
+#+date: 2022-08-07
 #+startup: inlineimages
 
 * Philosophy
