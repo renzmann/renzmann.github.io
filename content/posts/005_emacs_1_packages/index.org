@@ -25,24 +25,19 @@ when you download it and start it without configuring it at all:
 At this point, the world is your oyster - they provide a few helpful
 links to get a new user started, but basically we can take this
 program and make it do /whatever we want/, including writing and
-building this website!
+building this website!  While Emacs is a fairly feature-rich editor by
+itself, I know there are features it doesn't provide off the shelf
+that I want to include, especially:
 
-So, where do we start?  When Emacs boots up, it reads a configuration
-file, canonically placed at =$HOME/.emacs.d/init.el=.  As the [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Init-File.html][Emacs
-manual]] mentions, there /are/ other places we could put the
-configuration, but this is the one I'm going to use.  While Emacs is a
-fairly feature-rich editor by itself, I know there are features it
-doesn't provide off the shelf that I want to include, especially:
-
-1. Language server stuff - like [[https://github.com/microsoft/pyright][pyright]] for python editing
+1. Language server stuff - like [[https://github.com/microsoft/pyright][pyright]] for Python editing
 2. A git management UI
 3. Intellisense-like code completion
 
 That means we need to get comfortable with whatever plugin or package
-system emacs supports.  In fact, my experience so far with exploring
-Reddit, package author sites, and github demonstrated an incredibly
-favorable view of throwing whatever kitchen sink stuff you like into
-your configuration, as long as you feel happy.
+system emacs supports.  My first impression exploring Reddit, package
+author sites, and github is that most Emacs-ers have an incredibly
+favorable view of throwing whatever kitchen sink you like into your
+configuration, as long as you feel happy.
 
 This is a strikingly different attitude compared to (especially
 vanilla) Vim configuration advice. Typically when asking for advice in
@@ -77,15 +72,15 @@ shortcut for navigating up three lines in Emacs:
 1. Ctrl + 3
 2. Ctrl + p
 
-At the time, I was so used to hitting Ctrl+3 with my right little
-finger on the Ctrl in the lower right and left middle finger on the
-"3", and using my left little finger for Ctrl+p, that this seemed like
-a lot of wasted arm movement just to do what would normally be =3k= in
-Vim.  In reality, nearly every Emacs user has the "Ctrl" key just to
-the left of their little finger on the home row.[fn:TECO] This is
-where most American keyboards place the "Caps Lock" key, which in my
-opinion is just dead useless.  Regardless of whether you use something
-like Vim or Emacs, this is a good key to remap, and I do it on every
+At the time, I was used to hitting Ctrl+3 with my right little finger
+on the Ctrl in the lower right and left middle finger on the "3", and
+then using the left Ctrl for Ctrl+p.  That seemed like a lot of wasted
+arm movement just to do what would normally be =3k= in Vim.  In
+reality, nearly every Emacs user has the "Ctrl" key just to the left
+of their little finger on the home row.[fn:TECO] This is where most
+American keyboards place the "Caps Lock" key, which in my opinion is
+just dead useless.  Regardless of whether you use something like Vim
+or Emacs, this is a good key to remap, and I do it on every
 workstation with one of these pieces of software:
 
 + macOS: [[https://karabiner-elements.pqrs.org/][Karabiner Elements]] (Third party)
@@ -103,16 +98,13 @@ Given that remapping, the combination /should/ work like this:
 4. Release "Ctrl"
 
 I can perform this version just as fast as =3k= in Vim - since the
-"Ctrl" and "3" can happen at the same time.  Changing the position of
-the Ctrl key is absolutely critical because of just /how many/
-commands rely on easy access to the Ctrl and Alt keys.  Below I've
-listed my general "finger flow" to maintain tempo while using Emacs.
-For the rest of the article I'm going to use Emacs-style notation,
-which means =C-x= is "Ctrl" plus "x" at the same time, and =M-x= for
-"Alt" plus "x" at the same time.  The =M= is short for "Meta", a
-vestigial artifact from Emacs' history as a screen terminal program,
-and a common point of befuddlement for young, unwary travelers like
-me.
+"Ctrl" and "3" can happen at the same time.  Below I've listed my
+general "finger flow" to maintain tempo while using Emacs.  For the
+rest of the article I'm going to use Emacs-style notation, which means
+=C-x= is "Ctrl" plus "x" at the same time, and =M-x= for "Alt" plus
+"x" at the same time.  The =M= is short for "Meta", a vestigial
+artifact of Emacs' history as a screen terminal program, and a
+common point of befuddlement for young, unwary travelers like me.
 
 + Left little finger for "Ctrl", left of "a" on American QWERTY
   keyboard in /almost all/ cases
@@ -452,7 +444,7 @@ The README on the =use-package= GitHub page explains all the special
 + Turn on =tree-sitter-hl-mode= whenever we boot up =tree-sitter=
 + Configure =tree-sitter= to also use four other useful packages
 
-There are many, many capabilities bundles into =use-package=, and even
+There are many, many capabilities bundled into =use-package=, and even
 very minimal configurations will tend to include it, because of the
 brevity it brings to advanced package configuration.
 
