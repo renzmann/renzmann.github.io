@@ -1,0 +1,22 @@
+#+title: Emacs Part 2: Python (Vanilla is a Powerful Flavor)
+#+date: 2022-08-08
+#+startup: inlineimages
+
+* Intro
+** Not many great up-to date guides on Python in Emacs
+** Most immediately tell you to install lsp-mode, or elpy if it's old
+** avoiding virtualenv wrapper plugins
+** Going to get to =eglot= eventually, but first what can we do without it?
+*** (spiderman meme "nothing without LSP")
+
+* My stack - easy to modify each part
+** eshell as our platform-independent shell
+** poetry as the package manager
+** pyright as our compiler
+** My "chinook" Make project as a starting template
+
+* Setting up a new project
+** cookie-cutter in a fresh copy
+** poetry install from a shell
+** =C-u C-c C-p= to start python shell as =poetry run python=
+** =M-x compile= to run =poetry run pyright=
