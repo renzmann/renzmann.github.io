@@ -13,10 +13,22 @@
 ** eshell as our platform-independent shell
 ** poetry as the package manager
 ** pyright as our compiler
-** My "chinook" Make project as a starting template
+** Empty folder as starting place
 
 * Setting up a new project
-** cookie-cutter in a fresh copy
+** Create a simple python script with a few obvious errors
+*** Some should only be errors if the =poetry= environment isn't activated
 ** poetry install from a shell
 ** =C-u C-c C-p= to start python shell as =poetry run python=
+*** =conda= version?
 ** =M-x compile= to run =poetry run pyright=
+*** =conda= version?
+
+* Add error parsing to the pyright compile output
+** The regexp alist and alist-alist ... yeah
+** Building the regex with re-builder
+** Adding the regex to init.el
+** Using the =M-g M-p= and =M-g M-n= to navigate errors
+
+* Also can use =M-x compile= for =poetry= commands
+** How to fix the ansi color issue
