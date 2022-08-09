@@ -4,12 +4,17 @@
 
 * Intro
 ** Not many great up-to date guides on Python in Emacs
-** Most immediately tell you to install lsp-mode, or elpy if it's old
-** avoiding virtualenv wrapper plugins
+** Most immediately tell you to install a bunch of packages like elpy, virtual environment wrappers, or lsp-mode
 ** Going to get to =eglot= eventually, but first what can we do without it?
 *** (spiderman meme "nothing without LSP")
 
 * My stack - easy to modify each part
+
+#+begin_src python :tangle errors.py :comments link
+print("Here's a test first block!")
+print("woah...")
+#+end_src
+
 ** eshell as our platform-independent shell
 ** poetry as the package manager
 ** pyright as our compiler
@@ -21,14 +26,40 @@
 ** poetry install from a shell
 ** =C-u C-c C-p= to start python shell as =poetry run python=
 *** =conda= version?
-** =M-x compile= to run =poetry run pyright=
-*** =conda= version?
+** =M-x compile= to run =poetry run pyright=*** =conda= version?
+
 
 * Add error parsing to the pyright compile output
+#+begin_src python :tangle errors.py :comments link
+foo
+no way
+def whatever(x: str) -> str:
+    return x + 1
+#+end_src
+
+If we save the contents of this python example to a file named
+=errors.py=, and then run =pyright errors.py= from any shell, we'll
+get this as an output:
+
+#+begin_example
+/home/robb/tmp/errors.py/
+  /home/robb/tmp/errors.py:1:1 - error: "foo" is not defined (reportUndefinedVariable)
+  /home/robb/tmp/errors.py:1:1 - warning: Expression value is unused (reportUnusedExpression)
+  /home/robb/tmp/errors.py:4:12 - error: Operator "+" not supported for types "str" and "Literal[1]"
+    Operator "+" not supported for types "str" and "Literal[1]" (reportGeneralTypeIssues)
+2 errors, 1 warning, 0 informations
+#+end_example
+
 ** The regexp alist and alist-alist ... yeah
-** Building the regex with re-builder
+** Building the regex with re-builder from the compiler output screen
+*** GIF of building regex
 ** Adding the regex to init.el
 ** Using the =M-g M-p= and =M-g M-n= to navigate errors
+*** GIF of navigating errors
 
 * Also can use =M-x compile= for =poetry= commands
 ** How to fix the ansi color issue
+*** GIF of running colors
+
+* Org mode, babel, tangling, and untangling
+** Demo using this document?
