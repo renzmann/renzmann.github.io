@@ -9,8 +9,33 @@
 *** (spiderman meme "nothing without LSP")
 
 * Editing
+
+Let's get our feet wet just bopping around some Python at first.  I'm
+going to start up a new python file with =C-x C-f= and naming my file
+=editing.py=.  Typing code as I usually do, I'm going to start by just adding
+a simple variable and a print statement.
+
+#+begin_src python :tangle editing.py :comments link
+hello_text = "Hello, world!"
+
+print(hello_text)
+#+end_src
+
 ** python-mode
+
+By visiting this file, Emacs automatically goes into =python-mode=,
+offering a lot of new functionality that's only available while this
+major mode is active.  If you're impatient like me and want to see
+everything that's available right away, I'd start with =C-c C-h= from
+the =editing.py= buffer to see key commands specific to =python-mode=,
+and also use =C-h a .*python.* RET= to see /every/ command involving
+python in some way.
+
 ** useful =C-c= commands
+*** =C-c C-z= jumps to python REPL if already running
+*** =C-c C-{c,e,r}= are the most common "chunk-sending" commands I use
+*** =C-c C-v= or =M-x python-check=; more on these later
+
 ** =imenu=
 
 * Running
@@ -39,7 +64,9 @@ import aaaaaaa
 foo
 print(typing.fdafdsafdsafdsafdsafdsafdsa)
 
+
 def whatever(x: str) -> str:
+    """Here's a docstring!"""
     return x + 1
 #+end_src
 
@@ -58,12 +85,25 @@ The stack I'm going to use for this consists of:
 3. =pyright= for error checking[fn:pyright]
 4. =emacs= for everything else
 
-These should, in theory, be easy to replace.  That is, if I want
-=conda= as a package manager and =flake8= or =mypy= for linting/type
-checking, it should be easy to do a drop-in replacement for them.
+Each component should, in theory, be easy to replace.  That is, if I
+want =conda= as a package manager and =flake8= or =mypy= for
+linting/type checking, it should be easy to do a drop-in replacement
+for them.
 
-** Old-school: just keep running the script - builtin support
-** =M-x compile= to run =poetry run pyright=*** =conda= version?
+For those who haven't heard the good news of =poetry=, it takes care
+of a /lot/ of headaches that every pythonista regularly deals with.
+It manages your virtual environment (creation and update),
+=pyproject.toml= specification, and a =poetry.lock= file that serves
+as a replacement for =requirements.txt=, housing /exact/ version
+numbers for project collaborators to install.  All of these are
+automatically kept in sync, so you never have the case like with
+=conda= where someone does a =conda= or =pip= install into their
+environment but never bothers to update the =setup.py=,
+=environment.yml=, =requirements.txt= or whatever - making their
+notebook totally impossible to recreate.
+
+** =M-x python-check= to run =poetry run pyright=
+*** =conda= or vanilla version would be something like =.venv/bin/pyright=
 
 
 * Add error parsing to the pyright compile output
