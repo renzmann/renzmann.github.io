@@ -8,35 +8,65 @@
 ** Going to get to =eglot= eventually, but first what can we do without it?
 *** (spiderman meme "nothing without LSP")
 
-* My stack - easy to modify each part
+* Editing
+** python-mode
+** useful =C-c= commands
+** =imenu=
 
-#+begin_src python :tangle errors.py :comments link
-print("Here's a test first block!")
-print("woah...")
-#+end_src
-
-** eshell as our platform-independent shell
-** poetry as the package manager
-** pyright as our compiler
-** Empty folder as starting place
-
-* Setting up a new project
-** Create a simple python script with a few obvious errors
-*** Some should only be errors if the =poetry= environment isn't activated
+* Running
+** =python-shell-send-...=
+** =python-skeleton-...=
 ** poetry install from a shell
 ** =C-u C-c C-p= to start python shell as =poetry run python=
-*** =conda= version?
-** =M-x compile= to run =poetry run pyright=*** =conda= version?
+** Running /as a script/ with =M-x compile=
+This mode has built-in error parsing support, so it's superior when
+trying to run a script for real and we want to quickly jump to any
+error messages that come up.
 
 
-* Add error parsing to the pyright compile output
+* Debugging
+** =M-x pdb=
+** Create a simple python script with a few obvious errors
+
+To start, let's make a python script that's riddled with errors
+
 #+begin_src python :tangle errors.py :comments link
+import typing
+
+import requests
+import aaaaaaa
+
 foo
-no way
+print(typing.fdafdsafdsafdsafdsafdsafdsa)
+
 def whatever(x: str) -> str:
     return x + 1
 #+end_src
 
+I want to set up an easy system for debugging, fixing, and re-running
+this script.  A good setup should tell me:
+
+1. Until we install it, =requests= is an unknown import
+2. There's an unknown import =aaaaaaa=
+3. =typing= doesn't have an attribute =fdafdsafdsafdsafdsafdsafdsa=
+4. We can't add a =str= type to an =int= inside the body of =whatever=
+
+The stack I'm going to use for this consists of:
+
+1. =python3.10= as the Python runtime
+2. =poetry= for dependency and environment management[fn:poetry]
+3. =pyright= for error checking[fn:pyright]
+4. =emacs= for everything else
+
+These should, in theory, be easy to replace.  That is, if I want
+=conda= as a package manager and =flake8= or =mypy= for linting/type
+checking, it should be easy to do a drop-in replacement for them.
+
+** Old-school: just keep running the script - builtin support
+** =M-x compile= to run =poetry run pyright=*** =conda= version?
+
+
+* Add error parsing to the pyright compile output
 If we save the contents of this python example to a file named
 =errors.py=, and then run =pyright errors.py= from any shell, we'll
 get this as an output:
@@ -57,9 +87,14 @@ get this as an output:
 ** Using the =M-g M-p= and =M-g M-n= to navigate errors
 *** GIF of navigating errors
 
+
 * Also can use =M-x compile= for =poetry= commands
 ** How to fix the ansi color issue
 *** GIF of running colors
 
+
 * Org mode, babel, tangling, and untangling
 ** Demo using this document?
+
+[fn:pyright] https://github.com/microsoft/pyright#command-line
+[fn:poetry] https://python-poetry.org/docs/#installation
