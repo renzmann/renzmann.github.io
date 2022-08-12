@@ -4,24 +4,28 @@
 
 * Intro
 ** Not many great up-to date guides on Python in Emacs
-** Most immediately tell you to install a bunch of packages like elpy, virtual environment wrappers, or lsp-mode
+** Most immediately tell you to install a bunch of packages like elpy, pyvenv, eglot, or lsp-mode
+** Those packages do amazing things, but first we need to know what problem they solve.
 ** Going to get to =eglot= eventually, but first what can we do without it?
-*** (spiderman meme "nothing without LSP")
+
+[[file:nothing_without_lsp.png]]
+
 
 * Editing
 
-Let's get our feet wet just bopping around some Python at first.  I'm
+Let's get our feet wet just bopping around some Python buffers first.  I'm
 going to start up a new python file with =C-x C-f= and naming my file
 =editing.py=.  Typing code as I usually do, I'm going to start by just adding
-a simple variable and a print statement.
+a couple variables and a print statement.
 
 #+begin_src python :tangle editing.py :comments link
-hello_text = "Hello, world!"
+# We'll use these variabels to demonstrate some Emacs features later
+hello_text = "Hello"
+world_text = "world"
 
-print(hello_text)
+# Emacs 28.1+ has f-string syntax highlighting built in
+print(f"{hello_text}, {world_text}!")
 #+end_src
-
-** python-mode
 
 By visiting this file, Emacs automatically goes into =python-mode=,
 offering a lot of new functionality that's only available while this
@@ -29,24 +33,99 @@ major mode is active.  If you're impatient like me and want to see
 everything that's available right away, I'd start with =C-c C-h= from
 the =editing.py= buffer to see key commands specific to =python-mode=,
 and also use =C-h a .*python.* RET= to see /every/ command involving
-python in some way.
+the word "python" in some way.  Out of the box we also get syntax
+highlighting, including within f-strings.
 
-** useful =C-c= commands
+** Useful =C-c= commands
+
+Emacs typically has commands that are specific to the /active/ major
+mode bound to =C-c C-<letter>=.  What each <letter> does will depend
+on the buffer you're currently in and what major mode is active.  In
+our case, that's =python-mode=, which has a lot of handy shortcuts
+already mapped out.
+
+*** =C-c C-p= or =M-x run-python= to start a python REPL
+
+This boots up what Emacs calls an "inferior Python process".
+"Inferior" here just means that Python is running as a subprocess of
+Emacs; not that there's some other, "superior" method of running a
+Python process.  If you need to control the exact command Emacs runs
+to start the shell, you can use the universal =C-u= prefix before
+either =C-c C-p= or =M-x run-python= to edit the command Emacs runs.
+Based on the [[https://robbmann.io/posts/005_emacs_1_packages/][previous article]], what I'm frequently doing is holding
+down the Ctrl key with my left little finger, then rapidly typing =u=,
+=c=, and =p= to get =C-u C-c C-p=, bringing up a minibuffer prompt
+like this:
+
+#+begin_example
+Run Python: python3 -i-!-
+#+end_example
+
+Where =-!-= is point (my cursor).  I then use =C-a= to move point back to the start and add a =poetry run=:
+
+#+begin_example
+Run Python: poetry run-!- python3 -i
+#+end_example
+
+Leaving the =-i= isn't usually strictly necessary, but good if you
+want to start by running a script, followed by dropping into the
+REPL - useful for setting up some common variables or functions.
+
 *** =C-c C-z= jumps to python REPL if already running
 *** =C-c C-{c,e,r}= are the most common "chunk-sending" commands I use
 *** =C-c C-v= or =M-x python-check=; more on these later
 
+** =python-skeleton-...=
+Using =C-c C-t d= and =C-c C-t c= it's easy to insert new =def= and
+=class= statements.  (Think =t= for "template", =d= for "def", and =c= for "class")
+
+#+begin_src python :tangle editing.py :comments link
+import random
+import matplotlib.pyplot as plt
+
+
+def random_line(title: str = "", num_xs: int = 0):
+    """My guy is ALWAYS there for me"""
+
+    xs = list(range(num_xs))
+    ys = [random.random.rand() for _ in xs]
+
+    fig, ax = plt.subplots()
+    ax.set(title=title)
+    ax.plot(xs, ys)
+    fig.show()
+
+
+random_line()
+
+
+class Wow:
+    """My man!"""
+
+    pass
+#+end_src
+
+
+
 ** =imenu=
+Collects symbol refrences in the current buffer so we can fuzzy-search
+and jump to them.  Suppose we
 
 * Running
+** =M-&= to run simple commands like =poetry update= that don't require compiler parsing
+*** =M-& python3 -m venv .venv=
+*** =M-& .venv/bin/python -m pip install pyright=
+** =.dir-locals.el= for setting virtual environment, language server preferences
+** =C-u M-x run-python= and =C-u C-c C-p= to start python shell as =poetry run python=
 ** =python-shell-send-...=
-** =python-skeleton-...=
+
 ** poetry install from a shell
-** =C-u C-c C-p= to start python shell as =poetry run python=
 ** Running /as a script/ with =M-x compile=
 This mode has built-in error parsing support, so it's superior when
 trying to run a script for real and we want to quickly jump to any
-error messages that come up.
+error messages that come up.  Conversely, the =M-&= async shell
+command does /not/ have error parsing, so it's not the right tool for
+launching processes we have to debug.
 
 
 * Debugging
@@ -103,6 +182,7 @@ environment but never bothers to update the =setup.py=,
 notebook totally impossible to recreate.
 
 ** =M-x python-check= to run =poetry run pyright=
+*** =mypy= error parsing appears to be supported out of the box
 *** =conda= or vanilla version would be something like =.venv/bin/pyright=
 
 
@@ -135,6 +215,9 @@ get this as an output:
 
 * Org mode, babel, tangling, and untangling
 ** Demo using this document?
+
+
+* =pyvenv= package is /absolutely/ necessary once we want seamless shell/lsp integration
 
 [fn:pyright] https://github.com/microsoft/pyright#command-line
 [fn:poetry] https://python-poetry.org/docs/#installation
