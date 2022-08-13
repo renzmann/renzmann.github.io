@@ -61,7 +61,8 @@ like this:
 Run Python: python3 -i-!-
 #+end_example
 
-Where =-!-= is point (my cursor).  I then use =C-a= to move point back to the start and add a =poetry run=:
+Where =-!-= is point (my cursor).  I then use =C-a= to move point back
+to the start and add a =poetry run=:
 
 #+begin_example
 Run Python: poetry run-!- python3 -i
@@ -72,60 +73,110 @@ want to start by running a script, followed by dropping into the
 REPL - useful for setting up some common variables or functions.
 
 *** =C-c C-z= jumps to python REPL if already running
-*** =C-c C-{c,e,r}= are the most common "chunk-sending" commands I use
-*** =C-c C-v= or =M-x python-check=; more on these later
 
-** =python-skeleton-...=
+Once the REPL is running, this is a very handy one for swapping back
+and forth between a file I'm actively editing and a running Python
+process
+
+*** =C-c C-{c,e,r}= for sending chunks to the REPL
+
+A handy complement to =C-c C-z=, these commands are for taking pieces
+of Python that I'm actively editing and sending them to the Python
+buffer all at once.
+
+*** =C-c C-v= or =M-x python-check=
+
+More on these later...
+
+*** =python-skeleton-...=
+
 Using =C-c C-t d= and =C-c C-t c= it's easy to insert new =def= and
-=class= statements.  (Think =t= for "template", =d= for "def", and =c= for "class")
+=class= statements (think =t= for "template", =d= for "def", and =c=
+for "class").  Ater invoking one of these, Emacs will guide us through
+the process of filling out each part needed to define a new function
+or class via the minibuffer.
 
-#+begin_src python :tangle editing.py :comments link
-import random
-import matplotlib.pyplot as plt
+#+begin_src python :session :tangle editing.py :comments link
+# editing.py
+# --snip--
+# Here we use `C-c C-t d` and follow the prompts to design a new
+# function signature
+def whatever(my_string: str = hello_text, my_integer: int = 0):
+    """Whatever, man"""
+    return f"{hello_text}, {my_integer}"
 
 
-def random_line(title: str = "", num_xs: int = 0):
+# Next, `C-c C-t c` to make a new class
+class MyGuy:
     """My guy is ALWAYS there for me"""
-
-    xs = list(range(num_xs))
-    ys = [random.random.rand() for _ in xs]
-
-    fig, ax = plt.subplots()
-    ax.set(title=title)
-    ax.plot(xs, ys)
-    fig.show()
-
-
-random_line()
-
-
-class Wow:
-    """My man!"""
-
     pass
 #+end_src
+**** TODO GIF here of using it?
 
-
-
-** =imenu=
-Collects symbol refrences in the current buffer so we can fuzzy-search
-and jump to them.  Suppose we
 
 * Running
-** =M-&= to run simple commands like =poetry update= that don't require compiler parsing
-*** =M-& python3 -m venv .venv=
-*** =M-& .venv/bin/python -m pip install pyright=
-** =.dir-locals.el= for setting virtual environment, language server preferences
-** =C-u M-x run-python= and =C-u C-c C-p= to start python shell as =poetry run python=
-** =python-shell-send-...=
+Starting simple, we'll start by invoking the system Python for our
+script, and add virtual environment complexity once that gets
+comfortable.
 
-** poetry install from a shell
 ** Running /as a script/ with =M-x compile=
 This mode has built-in error parsing support, so it's superior when
 trying to run a script for real and we want to quickly jump to any
 error messages that come up.  Conversely, the =M-&= async shell
 command does /not/ have error parsing, so it's not the right tool for
 launching processes we have to debug.
+** =M-&= to run simple commands like =poetry update= that don't require compiler parsing
+*** =M-& python3 -m venv .venv=
+*** =M-& .venv/bin/python -m pip install pyright=
+** =.dir-locals.el= for setting virtual environment
+Need to try this when working in a subdirectory.
+
+** =C-u M-x run-python= and =C-u C-c C-p= to start python shell as =poetry run python=
+** =python-shell-send-...=
+** =C-c C-p= or =M-x run-python= to start a python REPL
+
+This boots up what Emacs calls an "inferior Python process".
+"Inferior" here just means that Python is running as a subprocess of
+Emacs; not that there's some other, "superior" method of running a
+Python process.  If you need to control the exact command Emacs runs
+to start the shell, you can use the universal =C-u= prefix before
+either =C-c C-p= or =M-x run-python= to edit the command Emacs runs.
+Based on the [[https://robbmann.io/posts/005_emacs_1_packages/][previous article]], what I'm frequently doing is holding
+down the Ctrl key with my left little finger, then rapidly typing =u=,
+=c=, and =p= to get =C-u C-c C-p=, bringing up a minibuffer prompt
+like this:
+
+#+begin_example
+Run Python: python3 -i-!-
+#+end_example
+
+Where =-!-= is point (my cursor).  I then use =C-a= to move point back
+to the start and add a =poetry run=:
+
+#+begin_example
+Run Python: poetry run-!- python3 -i
+#+end_example
+
+Leaving the =-i= isn't usually strictly necessary, but good if you
+want to start by running a script, followed by dropping into the
+REPL - useful for setting up some common variables or functions.
+
+** =C-c C-z= jumps to python REPL if already running
+
+Once the REPL is running, this is a very handy one for swapping back
+and forth between a file I'm actively editing and a running Python
+process
+
+** =C-c C-{c,e,r}= for sending chunks to the REPL
+
+A handy complement to =C-c C-z=, these commands are for taking pieces
+of Python that I'm actively editing and sending them to the Python
+buffer all at once.  These can also be accessed via =M-x
+python-shell-send-= prefixed-commands.
+
+** =C-c C-v= or =M-x python-check=
+
+** poetry install from a shell
 
 
 * Debugging
@@ -215,7 +266,7 @@ let's add a couple dependencies:
 Async shell command: poetry add pyright requests
 #+end_example
 
-The =*Async Shell Command* buffer will update as poetry runs and
+The =*Async Shell Command*= buffer will update as poetry runs and
 installs the required dependencies.  Following this, we should have
 the =pyright= CLI installed to the virtual environment poetry set up
 for us.  As a sanity check, I'll start up either =M-x shell= or =M-x
@@ -224,7 +275,7 @@ a simple cross-platform shell running where I can try it out:
 
 #+begin_example
 ~/tmp $ poetry run pyright errors.py
-Creating virtualenv tmp-QKcV4YYo-py3.10 in /home/robb/.cache/pypoetry/virtualenvs
+Creating virtualenv 006-emacs-2-python-QKcV4YYo-py3.10 in /home/robb/.cache/pypoetry/virtualenvs
 No configuration file found.
 pyproject.toml file found at /home/robb/repos/renzmann.github.io/content/posts/006_emacs_2_python.
 Loading pyproject.toml file at /home/robb/repos/renzmann.github.io/content/posts/006_emacs_2_python/pyproject.toml
@@ -245,7 +296,9 @@ Found 1 source file
 Completed in 1.033sec
 #+end_example
 
-
+Emacs actually has a couple ways of running error-checking tools like
+this.  The typical one is =M-x compile=, which we saw earlier, but
+there's also =C-c C-v= for =M-x python-check=.
 
 ** =M-x python-check= to run =poetry run pyright=
 *** =mypy= error parsing appears to be supported out of the box
