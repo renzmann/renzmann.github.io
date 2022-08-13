@@ -1,4 +1,4 @@
-# [[file:index.org::*Some should only be errors if the =poetry= environment isn't activated][Some should only be errors if the =poetry= environment isn't activated:1]]
+# [[file:index.org::*Create a simple python script with a few obvious errors][Create a simple python script with a few obvious errors:1]]
 import typing
 
 import requests
@@ -6,12 +6,9 @@ import aaaaaaa
 
 foo
 print(typing.fdafdsafdsafdsafdsafdsafdsa)
-thing = "what"
-
-def myguy(foo: int = 0):
-    """My guy is always there for me."""
 
 
 def whatever(x: str) -> str:
+    """Here's a docstring!"""
     return x + 1
-# Some should only be errors if the =poetry= environment isn't activated:1 ends here
+# Create a simple python script with a few obvious errors:1 ends here
