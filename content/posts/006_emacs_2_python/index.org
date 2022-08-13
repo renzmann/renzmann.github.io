@@ -150,14 +150,16 @@ def whatever(x: str) -> str:
 #+end_src
 
 I want to set up an easy system for debugging, fixing, and re-running
-this script.  A good setup should tell me:
+this script.  Looking at the script above, a good setup should tell me:
 
 1. Until we install it, =requests= is an unknown import
 2. There's an unknown import =aaaaaaa=
 3. =typing= doesn't have an attribute =fdafdsafdsafdsafdsafdsafdsa=
 4. We can't add a =str= type to an =int= inside the body of =whatever=
 
-The stack I'm going to use for this consists of:
+Ideally, we'd also get all this error checking up front, and not
+one-by-one from running the script multiple times.  The stack I'm
+going to use for this consists of:
 
 1. =python3.10= as the Python runtime
 2. =poetry= for dependency and environment management[fn:poetry]
@@ -173,13 +175,77 @@ For those who haven't heard the good news of =poetry=, it takes care
 of a /lot/ of headaches that every pythonista regularly deals with.
 It manages your virtual environment (creation and update),
 =pyproject.toml= specification, and a =poetry.lock= file that serves
-as a replacement for =requirements.txt=, housing /exact/ version
-numbers for project collaborators to install.  All of these are
-automatically kept in sync, so you never have the case like with
+as a replacement for =requirements.txt=, housing exact dependency
+version numbers for project collaborators to install.  All of these
+are automatically kept in sync, so you never have the case like with
 =conda= where someone does a =conda= or =pip= install into their
 environment but never bothers to update the =setup.py=,
-=environment.yml=, =requirements.txt= or whatever - making their
-notebook totally impossible to recreate.
+=environment.yml=, =requirements.txt= or whatever.
+
+Starting out, we can use an asynchronous shell command to set up a
+poetry environment for the project by using =M-&=, while =errors.py=
+is still the active buffer:
+
+#+begin_example
+Async shell command: poetry init -n --python=^3.10
+#+end_example
+
+In the case we get an error about Emacs not finding =poetry=, but it's
+definitely in a well-known place like =~/.local/bin= after running
+it's install script, we may have to edit a PATH variable or two.  I
+take care of this on *nix machines in my =init.el= with a short block
+like this:
+
+#+begin_src elisp
+;; Add ~/.local/bin to Eshell PATH when on *nix
+(defun renz/eshell-local-bin ()
+  "Ensure ~/.local/bin is on PATH when starting eshell"
+  (unless (eq system-type 'windows-nt)
+    (eshell/addpath "~/.local/bin")))
+
+;; eshell/addpath is buffer-local, so we have to run this as a hook
+(add-hook 'eshell-mode-hook 'renz/eshell-local-bin)
+#+end_src
+
+Assuming the poetry command ran without error, it plopped down the
+=pyproject.toml= in the same directory as =errors.py=.  In a similar vein,
+let's add a couple dependencies:
+
+#+begin_example
+Async shell command: poetry add pyright requests
+#+end_example
+
+The =*Async Shell Command* buffer will update as poetry runs and
+installs the required dependencies.  Following this, we should have
+the =pyright= CLI installed to the virtual environment poetry set up
+for us.  As a sanity check, I'll start up either =M-x shell= or =M-x
+eshell= (whichever happens to be behaving better that day) to just get
+a simple cross-platform shell running where I can try it out:
+
+#+begin_example
+~/tmp $ poetry run pyright errors.py
+Creating virtualenv tmp-QKcV4YYo-py3.10 in /home/robb/.cache/pypoetry/virtualenvs
+No configuration file found.
+pyproject.toml file found at /home/robb/repos/renzmann.github.io/content/posts/006_emacs_2_python.
+Loading pyproject.toml file at /home/robb/repos/renzmann.github.io/content/posts/006_emacs_2_python/pyproject.toml
+Pyproject file "/home/robb/repos/renzmann.github.io/content/posts/006_emacs_2_python/pyproject.toml" is missing "[tool.pyright]" section.
+stubPath /home/robb/repos/renzmann.github.io/content/posts/006_emacs_2_python/typings is not a valid directory.
+Assuming Python platform Linux
+Searching for source files
+Found 1 source file
+/home/robb/repos/renzmann.github.io/content/posts/006_emacs_2_python/errors.py
+  /home/robb/repos/renzmann.github.io/content/posts/006_emacs_2_python/errors.py:5:8 - error: Import "aaaaaaa" could not be resolved (reportMissingImports)
+  /home/robb/repos/renzmann.github.io/content/posts/006_emacs_2_python/errors.py:7:1 - error: "foo" is not defined (reportUndefinedVariable)
+  /home/robb/repos/renzmann.github.io/content/posts/006_emacs_2_python/errors.py:7:1 - warning: Expression value is unused (reportUnusedExpression)
+  /home/robb/repos/renzmann.github.io/content/posts/006_emacs_2_python/errors.py:8:14 - error: "fdafdsafdsafdsafdsafdsafdsa" is not a known member of module (reportGeneralTypeIssues)
+  /home/robb/repos/renzmann.github.io/content/posts/006_emacs_2_python/errors.py:13:12 - error: Operator "+" not supported for types "str" and "Literal[1]"
+    Operator "+" not supported for types "str" and "Literal[1]" when expected type is "str" (reportGeneralTypeIssues)
+  /home/robb/repos/renzmann.github.io/content/posts/006_emacs_2_python/errors.py:4:8 - warning: Import "requests" could not be resolved from source (reportMissingModuleSource)
+4 errors, 2 warnings, 0 informations
+Completed in 1.033sec
+#+end_example
+
+
 
 ** =M-x python-check= to run =poetry run pyright=
 *** =mypy= error parsing appears to be supported out of the box
