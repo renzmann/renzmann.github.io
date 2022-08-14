@@ -28,12 +28,12 @@ print(f"{hello_text}, {world_text}!")
 #+end_src
 
 By visiting this file, Emacs automatically goes into =python-mode=,
-offering a lot of new functionality that's only available while this
-major mode is active.  If you're impatient like me and want to see
-everything that's available right away, I'd start with =C-c C-h= from
-the =editing.py= buffer to see key commands specific to =python-mode=,
-and also use =C-h a .*python.* RET= to see /every/ command involving
-the word "python" in some way.  Out of the box we also get syntax
+which turns on a lot of Python-specific functionality while editing
+this buffer.  If you're impatient like me and want to see everything
+that's available right away, I'd start with =C-c C-h= from the
+=editing.py= buffer to see key commands specific to =python-mode=, and
+also use =C-h a .*python.* RET= to see /every/ command involving the
+word "python" in some way.  Out of the box we also get syntax
 highlighting, including within f-strings.
 
 ** Useful =C-c= commands
@@ -46,7 +46,7 @@ already mapped out.
 
 *** =C-c C-p= or =M-x run-python= to start a python REPL
 
-This boots up what Emacs calls an "inferior Python process".
+This boots up what Emacs calls an "inferior Python shell".
 "Inferior" here just means that Python is running as a subprocess of
 Emacs; not that there's some other, "superior" method of running a
 Python process.  If you need to control the exact command Emacs runs
@@ -58,14 +58,14 @@ down the Ctrl key with my left little finger, then rapidly typing =u=,
 like this:
 
 #+begin_example
-Run Python: python3 -i-!-
+Run Python: python3 -i█
 #+end_example
 
-Where =-!-= is point (my cursor).  I then use =C-a= to move point back
+Where =█= is point (my cursor).  I then use =C-a= to move point back
 to the start and add a =poetry run=:
 
 #+begin_example
-Run Python: poetry run-!- python3 -i
+Run Python: poetry run █python3 -i
 #+end_example
 
 Leaving the =-i= isn't usually strictly necessary, but good if you
@@ -129,54 +129,7 @@ launching processes we have to debug.
 *** =M-& python3 -m venv .venv=
 *** =M-& .venv/bin/python -m pip install pyright=
 ** =.dir-locals.el= for setting virtual environment
-Need to try this when working in a subdirectory.
-
-** =C-u M-x run-python= and =C-u C-c C-p= to start python shell as =poetry run python=
-** =python-shell-send-...=
-** =C-c C-p= or =M-x run-python= to start a python REPL
-
-This boots up what Emacs calls an "inferior Python process".
-"Inferior" here just means that Python is running as a subprocess of
-Emacs; not that there's some other, "superior" method of running a
-Python process.  If you need to control the exact command Emacs runs
-to start the shell, you can use the universal =C-u= prefix before
-either =C-c C-p= or =M-x run-python= to edit the command Emacs runs.
-Based on the [[https://robbmann.io/posts/005_emacs_1_packages/][previous article]], what I'm frequently doing is holding
-down the Ctrl key with my left little finger, then rapidly typing =u=,
-=c=, and =p= to get =C-u C-c C-p=, bringing up a minibuffer prompt
-like this:
-
-#+begin_example
-Run Python: python3 -i-!-
-#+end_example
-
-Where =-!-= is point (my cursor).  I then use =C-a= to move point back
-to the start and add a =poetry run=:
-
-#+begin_example
-Run Python: poetry run-!- python3 -i
-#+end_example
-
-Leaving the =-i= isn't usually strictly necessary, but good if you
-want to start by running a script, followed by dropping into the
-REPL - useful for setting up some common variables or functions.
-
 ** =C-c C-z= jumps to python REPL if already running
-
-Once the REPL is running, this is a very handy one for swapping back
-and forth between a file I'm actively editing and a running Python
-process
-
-** =C-c C-{c,e,r}= for sending chunks to the REPL
-
-A handy complement to =C-c C-z=, these commands are for taking pieces
-of Python that I'm actively editing and sending them to the Python
-buffer all at once.  These can also be accessed via =M-x
-python-shell-send-= prefixed-commands.
-
-** =C-c C-v= or =M-x python-check=
-
-** poetry install from a shell
 
 
 * Debugging
