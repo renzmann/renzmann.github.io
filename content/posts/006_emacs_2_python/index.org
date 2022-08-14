@@ -119,18 +119,66 @@ Starting simple, we'll start by invoking the system Python for our
 script, and add virtual environment complexity once that gets
 comfortable.
 
-** Running /as a script/ with =M-x compile=
+** As a script with =M-x compile=
 This mode has built-in error parsing support, so it's superior when
 trying to run a script for real and we want to quickly jump to any
 error messages that come up.  Conversely, the =M-&= async shell
 command does /not/ have error parsing, so it's not the right tool for
-launching processes we have to debug.
-** =M-&= to run simple commands like =poetry update= that don't require compiler parsing
-*** =M-& python3 -m venv .venv=
-*** =M-& .venv/bin/python -m pip install pyright=
-** =.dir-locals.el= for setting virtual environment
-** =C-c C-z= jumps to python REPL if already running
+launching processes we have to debug.  Take a hello world example:
 
+#+begin_src python :session :tangle hello.py :comments link
+# hello.py
+print("Hello, world!")
+#+end_src
+
+If we run =M-x compile= and give it an argument of =python3 hello.py=, up pops the
+=*compilation*= buffer, with the starting time, output of our program, and finish time.
+
+#+begin_example
+-*- mode: compilation; default-directory: "~/repos/renzmann.github.io/content/posts/006_emacs_2_python/" -*-
+Compilation started at Sun Aug 14 13:50:39
+
+python3 hello.py
+Hello, world!
+
+Compilation finished at Sun Aug 14 13:50:39
+#+end_example
+
+Now, let's add an error:
+
+#+begin_src python :session :tangle hello_error.py :comments link
+# hello_error.py
+print("Not an error yet!")
+fdafdsafdsafdsa
+print("Shouldn't make it here...")
+#+end_src
+
+Now, =M-x compile= will error out:
+
+#+begin_example
+-*- mode: compilation; default-directory: "~/repos/renzmann.github.io/content/posts/006_emacs_2_python/" -*-
+Compilation started at Sun Aug 14 13:53:26
+
+python3 hello_error.py
+Not an error yet!
+Traceback (most recent call last):
+  File "/home/robb/repos/renzmann.github.io/content/posts/006_emacs_2_python/hello_error.py", line 4, in <module>
+    fdafdsafdsafdsa
+NameError: name 'fdafdsafdsafdsa' is not defined
+
+Compilation exited abnormally with code 1 at Sun Aug 14 13:53:26
+#+end_example
+
+Emacs is smart enough to understand the error message and parse
+exactly where the issue is from the =*compilation*= buffer's output.
+After compiling, we can use =M-g M-n= and =M-g M-p= to move between
+error messages, or just use the link provided by the =*compilation*=
+buffer directly.
+
+** =M-&= to run simple commands like =poetry update= that don't require compiler parsing
+** TODO =M-& python3 -m venv .venv=
+** TODO =M-& c.venv/bin/python -m pip install pyright=
+** TODO =.dir-locals.el= for setting virtual environment
 
 * Debugging
 ** =M-x pdb=
