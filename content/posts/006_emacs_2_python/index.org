@@ -169,24 +169,32 @@ NameError: name 'fdafdsafdsafdsa' is not defined
 Compilation exited abnormally with code 1 at Sun Aug 14 13:53:26
 #+end_example
 
-Emacs is smart enough to understand the error message and parse
-exactly where the issue is from the =*compilation*= buffer's output.
-After compiling, we can use =M-g M-n= and =M-g M-p= to move between
+Emacs is smart enough to understand and parse the error message.
+After "compiling", we can use =M-g M-n= and =M-g M-p= to move between
 error messages, or just use the link provided by the =*compilation*=
 buffer directly.
 
-** =M-&= to run simple commands like =poetry update= that don't require compiler parsing
-** TODO =M-& python3 -m venv .venv=
-** TODO =M-& c.venv/bin/python -m pip install pyright=
-** TODO =.dir-locals.el= for setting virtual environment
+If just parsing Python tracebacks doesn't excite you, =mypy= is also
+supported out of the box.  Assuming =mypy= is already installed, =M-x
+compile= with =mypy hello_error.py= as the command results in this:
 
-* Debugging
-** =M-x pdb=
-** Create a simple python script with a few obvious errors
+#+begin_example
+-*- mode: compilation; default-directory: "~/repos/renzmann.github.io/content/posts/006_emacs_2_python/" -*-
+Compilation started at Sun Aug 14 14:02:03
 
-To start, let's make a python script that's riddled with errors
+.venv/bin/mypy hello_error.py
+hello_error.py:4: error: Name "fdafdsafdsafdsa" is not defined
+Found 1 error in 1 file (checked 1 source file)
+
+Compilation exited abnormally with code 1 at Sun Aug 14 14:02:04
+#+end_example
+
+The =hello_error.py:4: error: ...= message will be a functional link, just as
+before.  =mypy= is much more suitable for general error-checking though, so as
+scripts (and bugs) grow, the =M-x compile= command can keep up:
 
 #+begin_src python :tangle errors.py :comments link
+# errors.py
 import typing
 
 import requests
@@ -200,6 +208,42 @@ def whatever(x: str) -> str:
     """Here's a docstring!"""
     return x + 1
 #+end_src
+
+#+begin_example
+M-x compile mypy errors.py
+#+end_example
+
+#+begin_example
+-*- mode: compilation; default-directory: "~/repos/renzmann.github.io/content/posts/006_emacs_2_python/" -*-
+Compilation started at Sun Aug 14 14:06:55
+
+.venv/bin/mypy errors.py
+errors.py:6: error: Cannot find implementation or library stub for module named "aaaaaaa"
+errors.py:6: note: See https://mypy.readthedocs.io/en/stable/running_mypy.html#missing-imports
+errors.py:8: error: Name "foo" is not defined
+errors.py:9: error: Module has no attribute "fdafdsafdsafdsafdsafdsafdsa"
+errors.py:14: error: Unsupported operand types for + ("str" and "int")
+Found 4 errors in 1 file (checked 1 source file)
+
+Compilation exited abnormally with code 1 at Sun Aug 14 14:06:55
+#+end_example
+
+Now, we can use =M-g M-n= and =M-g M-p= to quickly navigate between
+the errors in our code, even after navigating away from the original
+=errors.py= buffer - Emacs will remember what's going on in the
+=*compilation*= buffer so we can hop all around the code base while
+addressing errors one at a time.
+
+** =M-&= to run simple commands like =poetry update= that don't require compiler parsing
+** TODO =M-& python3 -m venv .venv=
+** TODO =M-& c.venv/bin/python -m pip install pyright=
+** TODO =.dir-locals.el= for setting virtual environment
+
+* Debugging
+** =M-x pdb=
+** Create a simple python script with a few obvious errors
+
+To start, let's make a python script that's riddled with errors
 
 I want to set up an easy system for debugging, fixing, and re-running
 this script.  Looking at the script above, a good setup should tell me:
