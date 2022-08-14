@@ -234,10 +234,10 @@ the errors in our code, even after navigating away from the original
 =*compilation*= buffer so we can hop all around the code base while
 addressing errors one at a time.
 
-** =M-&= to run simple commands like =poetry update= that don't require compiler parsing
-** TODO =M-& python3 -m venv .venv=
-** TODO =M-& c.venv/bin/python -m pip install pyright=
-** TODO =.dir-locals.el= for setting virtual environment
+* =M-&= to run simple commands like =poetry update= that don't require compiler parsing
+* TODO =M-& python3 -m venv .venv=
+* TODO =M-& c.venv/bin/python -m pip install pyright=
+* TODO =.dir-locals.el= for setting virtual environment
 
 * Debugging
 ** =M-x pdb=
@@ -286,23 +286,6 @@ is still the active buffer:
 Async shell command: poetry init -n --python=^3.10
 #+end_example
 
-In the case we get an error about Emacs not finding =poetry=, but it's
-definitely in a well-known place like =~/.local/bin= after running
-it's install script, we may have to edit a PATH variable or two.  I
-take care of this on *nix machines in my =init.el= with a short block
-like this:
-
-#+begin_src elisp
-;; Add ~/.local/bin to Eshell PATH when on *nix
-(defun renz/eshell-local-bin ()
-  "Ensure ~/.local/bin is on PATH when starting eshell"
-  (unless (eq system-type 'windows-nt)
-    (eshell/addpath "~/.local/bin")))
-
-;; eshell/addpath is buffer-local, so we have to run this as a hook
-(add-hook 'eshell-mode-hook 'renz/eshell-local-bin)
-#+end_src
-
 Assuming the poetry command ran without error, it plopped down the
 =pyproject.toml= in the same directory as =errors.py=.  In a similar vein,
 let's add a couple dependencies:
@@ -346,9 +329,7 @@ this.  The typical one is =M-x compile=, which we saw earlier, but
 there's also =C-c C-v= for =M-x python-check=.
 
 ** =M-x python-check= to run =poetry run pyright=
-*** =mypy= error parsing appears to be supported out of the box
 *** =conda= or vanilla version would be something like =.venv/bin/pyright=
-
 
 * Add error parsing to the pyright compile output
 If we save the contents of this python example to a file named
@@ -371,17 +352,18 @@ get this as an output:
 ** Using the =M-g M-p= and =M-g M-n= to navigate errors
 *** GIF of navigating errors
 
-
-* Also can use =M-x compile= for =poetry= commands
-** How to fix the ansi color issue
-*** GIF of running colors
-
-
 * Org mode, babel, tangling, and untangling
 ** Demo using this document?
 
+* TODO make sure to enable semantic-mode for more intelligent completion
+* TODO setting up builtin completion
+* TODO literate programming (ala Jupyter) with Org - builtin, but needs a couple lines of config
+* =pyvenv= package is /absolutely/ necessary once we want seamless shell/lsp integration and can't use poetry
 
-* =pyvenv= package is /absolutely/ necessary once we want seamless shell/lsp integration
+* Also can use =M-x compile= for =poetry= commands
+** How to fix the ansi color issue
 
+* Footnotes
 [fn:pyright] https://github.com/microsoft/pyright#command-line
 [fn:poetry] https://python-poetry.org/docs/#installation
+[fn:ddavis-workon] https://ddavis.io/posts/emacs-python-lsp/
