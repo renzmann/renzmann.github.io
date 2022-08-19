@@ -2,14 +2,6 @@
 #+date: 2022-08-08
 #+startup: inlineimages
 
-* TODO Errata
-Previously I said I'd use melpa-stable:
-https://www.reddit.com/r/emacs/comments/etikbz/speaking_as_a_package_maintainer_please_do_not/
-I think I should go back and change the previous article.  Even MELPA
-says don't use it: https://stable.melpa.org/#/getting-started.  Should
-also go over committing the ~/.emacs.d/elpa directory for reproducable
-configs.
-
 * Intro
 ** Not many great up-to date guides on Python in Emacs
 ** Most immediately tell you to install a bunch of packages like elpy, pyvenv, eglot, or lsp-mode
