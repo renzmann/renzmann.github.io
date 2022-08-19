@@ -1,6 +1,6 @@
 #+title: Emacs Part 1: The Keyboard and Packages
 #+author: Robb Enzmann
-#+date: 2022-08-03
+#+date: 2022-08-07
 #+startup: inlineimages
 
 * Philosophy
@@ -293,7 +293,7 @@ has automatically done three things for me:
 
 That last one is mind-blowing.  Emacs edited a variable called
 =package-selected-packages= and put it into my =custom.el= file, just
-by the very nature of installing it interactively
+by the very nature of installing it interactively.
 
 #+begin_src elisp
 ;; ~/.emacs.d/custom.el
@@ -346,20 +346,20 @@ do in Neovim.[fn:package-managers]
 
 There is also a community-maintained, much larger selection of plugins
 on something called "Milkypostman's Emacs Lisp Package Archive",
-usually abbreviated to MELPA, which serves an almost identical role
-as ELPA, but doesn't require going through the official GNU channels to
+usually abbreviated to MELPA, which serves an almost identical role as
+ELPA, but doesn't require going through the official GNU channels to
 get your project hosted.  As such, most projects on GitHub require you
 to enable fetching packages from MELPA before installing.  There are
-two versions of MELPA - =stable.melpa.org/packages= and the /unstable/
-=melpa.org/packages=.  Until I get a better grounding in my
-configuration and understand what the difference between "stable" and
-"not-stable" is, I'm going to just stick with "stable".
+two versions of MELPA - =melpa.org/packages= and the "stable"
+=melpa.org/packages=.  Both the [[https://stable.melpa.org/#/getting-started][MELPA setup instructions]] and [[https://www.reddit.com/r/emacs/comments/etikbz/speaking_as_a_package_maintainer_please_do_not/][community
+discussion]] recommend /against/ the use of MELPA-stable, so I'll be
+sticking with the regular version:
 
 #+begin_src elisp
 ;; ~/.emacs.d/init.el
 ;; --snip--
 ;; Keep our registry up-to-date
-(add-to-list 'package-archives '("melpa-stable" . "https://stable.melpa.org/packages/") t)
+(add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
 (package-refresh-contents)
 ;; --snip--
 #+end_src
