@@ -3,10 +3,26 @@
 #+startup: inlineimages
 
 * Intro
-** Not many great up-to date guides on Python in Emacs
-** Most immediately tell you to install a bunch of packages like elpy, pyvenv, eglot, or lsp-mode
-** Those packages do amazing things, but first we need to know what problem they solve.
-** Going to get to =eglot= eventually, but first what can we do without it?
+There are a lot of great guides on getting set up with Python in
+Emacs.  A lot of them have titles like "Emacs as a Python IDE", and
+start off by installing =pyvenv= for virtual environment management,
+=eglot= or =lsp-mode= for autocomplete/error checking, and maybe
+a host of other non-python things, like the =helm= or =projectile=
+packages.
+
+This is not that guide.
+
+This guide is for picky @#$%!s like me who need to understand and
+exhaust every builtin capability before reaching out to external
+dependencies I'll also have to learn and manage.  Once I /really/
+understand what =pyvenv= is solving, then, and /only/ then, will I add
+it to my =package-selected-packages=.
+
+Despite the excellent swath of materials both new and old on how to
+get IDE-like performance for Python out of Emacs, the collected
+materials on just running "vanilla extract" are fairly scant.  This
+guide is one attempt to introduce a reasonable workflow in Python
+using nothing but the builtin capabilities of Emacs 28.1+.
 
 [[file:nothing_without_lsp.png]]
 
@@ -19,22 +35,30 @@ going to start up a new python file with =C-x C-f= and naming my file
 a couple variables and a print statement.
 
 #+begin_src python :tangle editing.py :comments link
-# We'll use these variabels to demonstrate some Emacs features later
-hello_text = "Hello"
-world_text = "world"
+# These funtions are a little basic and silly right now, but we'll use
+# them to showcase some Emacs features later on.
+def hello_text():
+    """Just gives back 'Hello'"""
+    return "Hello"
+
+
+def world_text():
+    """Just gives back 'world!'"""
+    return "world!"
+
 
 # Emacs 28.1+ has f-string syntax highlighting built in
-print(f"{hello_text}, {world_text}!")
+print(f"{hello_text()}, {world_text()}!")
 #+end_src
 
 By visiting this file, Emacs automatically goes into =python-mode=,
-which turns on a lot of Python-specific functionality while editing
-this buffer.  If you're impatient like me and want to see everything
-that's available right away, I'd start with =C-c C-h= from the
-=editing.py= buffer to see key commands specific to =python-mode=, and
-also use =C-h a .*python.* RET= to see /every/ command involving the
-word "python" in some way.  Out of the box we also get syntax
-highlighting, including within f-strings.
+which turns on a lot of Python-specific functionality.  If you're
+impatient like me and want to see everything that's available right
+away, I'd start with =C-c C-h= from the =editing.py= buffer to see key
+commands specific to =python-mode=, and also use =C-h a .*python.*
+RET= to see /every/ command involving the word "python" in some way.
+Out of the box we also get syntax highlighting, including within
+f-strings.
 
 ** Useful =C-c= commands
 
@@ -65,7 +89,7 @@ Where =█= is point (my cursor).  I then use =C-a= to move point back
 to the start and add a =poetry run=:
 
 #+begin_example
-Run Python: poetry run █python3 -i
+Run Python: poetry run█python3 -i
 #+end_example
 
 Leaving the =-i= isn't usually strictly necessary, but good if you
@@ -234,22 +258,17 @@ the errors in our code, even after navigating away from the original
 =*compilation*= buffer so we can hop all around the code base while
 addressing errors one at a time.
 
-* =M-&= to run simple commands like =poetry update= that don't require compiler parsing
-* TODO =M-& python3 -m venv .venv=
-* TODO =M-& c.venv/bin/python -m pip install pyright=
-* TODO =.dir-locals.el= for setting virtual environment
-  Setting both "mypy" as the check command and =.venv= as the virtualenv root:
+* TODO completion using the process in the background
+Requires the "Editing" and "Running" sections before this.  python.el
+recommends using =C-c C-c= periodically.  =if __name__ == "__main__"=
+blocks do /not/ execute when using =C-c C-c= without the universal
+argument =C-u C-c C-c=.  So if code is written with the main chunk
+inside the =if= statement, we can get completion without actually
+running the main part.
 
-  #+begin_src elisp
-    # .dir-locals.el
-    ((python-mode . ((python-check-commmand . "mypy")
-		     (python-shell-virtualenv-root . ".venv"))))
-  #+end_src
+Using =C-c C-c=, of course, is unsafe compared to static analysis
+tools like =pyflakes=, =mypy=, and =pyright=.
 
-  The virtualenv root part only affects running python as a shell
-  within emacs, it does /not/ affect things like PATH, async commands,
-  or =M-x compile=.  It's easy to add things to this via =M-x
-  add-dir-local-variable=.
 
 * Debugging
 ** using python builtin =breakpoint()= and sending things to shell
@@ -344,8 +363,29 @@ Emacs actually has a couple ways of running error-checking tools like
 this.  The typical one is =M-x compile=, which we saw earlier, but
 there's also =C-c C-v= for =M-x python-check=.
 
-** =M-X Python-check= to run =poetry run pyright=
+
 *** =conda= or vanilla version would be something like =.venv/bin/pyright=
+
+* Virtual Environments
+** =M-&= to run simple commands like =poetry update= that don't require compiler parsing
+** TODO =M-& python3 -m venv .venv=
+** TODO =M-& c.venv/bin/python -m pip install pyright=
+** =M-X python-check= to run =poetry run pyright=
+** TODO =.dir-locals.el= for setting virtual environment
+Setting both "mypy" as the check command and =.venv= as the virtualenv root:
+
+#+begin_src elisp
+# .dir-locals.el
+((python-mode . ((python-check-commmand . "mypy")
+		 (python-shell-virtualenv-root . ".venv"))))
+#+end_src
+
+The virtualenv root part only affects running python as a shell
+within emacs, it does /not/ affect things like PATH, async commands,
+or =M-x compile=.  It's easy to add things to this via =M-x
+add-dir-local-variable=.
+
+
 
 * Add error parsing to the pyright compile output
 If we save the contents of this python example to a file named
@@ -371,15 +411,6 @@ get this as an output:
 * Org mode, babel, tangling, and untangling
 ** Demo using this document?
 
-* TODO completion using the process in the background
-  python.el recommends using =C-c C-c= periodically.  =if __name__ ==
-  "__main__"= blocks do /not/ execute when using =C-c C-c= without the
-  universal argument =C-u C-c C-c=.  So if code is written with the
-  main chunk inside the =if= statement, we can get completion without
-  actually running the main part.
-
-  Using =C-c C-c=, of course, is unsafe compared to static analysis tools
-  like =pyflakes=, =mypy=, and =pyright=.
 
 * TODO semantic-mode for more intelligent completion
   This looks like an aborted first attempt at what would eventually
