@@ -448,6 +448,9 @@ There are many, many capabilities bundled into =use-package=, and even
 very minimal configurations will tend to include it, because of the
 brevity it brings to advanced package configuration.
 
+* Updates
++ 2022-08-19: Recommend against the MELPA-stable repository, after a bit of research
+
 
 
 [fn:windows-path] For our resident Microsoft Windows users - I'll be
