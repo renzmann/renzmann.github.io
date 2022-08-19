@@ -251,7 +251,7 @@ addressing errors one at a time.
   #+begin_src elisp
     # .dir-locals.el
     ((python-mode . ((python-check-commmand . "mypy")
-		     (python-shell-virtualenv-root . "/home/robb/repos/project-name/.venv"))))
+		     (python-shell-virtualenv-root . ".venv"))))
   #+end_src
 
   The virtualenv root part only affects running python as a shell
@@ -361,7 +361,7 @@ If we save the contents of this python example to a file named
 get this as an output:
 
 #+begin_example
-/home/robb/tmp/errors.py/
+/home/robb/tmp/errors.py
   /home/robb/tmp/errors.py:1:1 - error: "foo" is not defined (reportUndefinedVariable)
   /home/robb/tmp/errors.py:1:1 - warning: Expression value is unused (reportUnusedExpression)
   /home/robb/tmp/errors.py:4:12 - error: Operator "+" not supported for types "str" and "Literal[1]"
@@ -386,7 +386,25 @@ get this as an output:
   main chunk inside the =if= statement, we can get completion without
   actually running the main part.
 
+  Using =C-c C-c=, of course, is unsafe compared to static analysis tools
+  like =pyflakes=, =mypy=, and =pyright=.
+
 * TODO semantic-mode for more intelligent completion
+  This looks like an aborted first attempt at what would eventually
+  become the language server protocol.  It flat out doesn't work on
+  Windows, even after extensive searches for how to fix it.
+
+* TODO All things considered: =pyvenv=
+  My use case typically consists of working on many small, isolated
+  python projects, each in their own environment.  The vanilla python
+  experience is well suited for writing and running system-level
+  python scripts, which is one completley valid way of using Python.
+  Data science is a different beast, however.  This is an easy way to
+  ensure that our language server is running off the correct
+  environment.
+
+  If =poetry= is out the door, then this goes from
+  nice-to-have to /absolutely necessary./
 
 * TODO setting up builtin completion
 
