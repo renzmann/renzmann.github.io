@@ -22,7 +22,11 @@ Despite the excellent swath of materials both new and old on how to
 get IDE-like performance for Python out of Emacs, the collected
 materials on just running "vanilla extract" are fairly scant.  This
 guide is one attempt to introduce a reasonable workflow in Python
-using nothing but the builtin capabilities of Emacs 28.1+.
+using nothing but the builtin capabilities of Emacs 28.1+.  That all
+said, the examples and walkthroughs presented here are designed for
+=emacs -q= - i.e. starting emacs without any user configuration or
+your distribution's =default.el=.
+
 
 [[file:nothing_without_lsp.png]]
 
@@ -31,7 +35,7 @@ using nothing but the builtin capabilities of Emacs 28.1+.
 Let's get our feet wet just bopping around some Python buffers first.  I'm
 going to start up a new python file with =C-x C-f= and naming my file
 =editing.py=.  Typing code as I usually do, I'm going to start by just adding
-a couple variables and a print statement.
+a couple functions and a print statement.
 
 #+begin_src python :tangle editing.py :comments link
 # These funtions are a little basic and silly right now, but we'll use
@@ -91,9 +95,8 @@ to the start and add a =poetry run=:
 Run Python: poetry run█python3 -i
 #+end_example
 
-Leaving the =-i= isn't usually strictly necessary, but good if you
-want to start by running a script, followed by dropping into the
-REPL - useful for setting up some common variables or functions.
+Emacs is typically smart enough to figure out what to do even if we
+leave off the =-i=, but generally it's good to leave it in there.
 
 *** =C-c C-z= jumps to python REPL if already running
 
@@ -109,9 +112,9 @@ buffer all at once.
 
 *** =C-c C-v= or =M-x python-check=
 
-More on these later...
+More on this later...
 
-*** =python-skeleton-...=
+*** =C-c C-t ...= or =python-skeleton-...=
 
 Using =C-c C-t d= and =C-c C-t c= it's easy to insert new =def= and
 =class= statements (think =t= for "template", =d= for "def", and =c=
@@ -123,31 +126,58 @@ or class via the minibuffer.
 # editing.py
 # --snip--
 # Here we use `C-c C-t d` and follow the prompts to design a new
-# function signature
+# function signature.
 def whatever(my_string: str = hello_text, my_integer: int = 0):
     """Whatever, man"""
     return f"{hello_text}, {my_integer}"
-
 
 # Next, `C-c C-t c` to make a new class
 class MyGuy:
     """My guy is ALWAYS there for me"""
     pass
 #+end_src
-**** TODO GIF here of using it?
 
+** =C-c C-j= or =M-x imenu=
+The nimble =imenu= is a way to quickly navigate between major symbol
+definitions in the current buffer - especially those off screen.  In
+our =editing.py= we now have three functions, =hello_text()=,
+=world_text()=, and =whatever()=, and one class =MyGuy=.  If we use =C-c C-j=, a
+minibuffer menu like this comes up:
+
+#+begin_example
+1/5 Index item: █
+*Rescan*
+MyGuy.(class)
+whatever.(def)
+world_text.(def)
+hello_text.(def)
+#+end_example
+
+My minibuffer displays a vertical preview of the options because I've
+set =(fido-mode)= and =(vertical-fido-mode)= in my =init.el=, both of
+which are included in Emcacs 28.1 or later.  Then, if I partially type out a result the list will filter down to possible completions:
+
+#+begin_example
+1/1 Index item: My█
+MyGuy.(class)
+#+end_example
+
+=imenu= is very, very handy across Emacs, not just for Python, so it's
+worth trying in a variety of major modes.
 
 * Running
-Starting simple, we'll start by invoking the system Python for our
-script, and add virtual environment complexity once that gets
-comfortable.
+
+Now its time to actually start running some code.  We'll start simple
+by invoking the system Python for our script, and add virtual
+environment complexity once that feels comfortable.
 
 ** As a script with =M-x compile=
-This mode has built-in error parsing support, so it's superior when
-trying to run a script for real and we want to quickly jump to any
-error messages that come up.  Conversely, the =M-&= async shell
-command does /not/ have error parsing, so it's not the right tool for
-launching processes we have to debug.  Take a hello world example:
+This mode has built-in error parsing, so it's the best way to run a
+script for real and we want to quickly navigate any traceback messages
+that come up.  Conversely, the =M-&= async shell command does /not/
+have error parsing, so it's not the right tool for launching processes
+we have to debug.  Same goes for bootin up a shell and running python
+from there.  Take a hello world example:
 
 #+begin_src python :session :tangle hello.py :comments link
 # hello.py
@@ -192,10 +222,9 @@ NameError: name 'fdafdsafdsafdsa' is not defined
 Compilation exited abnormally with code 1 at Sun Aug 14 13:53:26
 #+end_example
 
-Emacs is smart enough to understand and parse the error message.
-After "compiling", we can use =M-g M-n= and =M-g M-p= to move between
-error messages, or just use the link provided by the =*compilation*=
-buffer directly.
+Emacs will parse the error message, so that after "compiling", we can
+use =M-g M-n= and =M-g M-p= to move between error messages, or just
+click the link provided by the =*compilation*= buffer directly.
 
 If just parsing Python tracebacks doesn't excite you, =mypy= is also
 supported out of the box.  Assuming =mypy= is already installed, =M-x
@@ -257,11 +286,31 @@ the errors in our code, even after navigating away from the original
 =*compilation*= buffer so we can hop all around the code base while
 addressing errors one at a time.
 
+** Interactively with an active Python shell
+
+=python-mode= centers heavily around the use of an active, running
+Python session for some of its features, as we'll see in the [[*Code
+Completion]] section.  Its documentation recommends regular use of =C-c
+C-c=, which sends the entire buffer to the active inferior Python
+process.  That means actually /executing/ Python code, which may feel
+a bit dangerous for those of us who grew up in the era of static
+analysis tooling.  So the first thing we need to make sure we don't
+accidentally kick off our whole script is ensure that the main part of
+our program is properly encased.
+
+#+begin_src python :session editing.py :comments link
+# editing.py
+# --snip--  hello_text and world_text definitions up here
+# removed the print statement we had near the beginning originally
+# --snip--  whatever and MyGuy declarations here
+if __name__ == "__main__":
+    print(f"{hello_text()}, {world_text()}!")
+#+end_src
 
 ** Also can use =M-x compile= for =poetry= commands
 *** How to fix the ansi color issue
 
-* TODO completion using the process in the background
+* TODO Code Completion
 Requires the "Editing" and "Running" sections before this.  python.el
 recommends using =C-c C-c= periodically.  =if __name__ == "__main__"=
 blocks do /not/ execute when using =C-c C-c= without the universal
