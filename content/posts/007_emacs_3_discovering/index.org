@@ -40,24 +40,23 @@ installed or not.  In my =init.el=, I have a block like so:
 ;; --snip--
 #+end_src
 
-So it seems like we have the ingredients we need,
-but need a way to apply the =package-installed-p= over the whole list
+So it seems like we have the ingredients we need, save for a way to
+apply the =package-installed-p= over the whole list
 =package-selected-packages=, and reduce down to a single true or false
 value, depending on if any of the expected packages aren't installed.
-
-Altogether that means we have a very simple map-reduce problem, and
-I am /certain/ there's a function in Emacs ready for us to use in order
-to complete the =<packages-aren't-installed>= statement - we just need
-to find it.
+Altogether, that means we have a very simple map-reduce problem, and I
+am /certain/ there's a function in Emacs ready for us to use - we just
+need to find it.
 
 * Vertical FIDO Mode
 
 This hidden superpower of Emacs 28.1+, along with the =marginalia=
-package described below, are the main tools in my arsenal for finding
-everything Emacs has to offer.
+package described below, are the main tools in my arsenal for
+surfacing everything from Emacs' many hidden, labyrinthine depths.
 
 #+begin_src elisp
-;; Set 'flex' to be the main completion style
+;; Set 'flex' to be the main completion style.  This enables a "fuzzy"
+;; style of searching for things using the minibuffer
 (setq completion-styles '(flex basic partial-completion emacs22))
 ;; Turn on FIDO (Fake IDO) mode
 (fido-mode)
@@ -78,10 +77,10 @@ candidates as we type, in an easy-to-read vertical format
 
 * Marginalia
 
-While not a part of base Emacs, this little package compliments the
-vertical FIDO display by adding information about each item.  After
-performing a =M-x package-refresh-contents= and =M-x package-install
-RET marginalia=, we get this:
+While not a part of base Emacs, this little package complements the
+vertical FIDO display by adding information, usually a docstring, next
+to each item.  After performing a =M-x package-refresh-contents= and
+=M-x package-install RET marginalia=, we get this:
 
 [[file:./fido-marginalia.png]]
 
@@ -91,10 +90,11 @@ The modifications we just made also affect commands that search
 through variables and functions, like =C-h f= (describe-function).
 What we're after right now is some kind of function that acts on a
 list, and tells us if any of the items are =nil= after applying the
-=package-installed-p= function to them.  My guy tells me that a word
-like "all", "every", or "none" might appear in such a function.  A
-query for the word "any" nets us a promising function called
-=cl-notany=
+=package-installed-p= function to them.  My gut tells me that a word
+like "all", "every", or "none" might appear in such a function.  After
+trying a few of these, examining the descriptions, and quickly trying
+again, a query for the word "any" brought up a promising function
+called =cl-notany=
 
 [[file:./any-query.png]]
 
