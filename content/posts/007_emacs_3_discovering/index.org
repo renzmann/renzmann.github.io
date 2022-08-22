@@ -3,7 +3,7 @@
 
 * Setup
 
-In one of my first articles about getting set up with =packages.el=, I
+In one of my [[https://robbmann.io/posts/005_emacs_1_packages/][first articles]] about getting set up with =packages.el=, I
 left a somewhat expensive line hanging out in the open:
 
 #+begin_src elisp
