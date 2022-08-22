@@ -71,8 +71,8 @@ everything Emacs has to offer.
 (fido-vertical-mode)
 #+end_src
 
-This sets up the minibuffer to show a live update of completion candidates as we type, in
-an easy-to-read vertical format
+This sets up the minibuffer to show a live update of completion
+candidates as we type, in an easy-to-read vertical format
 
 [[file:./vert-fido.png]]
 
@@ -113,7 +113,7 @@ Return true if PREDICATE is false of every element of SEQ or SEQs.
 #+end_example
 
 There's a link on `cl-extra` in this buffer, and my bet is that the
-function we're looking for would be defined near where =cl-notany= is.
+function we're looking for would be defined near =cl-notany=.
 Following that link takes us to a block of code with the =defun= for
 =cl-notany=.  Lo and behold, there's a =cl-notevery= right below it
 with a description that matches exactly what we need:
@@ -136,7 +136,7 @@ with a description that matches exactly what we need:
 * Writing the =when= block
 
 With =cl-notevery= in hand, the last step is to apply it in our =init.el=
-for managing package installation.
+for managing package refresh and installation.
 
 #+begin_src elisp
 (when (cl-notevery 'package-installed-p package-selected-packages)
