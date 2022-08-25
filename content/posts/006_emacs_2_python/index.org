@@ -178,7 +178,7 @@ worth trying in a variety of major modes.
 
 * Running
 
-Now its time to actually start running some code.  We'll start simple
+Now its time to actually start executing some code.  We'll start simple
 by invoking the system Python for our script, and add virtual
 environment complexity once that feels comfortable.
 
@@ -371,32 +371,18 @@ matching many of us have become used to in other editors.
 
 * Debugging
 ** using python builtin =breakpoint()= and sending things to shell
-   This will automatically break into pdb/ipdb, jump to the breakpoint in the
-   code, and put an arrow at the next line to execute.
+
+This will automatically break into pdb/ipdb, jump to the breakpoint in
+the code, and put an arrow at the next line to execute.
 
 ** =M-x pdb=
+
+Simply populates the command to run with =python -m pdb=.  Can be
+configured with the variable =gud-pdb-command-name=
+
 ** The =poetry= + =pyright= stack
 
-To start, let's return to an earlier Python script that's riddled with
-errors:
-
-#+begin_src python :tangle errors.py :comments link
-# errors.py
-import typing
-
-import requests
-import aaaaaaa
-
-foo
-print(typing.fdafdsafdsafdsafdsafdsafdsa)
-
-
-def whatever(x: str) -> str:
-    """Here's a docstring!"""
-    return x + 1
-#+end_src
-
-The stack I'm going to use consists of:
+The stack I use most frequently (as of writing) consists of:
 
 1. =python3.10= as the Python runtime
 2. =poetry= for dependency and environment management[fn:poetry]
@@ -422,7 +408,7 @@ environment but never bothers to update the =setup.py=,
 Earlier we mentioned that running our Python scripts via the =M-&=
 async shell command interface wasn't a great use case for it.
 However, using it to set up a poetry environment is a fantastic
-example of when it is appropriate.l
+example of when it is appropriate.
 
 #+begin_example
 Async shell command: poetry init -n --python=^3.10
@@ -430,7 +416,7 @@ Async shell command: poetry init -n --python=^3.10
 
 Assuming the poetry command ran without error, it plopped down the
 =pyproject.toml= in the same directory as =errors.py=.  In a similar
-vein, let's add a couple dependencies:
+vein, we can add project dependencies using =M-&=
 
 #+begin_example
 Async shell command: poetry add pyright requests
@@ -444,8 +430,8 @@ eshell= (whichever happens to be behaving better that day) to just get
 a simple cross-platform shell running where I can try it out:
 
 #+begin_example
+~/tmp $ # using the same `errors.py` as in the earlier sectons
 ~/tmp $ poetry run pyright errors.py
-Creating virtualenv 006-emacs-2-python-QKcV4YYo-py3.10 in /home/robb/.cache/pypoetry/virtualenvs
 No configuration file found.
 pyproject.toml file found at /home/robb/repos/renzmann.github.io/content/posts/006_emacs_2_python.
 Loading pyproject.toml file at /home/robb/repos/renzmann.github.io/content/posts/006_emacs_2_python/pyproject.toml
@@ -468,8 +454,26 @@ Completed in 1.033sec
 
 Emacs actually has a couple ways of running error-checking tools like
 this.  The typical one is =M-x compile=, which we saw earlier, but
-there's also =C-c C-v= for =M-x python-check=.
+there's also =C-c C-v= for =M-x python-check=.  The latter will
+automatically check for tools like =pyflakes= or =flake8=, but can be
+configured with the =python-check-command= variable to pre-populate
+the command to run.  Like =M-x compile=, =M-x python-check= will use a
+buffer that looks identical to =*compilation*= in every way except
+name: it will be called the =*Python check: <command you ran>*=
+buffer.
 
+For me, that means I typically have something like
+
+#+begin_src elisp
+(setq python-check-command "poetry run pyright")
+#+end_src
+
+and then =C-c C-v= from a python buffer will prompt like this while
+=errors.py= is my active buffer
+
+#+begin_example
+Check command: poetry run pyright errors.py
+#+end_example
 
 *** =conda= or vanilla version would be something like =.venv/bin/pyright=
 
@@ -483,8 +487,8 @@ Setting both "mypy" as the check command and =.venv= as the virtualenv root:
 
 #+begin_src elisp :tangle .dir-locals.el
 ;; .dir-locals.el
-((python-mode . ((python-check-commmand . "mypy")
-		 (python-shell-virtualenv-root . ".venv"))))
+((python-mode . ((python-check-command . "mypy")
+                 (python-shell-virtualenv-root . ".venv"))))
 #+end_src
 
 The virtualenv root part only affects running python as a shell
