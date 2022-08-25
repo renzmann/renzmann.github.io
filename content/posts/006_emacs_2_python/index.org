@@ -4,7 +4,7 @@
 
 * Intro
 There are a lot of great guides on getting set up with Python in
-Emacs.  A lot of them have titles like "Emacs as a Python IDE", and
+Emacs.  Many of them have titles like "Emacs as a Python IDE", and
 start off by installing =pyvenv= for virtual environment management,
 =eglot= or =lsp-mode= for autocomplete/error checking, and maybe
 a host of other non-python things, like the =helm= or =projectile=
@@ -14,28 +14,34 @@ This is not that guide.
 
 This guide is for picky @#$%!s like me who need to understand and
 exhaust every builtin capability before reaching out to external
-dependencies I'll also have to learn and manage.  Once I /really/
-understand what =pyvenv= is solving, then, and /only/ then, will I add
-it to my =package-selected-packages=.
+dependencies.  Dependencies that, in turn, I will also have to learn
+and manage.  Once I /really/ understand what =pyvenv= is solving,
+then, and /only/ then, will I add it to my
+=package-selected-packages=.
 
 Despite the excellent swath of materials both new and old on how to
 get IDE-like performance for Python out of Emacs, the collected
-materials on just running "vanilla extract" are fairly scant.  This
-guide is one attempt to introduce a reasonable workflow in Python
-using nothing but the builtin capabilities of Emacs 28.1+.  That all
-said, the examples and walkthroughs presented here are designed for
-=emacs -q= - i.e. starting emacs without any user configuration or
-your distribution's =default.el=.
+materials on just running "vanilla extract" are fairly scant.  The
+builtin =python.el= documentation is thorough, the keybindings easily
+discoverable, but not all documentation is collated into a single
+place.  This guide is one attempt to remedy that, and introduce a
+reasonable workflow in Python using nothing but the builtin
+capabilities of Emacs 28.1+.  That all said, the examples and
+walkthroughs presented here are designed for =emacs -q= -
+i.e. starting emacs without any user configuration or your
+distribution's =default.el=.
 
 
 [[file:nothing_without_lsp.png]]
 
 
 * Editing
-Let's get our feet wet just bopping around some Python buffers first.  I'm
-going to start up a new python file with =C-x C-f= and naming my file
-=editing.py=.  Typing code as I usually do, I'm going to start by just adding
-a couple functions and a print statement.
+
+Let's get our feet wet by bopping around some Python buffers first.
+I'm going to start up a new python file with =C-x C-f= and naming my
+file =editing.py=.  I'm going to start by just adding a couple
+functions and a print statement, obfuscating the typical "Hello, world!" example a bit
+by introducing some functions and a "main" section right away.
 
 #+begin_src python :tangle editing.py :comments link
 # These funtions are a little basic and silly right now, but we'll use
@@ -50,8 +56,9 @@ def world_text():
     return "world!"
 
 
-# Emacs 28.1+ has f-string syntax highlighting built in
-print(f"{hello_text()}, {world_text()}!")
+if __name__ == "__main__":
+    # Emacs 28.1+ has f-string syntax highlighting built in
+    print(f"{hello_text()}, {world_text()}!")
 #+end_src
 
 By visiting this file, Emacs automatically goes into =python-mode=,
@@ -120,7 +127,9 @@ Using =C-c C-t d= and =C-c C-t c= it's easy to insert new =def= and
 =class= statements (think =t= for "template", =d= for "def", and =c=
 for "class").  Ater invoking one of these, Emacs will guide us through
 the process of filling out each part needed to define a new function
-or class via the minibuffer.
+or class via the minibuffer.  Using =C-g= at any point while editing
+the template wil revert the buffer back to its original state, as if
+you never started filling out the skeleton.
 
 #+begin_src python :session :tangle editing.py :comments link
 # editing.py
@@ -135,14 +144,16 @@ def whatever(my_string: str = hello_text, my_integer: int = 0):
 class MyGuy:
     """My guy is ALWAYS there for me"""
     pass
+# --snip-- "__main__"
 #+end_src
 
+
 ** =C-c C-j= or =M-x imenu=
-The nimble =imenu= is a way to quickly navigate between major symbol
-definitions in the current buffer - especially those off screen.  In
-our =editing.py= we now have three functions, =hello_text()=,
-=world_text()=, and =whatever()=, and one class =MyGuy=.  If we use =C-c C-j=, a
-minibuffer menu like this comes up:
+The nimble, builtin =imenu= is a way to quickly navigate between major
+symbol definitions in the current buffer - especially those off
+screen.  In our =editing.py= we now have three functions,
+=hello_text()=, =world_text()=, and =whatever()=, and one class
+=MyGuy=.  If we use =C-c C-j=, a minibuffer menu like this comes up:
 
 #+begin_example
 1/5 Index item: █
@@ -173,31 +184,26 @@ environment complexity once that feels comfortable.
 
 ** As a script with =M-x compile=
 This mode has built-in error parsing, so it's the best way to run a
-script for real and we want to quickly navigate any traceback messages
+script for real if we want to quickly navigate any traceback messages
 that come up.  Conversely, the =M-&= async shell command does /not/
 have error parsing, so it's not the right tool for launching processes
-we have to debug.  Same goes for bootin up a shell and running python
-from there.  Take a hello world example:
-
-#+begin_src python :session :tangle hello.py :comments link
-# hello.py
-print("Hello, world!")
-#+end_src
-
-If we run =M-x compile= and give it an argument of =python3 hello.py=, up pops the
-=*compilation*= buffer, with the starting time, output of our program, and finish time.
+we have to debug.  Same goes for booting up a shell and running python
+from there.  Taking our script from the previous section, if we run
+=M-x compile= and give it an argument of =python3 editing.py=, up pops
+the =*compilation*= buffer, with the starting time, output of our
+program, and finish time.
 
 #+begin_example
 -*- mode: compilation; default-directory: "~/repos/renzmann.github.io/content/posts/006_emacs_2_python/" -*-
 Compilation started at Sun Aug 14 13:50:39
 
-python3 hello.py
+python3 editing.py
 Hello, world!
 
 Compilation finished at Sun Aug 14 13:50:39
 #+end_example
 
-Now, let's add an error:
+Now, let's try a different script, with an error in it:
 
 #+begin_src python :session :tangle hello_error.py :comments link
 # hello_error.py
@@ -262,7 +268,7 @@ def whatever(x: str) -> str:
 #+end_src
 
 #+begin_example
-M-x compile mypy errors.py
+M-x compile RET mypy errors.py
 #+end_example
 
 #+begin_example
@@ -286,23 +292,21 @@ the errors in our code, even after navigating away from the original
 =*compilation*= buffer so we can hop all around the code base while
 addressing errors one at a time.
 
-** Interactively with an active Python shell
+** Interactively with the Python shell
 
 =python-mode= centers heavily around the use of an active, running
 Python session for some of its features, as we'll see in the [[*Code
 Completion]] section.  Its documentation recommends regular use of =C-c
 C-c=, which sends the entire buffer to the active inferior Python
 process.  That means actually /executing/ Python code, which may feel
-a bit dangerous for those of us who grew up in the era of static
-analysis tooling.  So the first thing we need to make sure we don't
+a bit dangerous for those of us who grew up with static
+analysis tools.  So the first thing we need to make sure we don't
 accidentally kick off our whole script is ensure that the main part of
 our program is properly encased.
 
-#+begin_src python :session editing.py :comments link
+#+begin_src python
 # editing.py
-# --snip--  hello_text and world_text definitions up here
-# removed the print statement we had near the beginning originally
-# --snip--  whatever and MyGuy declarations here
+# --snip--
 if __name__ == "__main__":
     print(f"{hello_text()}, {world_text()}!")
 #+end_src
@@ -313,14 +317,57 @@ if __name__ == "__main__":
 * TODO Code Completion
 Requires the "Editing" and "Running" sections before this.  python.el
 recommends using =C-c C-c= periodically.  =if __name__ == "__main__"=
-blocks do /not/ execute when using =C-c C-c= without the universal
-argument =C-u C-c C-c=.  So if code is written with the main chunk
-inside the =if= statement, we can get completion without actually
-running the main part.
+blocks do /not/ execute when using =C-c C-c=.  To send all code in the
+current buffer, including the =__main__= block, instead we must use
+=C-u C-c C-c=.
 
-Using =C-c C-c=, of course, is unsafe compared to static analysis
-tools like =pyflakes=, =mypy=, and =pyright=.
+I tend to prefer just being able to hit =TAB= instead of the more
+cumbersome =C-M-i= or =M-TAB= for =completion-at-point=, so I use this snippet in my
+=init.el=:
 
+#+begin_src elisp
+;; init.el
+;; Use TAB in place of C-M-i for completion-at-point
+(setq tab-always-indent 'complete)
+#+end_src
+
+Next, in our python file =editing.py=, I know we have a function
+called =hello_text()=.  Within the main block, I might have been
+typing something that looked like this:
+
+#+begin_src python
+if __name__ == "__main__":
+    print("{hell█
+#+end_src
+
+Where █ is where point currently sits.  Attempting a
+=completion-at-point= using =C-M-i= (or just =TAB= as I have re-bound
+it above) will yield ... nothing.  Maybe the indentation cycles, or it
+says "No match", or just - no response.  What we require is an
+inferior Python process that knows how to complete symbols before
+=completion-at-point= starts working.  After booting up Python with
+=C-c C-p= and sending all the current buffer contents with =C-c C-c=,
+hitting =TAB= completes the =hell= into =hello_text=:
+
+#+begin_src python
+if __name__ == "__main__":
+    print("{hello_text█
+#+end_src
+
+In the case that the completion is ambiguous, a =*completions*= buffer
+will pop up, prompting for input on how to continue.  Another nice
+thing about this completion method is that it respects your
+=completion-styles= setting.  Personally, I keep mine globally set to
+include the =flex= style:
+
+#+begin_src elisp
+;; init.el
+(setq completion-styles '(flex basic partial-completion emacs22))
+#+end_src
+
+This allows me to type something like =hltx=, hit =TAB= and it
+completes to =hello_text=, using the familiar "fuzzy" style of
+matching many of us have become used to in other editors.
 
 * Debugging
 ** using python builtin =breakpoint()= and sending things to shell
@@ -328,21 +375,28 @@ tools like =pyflakes=, =mypy=, and =pyright=.
    code, and put an arrow at the next line to execute.
 
 ** =M-x pdb=
-** Create a simple python script with a few obvious errors
+** The =poetry= + =pyright= stack
 
-To start, let's make a python script that's riddled with errors
+To start, let's return to an earlier Python script that's riddled with
+errors:
 
-I want to set up an easy system for debugging, fixing, and re-running
-this script.  Looking at the script above, a good setup should tell me:
+#+begin_src python :tangle errors.py :comments link
+# errors.py
+import typing
 
-1. Until we install it, =requests= is an unknown import
-2. There's an unknown import =aaaaaaa=
-3. =typing= doesn't have an attribute =fdafdsafdsafdsafdsafdsafdsa=
-4. We can't add a =str= type to an =int= inside the body of =whatever=
+import requests
+import aaaaaaa
 
-Ideally, we'd also get all this error checking up front, and not
-one-by-one from running the script multiple times.  The stack I'm
-going to use for this consists of:
+foo
+print(typing.fdafdsafdsafdsafdsafdsafdsa)
+
+
+def whatever(x: str) -> str:
+    """Here's a docstring!"""
+    return x + 1
+#+end_src
+
+The stack I'm going to use consists of:
 
 1. =python3.10= as the Python runtime
 2. =poetry= for dependency and environment management[fn:poetry]
@@ -365,17 +419,18 @@ are automatically kept in sync, so you never have the case like with
 environment but never bothers to update the =setup.py=,
 =environment.yml=, =requirements.txt= or whatever.
 
-Starting out, we can use an asynchronous shell command to set up a
-poetry environment for the project by using =M-&=, while =errors.py=
-is still the active buffer:
+Earlier we mentioned that running our Python scripts via the =M-&=
+async shell command interface wasn't a great use case for it.
+However, using it to set up a poetry environment is a fantastic
+example of when it is appropriate.l
 
 #+begin_example
 Async shell command: poetry init -n --python=^3.10
 #+end_example
 
 Assuming the poetry command ran without error, it plopped down the
-=pyproject.toml= in the same directory as =errors.py=.  In a similar vein,
-let's add a couple dependencies:
+=pyproject.toml= in the same directory as =errors.py=.  In a similar
+vein, let's add a couple dependencies:
 
 #+begin_example
 Async shell command: poetry add pyright requests
@@ -426,8 +481,8 @@ there's also =C-c C-v= for =M-x python-check=.
 ** TODO =.dir-locals.el= for setting virtual environment
 Setting both "mypy" as the check command and =.venv= as the virtualenv root:
 
-#+begin_src elisp
-# .dir-locals.el
+#+begin_src elisp :tangle .dir-locals.el
+;; .dir-locals.el
 ((python-mode . ((python-check-commmand . "mypy")
 		 (python-shell-virtualenv-root . ".venv"))))
 #+end_src
@@ -436,7 +491,6 @@ The virtualenv root part only affects running python as a shell
 within emacs, it does /not/ affect things like PATH, async commands,
 or =M-x compile=.  It's easy to add things to this via =M-x
 add-dir-local-variable=.
-
 
 
 * Add error parsing to the pyright compile output
