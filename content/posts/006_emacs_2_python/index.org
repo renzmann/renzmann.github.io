@@ -295,14 +295,14 @@ addressing errors one at a time.
 ** Interactively with the Python shell
 
 =python-mode= centers heavily around the use of an active, running
-Python session for some of its features, as we'll see in the [[*Code
-Completion]] section.  Its documentation recommends regular use of =C-c
+Python session for some of its features, as we'll see in the "Code
+Completion" section.  Its documentation recommends regular use of =C-c
 C-c=, which sends the entire buffer to the active inferior Python
 process.  That means actually /executing/ Python code, which may feel
-a bit dangerous for those of us who grew up with static
-analysis tools.  So the first thing we need to make sure we don't
-accidentally kick off our whole script is ensure that the main part of
-our program is properly encased.
+a bit dangerous for those of us who grew up with static analysis
+tools.  So the first thing we need to make sure we don't accidentally
+kick off our whole script is ensure that the main part of our program
+is properly encased.
 
 #+begin_src python
 # editing.py
@@ -314,7 +314,7 @@ if __name__ == "__main__":
 ** Also can use =M-x compile= for =poetry= commands
 *** How to fix the ansi color issue
 
-* TODO Code Completion
+* Code Completion
 Requires the "Editing" and "Running" sections before this.  python.el
 recommends using =C-c C-c= periodically.  =if __name__ == "__main__"=
 blocks do /not/ execute when using =C-c C-c=.  To send all code in the
@@ -380,7 +380,7 @@ the code, and put an arrow at the next line to execute.
 Simply populates the command to run with =python -m pdb=.  Can be
 configured with the variable =gud-pdb-command-name=
 
-** The =poetry= + =pyright= stack
+* The =poetry= + =pyright= stack
 
 The stack I use most frequently (as of writing) consists of:
 
@@ -475,51 +475,121 @@ and then =C-c C-v= from a python buffer will prompt like this while
 Check command: poetry run pyright errors.py
 #+end_example
 
-*** =conda= or vanilla version would be something like =.venv/bin/pyright=
+** Adding error parsing to the pyright compile output
 
-* Virtual Environments
-** =M-&= to run simple commands like =poetry update= that don't require compiler parsing
-** TODO =M-& python3 -m venv .venv=
-** TODO =M-& c.venv/bin/python -m pip install pyright=
-** =M-X python-check= to run =poetry run pyright=
-** TODO =.dir-locals.el= for setting virtual environment
-Setting both "mypy" as the check command and =.venv= as the virtualenv root:
+Unlike the =mypy= output, the error messages from =pyright= aren't
+links, and we can't hop between messages using =M-g M-n= and =M-g M-p=
+like before.  In order to gain this functionality, we need to add a
+regex that can parse =pyright= messages.  There are two objects of
+interest to accomplish this:
 
-#+begin_src elisp :tangle .dir-locals.el
-;; .dir-locals.el
-((python-mode . ((python-check-command . "mypy")
-                 (python-shell-virtualenv-root . ".venv"))))
-#+end_src
++ compilation-error-regexp-alist
++ compilation-error-regexp-alist-alist
 
-The virtualenv root part only affects running python as a shell
-within emacs, it does /not/ affect things like PATH, async commands,
-or =M-x compile=.  It's easy to add things to this via =M-x
-add-dir-local-variable=.
-
-
-* Add error parsing to the pyright compile output
-If we save the contents of this python example to a file named
-=errors.py=, and then run =pyright errors.py= from any shell, we'll
-get this as an output:
+Here's the formal description from =C-h v compilation-error-regexp-alist=:
 
 #+begin_example
-/home/robb/tmp/errors.py
-  /home/robb/tmp/errors.py:1:1 - error: "foo" is not defined (reportUndefinedVariable)
-  /home/robb/tmp/errors.py:1:1 - warning: Expression value is unused (reportUnusedExpression)
-  /home/robb/tmp/errors.py:4:12 - error: Operator "+" not supported for types "str" and "Literal[1]"
-    Operator "+" not supported for types "str" and "Literal[1]" (reportGeneralTypeIssues)
-2 errors, 1 warning, 0 informations
+Alist that specifies how to match errors in compiler output.
+On GNU and Unix, any string is a valid filename, so these
+matchers must make some common sense assumptions, which catch
+normal cases.  A shorter list will be lighter on resource usage.
+
+Instead of an alist element, you can use a symbol, which is
+looked up in ‘compilation-error-regexp-alist-alist’.
 #+end_example
 
-** The regexp alist and alist-alist ... yeah
-** Building the regex with re-builder from the compiler output screen
-*** GIF of building regex
-** Adding the regex to init.el
-** Using the =M-g M-p= and =M-g M-n= to navigate errors
-*** GIF of navigating errors
+In not so many words, this says we should modify the =*-alist-alist=
+version, and simply add a symbol to the =*-alist= variable.  Examining
+the current value via =C-h v compliation-error-regexp-alist-alist=,
+it's easy to see that we're after an expression a bit like this,
+
+#+begin_src elisp
+(add-to-list 'compilation-error-regexp-alist-alist
+             '(pyright "regexp that parses pyright errors" 1 2 3))
+#+end_src
+
+eventually replacing the string in the middle with an actual Emacs
+regexp.  Thankfully, Emacs has the =re-builder= built in for doing
+exactly that!  Since =*Python check: poetry run pyright errors.py*= is
+a buffer like any other, we can hop over to it, and run =M-x
+re-builder= to piece together a regex that extracts file name, line
+number, and column number from each message.
+
+*** TODO GIF of building regex
+
+* Virtual Environments
+
+Since I use =poetry= so frequently, and I can prefix all of the emacs
+or shell commands with =poetry run=, it's pretty rare that I have to
+invoke specific virtual environments.  That said, this guide would
+have a pretty large hole in it if we didn't mention the vanilla
+virtual environment experience.
+
+Most folks tend to run a slightly different virtual environment
+workflow from one another.  What I'm showing off below is the one I
+think fits most easily with the flavor of vanilla already presented in
+this article, with some added knowledge about how =.dir-locals.el=
+works (coming up shortly).
+
+** Create a virtual environment
+
+Keeping a =.venv= folder at the top level of a project is one valid
+way to organize things, but Emacs isn't going to make it easy for us
+to use it that way.  Instead, I'd recommend keeping them in a central
+place that's easy to find.   For me, that looks like this:
+
+#+begin_example
+M-& python3 -m venv ~/.cache/venvs/website
+#+end_example
+
+This builds a named virtualenv I use for python utilities bulding my
+blog called =website=, in my personal =~/.cache= directory on Unix.  To use
+this virtualenv explicitly for shell utilities, I can always run commands like this
+
+#+begin_example
+M-& ~/.cache/venvs/website/bin/python -m pip install mypy
+M-& ~/.cache/venv/website/bin/mypy errors.py
+#+end_example
+
+Of course, adding the prefix =~/.cache/venvs/website/bin= every time
+is a bit cumbersome, especially for frequent commands like =M-x
+python-check=.
+
+** =.dir-locals.el= for setting virtual environment
+
+One quick way to reduce some typing is to add entries in a project
+file called =.dir-locals.el=.  This is a special /data/ file that Emacs will
+read, if it exists, and apply to all new buffers within the project.
+For our needs, we want to apply a couple changes to =python-mode= specifically to use
+the virtual environment instead of system python.  The two easy ones are the =python-check-command= and =python-shell-virtualenv-root=:
+
+#+begin_src elisp :tangle .dir-locals.el :comments link
+;; .dir-locals.el
+((python-mode . ((python-check-command . "~/.cache/venvs/website/bin/python -m mypy")
+                 (python-shell-virtualenv-root . "~/.cache/venvs/website"))))
+
+#+end_src
+
+(It's also worth mentioning here that =M-x add-dir-local-variable=
+provides an easy interactive interface to editing the =.dir-locals.el=
+file).  Now, whenver we use =C-c C-v= or =M-x python-check=, the
+minibuffer will already be populated with the command to run =mypy=
+out of the virtual environment, instead of whichever =mypy=
+installation happens to be first on PATH.  By setting
+=python-shell-virtualenv-root=, when we use =C-c C-p= or =M-x
+run-python= to create a /new/ python shell, it will run the Python
+executable from =~/.cache/venvs/website= instead of =/usr/bin/python=,
+or whichever other installlation might be found first.
+
+The =python-shell-virtualenv-root= part only affects running python as
+a shell within Emacs, it does /not/ affect things like PATH, async
+commands, or =M-x compile=.
+
 
 * Org mode, babel, tangling, and untangling
 ** Demo using this document?
+
+** TODO literate programming (ala Jupyter) with Org - builtin, but needs a couple lines of config
 
 
 * TODO semantic-mode for more intelligent completion
@@ -538,9 +608,6 @@ get this as an output:
 
   If =poetry= is out the door, then this goes from
   nice-to-have to /absolutely necessary./
-
-* TODO literate programming (ala Jupyter) with Org - builtin, but needs a couple lines of config
-* TODO =pyvenv= package is /absolutely/ necessary once we want seamless shell/lsp integration and can't use poetry
 
 
 * Footnotes
