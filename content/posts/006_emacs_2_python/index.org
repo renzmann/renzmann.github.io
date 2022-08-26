@@ -570,9 +570,9 @@ the virtual environment instead of system python.  The two easy ones are the =py
 
 #+end_src
 
-(It's also worth mentioning here that =M-x add-dir-local-variable=
+It's also worth mentioning here that =M-x add-dir-local-variable=
 provides an easy interactive interface to editing the =.dir-locals.el=
-file).  Now, whenver we use =C-c C-v= or =M-x python-check=, the
+file.  Now, whenver we use =C-c C-v= or =M-x python-check=, the
 minibuffer will already be populated with the command to run =mypy=
 out of the virtual environment, instead of whichever =mypy=
 installation happens to be first on PATH.  By setting
