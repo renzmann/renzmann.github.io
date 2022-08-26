@@ -1,5 +1,5 @@
-;;; Directory Local Variables
-;;; For more information see (info "(emacs) Directory Variables")
-
-((python-mode . ((python-shell-virtualenv-root . ".venv")
-		 (python-check-command . "mypy"))))
+;; [[file:index.org::*=.dir-locals.el= for setting virtual environment][=.dir-locals.el= for setting virtual environment:1]]
+;; .dir-locals.el
+((python-mode . ((python-check-command . "~/.cache/venvs/website/bin/python -m mypy")
+                 (python-shell-virtualenv-root . "~/.cache/venvs/website"))))
+;; =.dir-locals.el= for setting virtual environment:1 ends here

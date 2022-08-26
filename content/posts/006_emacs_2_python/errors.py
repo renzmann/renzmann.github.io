@@ -1,4 +1,4 @@
-# [[file:index.org::*As a script with =M-x compile=][As a script with =M-x compile=:3]]
+# [[file:index.org::*As a script with =M-x compile=][As a script with =M-x compile=:2]]
 # errors.py
 import typing
 
@@ -12,4 +12,4 @@ print(typing.fdafdsafdsafdsafdsafdsafdsa)
 def whatever(x: str) -> str:
     """Here's a docstring!"""
     return x + 1
-# As a script with =M-x compile=:3 ends here
+# As a script with =M-x compile=:2 ends here
