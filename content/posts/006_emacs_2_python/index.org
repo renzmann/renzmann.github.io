@@ -313,11 +313,10 @@ if __name__ == "__main__":
 #+end_src
 
 * Code Completion
-Requires the "Editing" and "Running" sections before this.  python.el
-recommends using =C-c C-c= periodically.  =if __name__ == "__main__"=
-blocks do /not/ execute when using =C-c C-c=.  To send all code in the
-current buffer, including the =__main__= block, instead we must use
-=C-u C-c C-c=.
+=python.el= recommends using =C-c C-c= periodically.  =if __name__ ==
+"__main__"= blocks do /not/ execute when using =C-c C-c=.  To send all
+code in the current buffer, including the =__main__= block, instead we
+must use =C-u C-c C-c=.
 
 I tend to prefer just being able to hit =TAB= instead of the more
 cumbersome =C-M-i= or =M-TAB= for =completion-at-point=, so I use this snippet in my
