@@ -4,10 +4,10 @@
 
 * Intro
 There are a lot of great guides on getting set up with Python in
-Emacs.  Many of them have titles like "Emacs as a Python IDE", and
+Emacs.  Many of them have titles like "Emacs as a Python IDE" and
 start off by installing =pyvenv= for virtual environment management,
-=eglot= or =lsp-mode= for autocomplete/error checking, and maybe
-a host of other non-python things, like the =helm= or =projectile=
+=eglot= or =lsp-mode= for autocomplete/error checking, and maybe a
+host of other non-python things, like the =helm= or =projectile=
 packages.
 
 This is not that guide.
@@ -22,10 +22,10 @@ then, and /only/ then, will I add it to my
 Despite the excellent swath of materials both new and old on how to
 get IDE-like performance for Python out of Emacs, the collected
 materials on just running "vanilla extract" are fairly scant.  The
-builtin =python.el= documentation is thorough, the keybindings easily
-discoverable, but not all documentation is collated into a single
-place.  This guide is one attempt to remedy that, and introduce a
-reasonable workflow in Python using nothing but the builtin
+builtin =python.el= documentation is thorough and the keybindings
+easily discoverable, but not all documentation is collated into a
+single place.  This guide is one attempt to remedy that, and introduce
+a reasonable workflow in Python using nothing but the builtin
 capabilities of Emacs 28.1+.  That all said, the examples and
 walkthroughs presented here are designed for =emacs -q= -
 i.e. starting emacs without any user configuration or your
@@ -40,8 +40,9 @@ distribution's =default.el=.
 Let's get our feet wet by bopping around some Python buffers first.
 I'm going to start up a new python file with =C-x C-f= and naming my
 file =editing.py=.  I'm going to start by just adding a couple
-functions and a print statement, obfuscating the typical "Hello, world!" example a bit
-by introducing some functions and a "main" section right away.
+functions and a print statement, obfuscating the typical "Hello,
+world!" example a bit by introducing some functions and a "main"
+section right away.
 
 #+begin_src python :tangle editing.py :comments link
 # These funtions are a little basic and silly right now, but we'll use
@@ -311,9 +312,6 @@ if __name__ == "__main__":
     print(f"{hello_text()}, {world_text()}!")
 #+end_src
 
-** Also can use =M-x compile= for =poetry= commands
-*** How to fix the ansi color issue
-
 * Code Completion
 Requires the "Editing" and "Running" sections before this.  python.el
 recommends using =C-c C-c= periodically.  =if __name__ == "__main__"=
@@ -534,17 +532,19 @@ works (coming up shortly).
 ** Create a virtual environment
 
 Keeping a =.venv= folder at the top level of a project is one valid
-way to organize things, but Emacs isn't going to make it easy for us
-to use it that way.  Instead, I'd recommend keeping them in a central
-place that's easy to find.   For me, that looks like this:
+way to organize things, but (vanilla) Emacs isn't going to make it
+easy for us to use it that way.  Instead, I'd recommend keeping all
+virtual environments in a central place.  For me, that looks like
+this:
 
 #+begin_example
 M-& python3 -m venv ~/.cache/venvs/website
 #+end_example
 
-This builds a named virtualenv I use for python utilities bulding my
-blog called =website=, in my personal =~/.cache= directory on Unix.  To use
-this virtualenv explicitly for shell utilities, I can always run commands like this
+This builds a virtualenv named =website= for python utilities that
+help buld my blog under the =~/.cache= directory on Unix.  To use this
+virtualenv explicitly for shell utilities, I can always run commands
+like this
 
 #+begin_example
 M-& ~/.cache/venvs/website/bin/python -m pip install mypy
@@ -558,10 +558,12 @@ python-check=.
 ** =.dir-locals.el= for setting virtual environment
 
 One quick way to reduce some typing is to add entries in a project
-file called =.dir-locals.el=.  This is a special /data/ file that Emacs will
-read, if it exists, and apply to all new buffers within the project.
-For our needs, we want to apply a couple changes to =python-mode= specifically to use
-the virtual environment instead of system python.  The two easy ones are the =python-check-command= and =python-shell-virtualenv-root=:
+file called =.dir-locals.el=.  This is a special /data/ file that
+Emacs will read, if it exists, and apply to all new buffers within the
+project.  For our needs, we want to apply a couple changes to
+=python-mode= specifically to use the virtual environment instead of
+system python.  The two easy ones are the =python-check-command= and
+=python-shell-virtualenv-root=:
 
 #+begin_src elisp :tangle .dir-locals.el :comments link
 ;; .dir-locals.el
@@ -585,6 +587,35 @@ The =python-shell-virtualenv-root= part only affects running python as
 a shell within Emacs, it does /not/ affect things like PATH, async
 commands, or =M-x compile=.
 
+** TODO difficulty of setting PATH variable(s)
+** TODO confirming "unsafe" variables
+
+** All things considered: =pyvenv=
+
+[[https://github.com/jorgenschaefer/pyvenv][=pyvenv=]] is a very lightweight package, clocking in at around 540
+source lines of code, designed specifically around the challenge of
+ensuring the correct python virtual environment is at the front of
+PATH when running (async) shell commands, =M-x eshell=, =M-x shell=,
+=M-x term=, =M-x python-check=, =M-x compile=, and more.  When
+written, it was based around =virtualenv= and =virtualenvwrapper.sh=,
+and some of the language it uses will reflect that.  Although
+=virtualenv= has mostly fallen out of favor, the core functionality of
+=pyvenv= is still very relevant.  Especially if you choose to adopt a
+central store of virtual environments, as above, you can set that as a
+=WORKON_HOME= variable ("workon" is terminology held over from
+=virtualenvwrapper.sh=) to a directory that all your virtual
+environments sit under, so that it's easy to select one with the
+=pyvenv-workon= function.  For me, that usually means the =poetry=
+cache:
+
+#+begin_src elisp
+(if (eq system-type 'windows-nt)
+    ;; Default virtualenv cache directory for poetry on Microsoft Windows
+    (setenv "WORKON_HOME" "$LOCALAPPDATA/pypoetry/Cache/virtualenvs")
+  ;; Default virtualenv cache directory for poetry on *nix
+  (setenv "WORKON_HOME" "~/.cache/pypoetry/virtualenvs"))
+#+end_src
+
 
 * Org mode, babel, tangling, and untangling
 ** Demo using this document?
@@ -596,19 +627,6 @@ commands, or =M-x compile=.
   This looks like an aborted first attempt at what would eventually
   become the language server protocol.  It flat out doesn't work on
   Windows, even after extensive searches for how to fix it.
-
-* TODO All things considered: =pyvenv=
-  My use case typically consists of working on many small, isolated
-  python projects, each in their own environment.  The vanilla python
-  experience is well suited for writing and running system-level
-  python scripts, which is one completley valid way of using Python.
-  Data science is a different beast, however.  This is an easy way to
-  ensure that our language server is running off the correct
-  environment.
-
-  If =poetry= is out the door, then this goes from
-  nice-to-have to /absolutely necessary./
-
 
 * Footnotes
 [fn:pyright] https://github.com/microsoft/pyright#command-line
