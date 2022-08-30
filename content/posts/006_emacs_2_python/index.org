@@ -341,11 +341,11 @@ if __name__ == "__main__":
 Where █ is where point currently sits.  Attempting a
 =completion-at-point= using =C-M-i= (or just =TAB= as I have re-bound
 it above) will yield ... nothing.  Maybe the indentation cycles, or it
-says "No match", or just - no response.  What we require is an
-inferior Python process that knows how to complete symbols before
-=completion-at-point= starts working.  After booting up Python with
-=C-c C-p= and sending all the current buffer contents with =C-c C-c=,
-hitting =TAB= completes the =hell= into =hello_text=:
+says "No match", or just - no response.  What we require is a
+/running/ inferior Python process, which will look up completion
+symbols.  After booting up Python with =C-c C-p= and sending all the
+current buffer contents with =C-c C-c=, hitting =TAB= completes the
+=hell= into =hello_text=:
 
 #+begin_src python
 if __name__ == "__main__":
