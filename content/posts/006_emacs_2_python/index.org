@@ -313,6 +313,7 @@ if __name__ == "__main__":
 #+end_src
 
 * Code Completion
+
 =python.el= recommends using =C-c C-c= periodically.  =if __name__ ==
 "__main__"= blocks do /not/ execute when using =C-c C-c=.  To send all
 code in the current buffer, including the =__main__= block, instead we
@@ -337,14 +338,13 @@ if __name__ == "__main__":
     print("{hell█
 #+end_src
 
-Where █ is where point currently sits.  Attempting a
-=completion-at-point= using =C-M-i= (or just =TAB= as I have re-bound
-it above) will yield ... nothing.  Maybe the indentation cycles, or it
-says "No match", or just - no response.  What we require is a
-/running/ inferior Python process, which will look up completion
-symbols.  After booting up Python with =C-c C-p= and sending all the
-current buffer contents with =C-c C-c=, hitting =TAB= completes the
-=hell= into =hello_text=:
+Where █ is point.  Attempting a =completion-at-point= using =C-M-i=
+(or just =TAB= as I have re-bound it above) will yield ... nothing.
+Maybe the indentation cycles, or it says "No match", or just - no
+response.  What we require is a /running/ inferior Python process,
+which will look up completion symbols.  After booting up Python with
+=C-c C-p= and sending all the current buffer contents with =C-c C-c=,
+hitting =TAB= completes the =hell= into =hello_text=:
 
 #+begin_src python
 if __name__ == "__main__":
@@ -379,7 +379,7 @@ configured with the variable =gud-pdb-command-name=
 
 * The =poetry= + =pyright= stack
 
-The stack I use most frequently (as of writing) consists of:
+The stack I use most frequently (for now) consists of:
 
 1. =python3.10= as the Python runtime
 2. =poetry= for dependency and environment management[fn:poetry]
