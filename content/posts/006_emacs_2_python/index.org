@@ -554,7 +554,7 @@ Now we just need to add this into the
 After restarting emacs with the modified alist, we get error prasing from pyright output:
 
 #+attr_html: :width 800px
-#+caption: Functional links in the *compilation* buffer after running pyright
+#+caption: Functional links in the ~*compilation*~ buffer after running pyright
 [[./pyright_error_parsing.png]]
 
 * Virtual Environments
