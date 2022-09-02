@@ -66,10 +66,9 @@ By visiting this file, Emacs automatically goes into =python-mode=,
 which turns on a lot of Python-specific functionality.  If you're
 impatient like me and want to see everything that's available right
 away, I'd start with =C-c C-h= from the =editing.py= buffer to see key
-commands specific to =python-mode=, and also use =C-h a .*python.*
-RET= to see /every/ command involving the word "python" in some way.
-Out of the box we also get syntax highlighting, including within
-f-strings.
+commands specific to =python-mode=, and also use ~C-h a python~ to
+see /every/ command involving the word "python" in some way.  Out of
+the box we also get syntax highlighting, including within f-strings.
 
 ** Useful =C-c= commands
 
@@ -77,7 +76,9 @@ Emacs typically has commands that are specific to the /active/ major
 mode bound to =C-c C-<letter>=.  What each <letter> does will depend
 on the buffer you're currently in and what major mode is active.  In
 our case, that's =python-mode=, which has a lot of handy shortcuts
-already mapped out.
+already mapped out.  For any of the keyboard shortcuts you can always
+use =C-h k=, or =C-h f= for the function names (prefixed by =M-x=
+below) to get the official documentation.
 
 *** =C-c C-p= or =M-x run-python= to start a python REPL
 
@@ -179,9 +180,10 @@ worth trying in a variety of major modes.
 
 * Running
 
-Now its time to actually start executing some code.  We'll start simple
-by invoking the system Python for our script, and add virtual
-environment complexity once that feels comfortable.
+Now its time to actually start executing some code.  Before getting to
+all the complexity of virtual environments, we'll start simply by just
+invoking the system Python for our script. Once that feels
+comfortable, we'll throw in all the =venv= goodies.
 
 ** As a script with =M-x compile=
 This mode has built-in error parsing, so it's the best way to run a
@@ -303,7 +305,7 @@ process.  That means actually /executing/ Python code, which may feel
 a bit dangerous for those of us who grew up with static analysis
 tools.  So the first thing we need to make sure we don't accidentally
 kick off our whole script is ensure that the main part of our program
-is properly encased.
+is properly ensconced.
 
 #+begin_src python
 # editing.py
@@ -314,13 +316,19 @@ if __name__ == "__main__":
 
 * Code Completion
 
-=python.el= recommends using =C-c C-c= periodically.  =if __name__ ==
-"__main__"= blocks do /not/ execute when using =C-c C-c=.  To send all
-code in the current buffer, including the =__main__= block, instead we
-must use =C-u C-c C-c=.
+Emacs uses the currently running ~*Python*~ process for looking up
+symbols to complete.  As such, =python.el= recommends using =C-c C-c=
+to send the entire buffer's contents to the Python shell periodically.
+~if __name__ == "__main__"~ blocks do /not/ execute when using =C-c
+C-c=.  To send all code in the current buffer, including the
+=__main__= block, instead we must use =C-u C-c C-c=.
 
-I tend to prefer just being able to hit =TAB= instead of the more
-cumbersome =C-M-i= or =M-TAB= for =completion-at-point=, so I use this snippet in my
+Another awkward default in Emacs is that what we typically know of as
+"tab-complete" is bound to =M-TAB=, or the equivalent =C-M-i= (~C-i~
+and ~TAB~ are the same thing).  On most Windows and Linux desktops,
+Alt+Tab changes the active window, and ~C-M-i~ is much too cumbersome
+to be a reasonable completion shortcut.  I prefer just being able to
+hit =TAB= to invoke =completion-at-point=, so I use this snippet in my
 =init.el=:
 
 #+begin_src elisp
@@ -329,9 +337,10 @@ cumbersome =C-M-i= or =M-TAB= for =completion-at-point=, so I use this snippet i
 (setq tab-always-indent 'complete)
 #+end_src
 
-Next, in our python file =editing.py=, I know we have a function
-called =hello_text()=.  Within the main block, I might have been
-typing something that looked like this:
+Now to demonstrate this new completion power.  In our python file
+=editing.py=, I know we have a function called =hello_text()=.  Within
+the main block, I might have been typing something that looked like
+this:
 
 #+begin_src python
 if __name__ == "__main__":
@@ -355,7 +364,8 @@ In the case that the completion is ambiguous, a =*completions*= buffer
 will pop up, prompting for input on how to continue.  Another nice
 thing about this completion method is that it respects your
 =completion-styles= setting.  Personally, I keep mine globally set to
-include the =flex= style:
+include the =flex= style, which closely mimics fuzzy matching styles
+like you get in VSCode, JetBrains, or ~fzf~:
 
 #+begin_src elisp
 ;; init.el
@@ -363,14 +373,17 @@ include the =flex= style:
 #+end_src
 
 This allows me to type something like =hltx=, hit =TAB= and it
-completes to =hello_text=, using the familiar "fuzzy" style of
-matching many of us have become used to in other editors.
+completes to =hello_text=.
 
 * Debugging
-** using python builtin =breakpoint()= and sending things to shell
-
-This will automatically break into pdb/ipdb, jump to the breakpoint in
+If by running our Python code we encounter the =breakpoint()= builtin,
+Emacs will automatically break into pdb/ipdb (depending on your
+~PYTHONBREAKPOINT~ environment variable), jump to the breakpoint in
 the code, and put an arrow at the next line to execute.
+
+#+attr_html: :width 800px
+#+caption: Running the Python debugger by using `C-c C-c`
+[[./running_pdb.png]]
 
 ** =M-x pdb=
 
@@ -513,12 +526,36 @@ re-builder= to piece together a regex that extracts file name, line
 number, and column number from each message.
 
 #+attr_html: :width 800px
+#+caption: Building the regex that parses pyright errors interactively
 [[./re-builder.png]]
 
 Clearly, there are some errors in the regexp so far, but as we edit
 the text in the ~*RE-Builder*~ buffer, the highlighting in the
 ~*compilation*~ buffer will update live to show us what would be
-captured by the regexp we've entered.
+captured by the regexp we've entered.  After fiddling with the
+contents in the bottom buffer to get the highlighting correct, we've
+got this regular expression:
+
+#+begin_example
+"^[[:blank:]]+\\(.+\\):\\([0-9]+\\):\\([0-9]+\\).*$"
+#+end_example
+
+Now we just need to add this into the
+=compilation-error-regexp-alist-alist= in our =init.el=:
+
+#+begin_src elisp
+;; init.el
+(require 'compile)
+(add-to-list 'compilation-error-regexp-alist-alist
+             '(pyright "^[[:blank:]]+\\(.+\\):\\([0-9]+\\):\\([0-9]+\\).*$" 1 2 3))
+(add-to-list 'compilation-error-regexp-alist 'pyright)
+#+end_src
+
+After restarting emacs with the modified alist, we get error prasing from pyright output:
+
+#+attr_html: :width 800px
+#+caption: Functional links in the *compilation* buffer after running pyright
+[[./pyright_error_parsing.png]]
 
 * Virtual Environments
 
