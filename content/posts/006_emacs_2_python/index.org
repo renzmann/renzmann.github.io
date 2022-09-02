@@ -506,13 +506,19 @@ it's easy to see that we're after an expression a bit like this,
 #+end_src
 
 eventually replacing the string in the middle with an actual Emacs
-regexp.  Thankfully, Emacs has the =re-builder= built in for doing
+regexp.  Thankfully, Emacs has the =M-x re-builder= built in for doing
 exactly that!  Since =*Python check: poetry run pyright errors.py*= is
 a buffer like any other, we can hop over to it, and run =M-x
 re-builder= to piece together a regex that extracts file name, line
 number, and column number from each message.
 
-*** TODO GIF of building regex
+#+attr_html: :width 800px
+[[./re-builder.png]]
+
+Clearly, there are some errors in the regexp so far, but as we edit
+the text in the ~*RE-Builder*~ buffer, the highlighting in the
+~*compilation*~ buffer will update live to show us what would be
+captured by the regexp we've entered.
 
 * Virtual Environments
 
@@ -622,7 +628,7 @@ cache:
 ** TODO literate programming (ala Jupyter) with Org - builtin, but needs a couple lines of config
 
 
-* TODO semantic-mode for more intelligent completion
+* A note on ~semantic-mode~
   This looks like an aborted first attempt at what would eventually
   become the language server protocol.  It flat out doesn't work on
   Windows, even after extensive searches for how to fix it.
