@@ -559,7 +559,7 @@ After restarting emacs with the modified alist, we get error prasing from pyrigh
 
 * Virtual Environments
 
-Since I use =poetry= so frequently, and I can prefix all of the emacs
+Since I use =poetry= so frequently, and I can prefix all of the Emacs
 or shell commands with =poetry run=, it's pretty rare that I have to
 invoke specific virtual environments.  That said, this guide would
 have a pretty large hole in it if we didn't mention the vanilla
@@ -609,28 +609,74 @@ system python.  The two easy ones are the =python-check-command= and
 
 #+begin_src elisp :tangle .dir-locals.el :comments link
 ;; .dir-locals.el
-((python-mode . ((python-check-command . "~/.cache/venvs/website/bin/python -m mypy")
+((python-mode . ((python-check-command . "%HOME%\\.cache\\venvs\\website\\Scripts\\python.exe -m mypy")
                  (python-shell-virtualenv-root . "~/.cache/venvs/website"))))
-
 #+end_src
+
+I've included a quirk of working on Microsoft Windows here - the
+=python-check-command= needs to run through your shell, which is
+~cmd.exe~ by default, and hence requires Windows-style paths.  The
+=python-shell-virtualenv-root=, however, is evaulated by Emacs, and
+can use tilde-expansion and Unix-style paths.  Changing default shell
+commands to run through ~pwsh~ on Windows would likely alleviate this
+issue, but it's worth calling out for ~cmd.exe~ users.
 
 It's also worth mentioning here that =M-x add-dir-local-variable=
 provides an easy interactive interface to editing the =.dir-locals.el=
-file.  Now, whenver we use =C-c C-v= or =M-x python-check=, the
-minibuffer will already be populated with the command to run =mypy=
-out of the virtual environment, instead of whichever =mypy=
-installation happens to be first on PATH.  By setting
-=python-shell-virtualenv-root=, when we use =C-c C-p= or =M-x
-run-python= to create a /new/ python shell, it will run the Python
-executable from =~/.cache/venvs/website= instead of =/usr/bin/python=,
-or whichever other installlation might be found first.
+file.
 
 The =python-shell-virtualenv-root= part only affects running python as
 a shell within Emacs, it does /not/ affect things like PATH, async
-commands, or =M-x compile=.
+commands, or =M-x compile=.  To demonstrate this, once we've set up
+=.dir-locals.el= as above, and we either revert a Python buffer with
+=C-x x g= or open a new Python buffer in the same project, a popup
+like this appears:
 
-** TODO difficulty of setting PATH variable(s)
-** TODO confirming "unsafe" variables
+#+begin_example
+The local variables list in c:/Users/robbe/repos/renzmann.github.io/content/posts/006_emacs_2_python/
+contains values that may not be safe (*).
+
+Do you want to apply it?  You can type
+y  -- to apply the local variables list.
+n  -- to ignore the local variables list.
+!  -- to apply the local variables list, and permanently mark these
+      values (*) as safe (in the future, they will be set automatically.)
+i  -- to ignore the local variables list, and permanently mark these
+      values (*) as ignored
+
+  * python-check-command : "%HOME%\\.cache\\venvs\\website\\Scripts\\python.exe -m mypy"
+  * python-shell-virtualenv-root : "~/.cache/venvs/website"
+#+end_example
+
+Responding with ~y~ will set the =python-check-command= and
+=python-shell-virtualenv-root= for just the current session, while ~!~
+will add both of these values to the ~custom~ section in either
+=init.el= or wherever you've set your ~custom-file~.  This is another
+reason for using a common, central spot for virtual environments,
+since across workstations I can use the same path relative to my
+~$HOME~ directory.  After confirming, and using =C-c C-p=, we can
+check which Python executable we're using in the ~*Python*~ buffer now:
+
+#+begin_src
+Python 3.10.6 (tags/v3.10.6:9c7b4bd, Aug  1 2022, 21:53:49) [MSC v.1932 64 bit (AMD64)] on win32
+Type "help", "copyright", "credits" or "license" for more information.
+>>> import sys; sys.executable
+'c:\\Users\\robbe\\.cache\\venvs\\website\\Scripts\\python.exe'
+#+end_src
+
+Keep in mind, the values provided in =.dir-locals.el= are evaluated on
+a per-buffer basis, so attempting to set a relative path like
+~(python-shell-virtualenv-root . ".venv/website")~ will only work when
+executing ~run-python~ in the same directory as =.dir-locals.el= /and/
+=.venv/=.
+
+The various compile and shell commands will /not/ respect the
+virtualenv we've set via =.dir-locals.el=.  On *nix, ~M-x compile RET
+which python3~ will still bring back some variant of
+~/usr/bin/python3~, as will ~M-& which python~ or ~M-! which python~.
+In a follow-up article we might explore how it /is/ possible to take
+care of all this via =.dir-locals.el= and the special ~exec~ variable,
+but it's not very elegant.
 
 ** All things considered: =pyvenv=
 
@@ -647,8 +693,8 @@ central store of virtual environments, as above, you can set that as a
 =WORKON_HOME= variable ("workon" is terminology held over from
 =virtualenvwrapper.sh=) to a directory that all your virtual
 environments sit under, so that it's easy to select one with the
-=pyvenv-workon= function.  For me, that usually means the =poetry=
-cache:
+=pyvenv-workon= function.  When using =poetry=, that usually looks
+like this:
 
 #+begin_src elisp
 (if (eq system-type 'windows-nt)
@@ -656,19 +702,39 @@ cache:
     (setenv "WORKON_HOME" "$LOCALAPPDATA/pypoetry/Cache/virtualenvs")
   ;; Default virtualenv cache directory for poetry on *nix
   (setenv "WORKON_HOME" "~/.cache/pypoetry/virtualenvs"))
+(pyvenv-mode)
 #+end_src
 
+Setting ~WORKON_HOME~ to =~/.cache/venvs= as in the previous examples
+is another valid option.  Doing it this way also plays nice with
+~.dir-locals.el~, since ~pyvenv~ exposes a way to set a project-level
+venv with a single variable:
 
-* Org mode, babel, tangling, and untangling
-** Demo using this document?
+#+begin_src elisp
+;; .dir-locals.el
+((python-mode . ((pyvenv-workon . "website"))))
+#+end_src
 
-** TODO literate programming (ala Jupyter) with Org - builtin, but needs a couple lines of config
+Also of use for folks who frequently swap between different projects
+is ~(pyvenv-tracking-mode)~, which will automatically change the
+active python virtual environment when you navigate to a different
+buffer.
 
+And, of course, if the whole "workon" and virtualenvs grouped together
+under =~/.cache/venvs= isn't to taste, there's always =M-x
+pyvenv-activate=, which lets you choose a virtual environement
+anywhere on your system.  So, all-in-all, I'll probably stick with
+=pyvenv= in my configuration, because setting all the different
+utility PATHs without it is just such a pain.
 
-* A note on ~semantic-mode~
-  This looks like an aborted first attempt at what would eventually
-  become the language server protocol.  It flat out doesn't work on
-  Windows, even after extensive searches for how to fix it.
+* Next: Notebooking
+
+Belive it or not, we've only scratched the surface.  =org-mode=
+and =org-babel= together provide a fully-functional
+"notebooking" (technically "literate programming") experience out of
+the box with recent versions of Emacs.  The next article will focus
+exclusively on Python and data science in Org as a near-complete
+Jupyter replacement.
 
 * Footnotes
 [fn:pyright] https://github.com/microsoft/pyright#command-line
