@@ -1,5 +1,5 @@
 #+title: Emacs Part 2: Python (Vanilla is a Powerful Flavor)
-#+date: 2022-08-08
+#+date: 2022-09-04
 #+startup: inlineimages
 
 * Intro
@@ -12,27 +12,25 @@ packages.
 
 This is not that guide.
 
-This guide is for picky @#$%!s like me who need to understand and
-exhaust every builtin capability before reaching out to external
-dependencies.  Dependencies that, in turn, I will also have to learn
-and manage.  Once I /really/ understand what =pyvenv= is solving,
-then, and /only/ then, will I add it to my
-=package-selected-packages=.
+This guide is for picky @#$%!s like me who want to exhaust every
+builtin capability before reaching out to external dependencies.
+Dependencies that, in turn, I will also have to learn and manage.
+Once I /really/ understand what =pyvenv= is solving, then, and /only/
+then, will I add it to my =package-selected-packages=.
+
+[[file:nothing_without_lsp.png]]
 
 Despite the excellent swath of materials both new and old on how to
 get IDE-like performance for Python out of Emacs, the collected
 materials on just running "vanilla extract" are fairly scant.  The
 builtin =python.el= documentation is thorough and the keybindings
 easily discoverable, but not all documentation is collated into a
-single place.  This guide is one attempt to remedy that, and introduce
-a reasonable workflow in Python using nothing but the builtin
-capabilities of Emacs 28.1+.  That all said, the examples and
-walkthroughs presented here are designed for =emacs -q= -
-i.e. starting emacs without any user configuration or your
-distribution's =default.el=.
-
-
-[[file:nothing_without_lsp.png]]
+single place.  This guide started out as just my working notes as I
+began primarily working in emacs for my Python projects, and has grown
+into a workflow guide using nothing but the builtin capabilities
+of Emacs 28.1+.  With that in mind, the examples and walkthroughs
+presented here are designed for =emacs -q= - i.e. starting emacs
+without any user configuration or your distribution's =default.el=.
 
 
 * Editing
@@ -190,7 +188,7 @@ This mode has built-in error parsing, so it's the best way to run a
 script for real if we want to quickly navigate any traceback messages
 that come up.  Conversely, the =M-&= async shell command does /not/
 have error parsing, so it's not the right tool for launching processes
-we have to debug.  Same goes for booting up a shell and running python
+we have to debug.  Same goes for booting up a shell and running Python
 from there.  Taking our script from the previous section, if we run
 =M-x compile= and give it an argument of =python3 editing.py=, up pops
 the =*compilation*= buffer, with the starting time, output of our
@@ -298,14 +296,14 @@ addressing errors one at a time.
 ** Interactively with the Python shell
 
 =python-mode= centers heavily around the use of an active, running
-Python session for some of its features, as we'll see in the "Code
-Completion" section.  Its documentation recommends regular use of =C-c
-C-c=, which sends the entire buffer to the active inferior Python
-process.  That means actually /executing/ Python code, which may feel
-a bit dangerous for those of us who grew up with static analysis
-tools.  So the first thing we need to make sure we don't accidentally
-kick off our whole script is ensure that the main part of our program
-is properly ensconced.
+Python session for some of its features, as we'll see in the next
+section.  Its documentation recommends regular use of =C-c C-c=, which
+sends the entire buffer to the active inferior Python process.  That
+means actually /executing/ Python code, which may feel a bit dangerous
+for those of us who grew up with static analysis tools.  So the first
+thing we need to make sure we don't accidentally kick off our whole
+script is ensure that the main part of our program is properly
+ensconced.
 
 #+begin_src python
 # editing.py
@@ -580,7 +578,7 @@ virtual environments in a central place.  For me, that looks like
 this:
 
 #+begin_example
-M-& python3 -m venv ~/.cache/venvs/website
+M-! python3 -m venv ~/.cache/venvs/website
 #+end_example
 
 This builds a virtualenv named =website= for python utilities that
@@ -589,8 +587,8 @@ virtualenv explicitly for shell utilities, I can always run commands
 like this
 
 #+begin_example
-M-& ~/.cache/venvs/website/bin/python -m pip install mypy
-M-& ~/.cache/venv/website/bin/mypy errors.py
+M-! ~/.cache/venvs/website/bin/python -m pip install mypy
+M-! ~/.cache/venv/website/bin/mypy errors.py
 #+end_example
 
 Of course, adding the prefix =~/.cache/venvs/website/bin= every time
@@ -625,7 +623,7 @@ It's also worth mentioning here that =M-x add-dir-local-variable=
 provides an easy interactive interface to editing the =.dir-locals.el=
 file.
 
-The =python-shell-virtualenv-root= part only affects running python as
+The =python-shell-virtualenv-root= part only affects running Python as
 a shell within Emacs, it does /not/ affect things like PATH, async
 commands, or =M-x compile=.  To demonstrate this, once we've set up
 =.dir-locals.el= as above, and we either revert a Python buffer with
