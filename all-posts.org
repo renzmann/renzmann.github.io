@@ -1,0 +1,23 @@
+#+HUGO_BASE_DIR: ./
+#+HUGO_SECTION: posts/
+
+#+HUGO_WEIGHT: auto
+#+HUGO_AUTO_SET_LASTMOD: t
+
+* Emacs                                                              :@emacs:
+All posts in here will have the category set to /emacs/
+
+** TODO Fully Remote Python Development in Emacs         :python:remote:lsp:
+:properties:
+:export_file_name: emacs-remote-python
+:export_date: <2022-10-29>
+:export_hugo_menu: :menu "main"
+:end:
+
+*** Lay of the land
+
+**** TRAMP vs. SSH + TTY
+
+*** Remote virtual environments
+
+*** Remote LSP
