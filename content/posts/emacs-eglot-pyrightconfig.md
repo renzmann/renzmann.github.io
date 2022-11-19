@@ -2,7 +2,7 @@
 title: "Virtual Environments with Eglot, Tramp, and Pyright"
 author: ["Robb"]
 date: 2022-11-19T00:00:00-05:00
-lastmod: 2022-11-19T18:06:50-05:00
+lastmod: 2022-11-19T18:12:45-05:00
 tags: ["python", "lsp", "eglot", "tramp", "remote"]
 categories: ["emacs"]
 draft: false
@@ -20,11 +20,12 @@ My most reliable setup for developing Python projects on remote hosts with LSP s
 both of `lsp-mode` and `eglot` with the [python-lsp-server](https://github.com/python-lsp/python-lsp-server), however I've landed on `eglot` +
 `pyright` for a few reasons:
 
-1.  Fewest number of Tramp hangs.  This _could_ just be a symptom of my particular setup,
+1.  `eglot` requires zero configuration to work over Tramp, unlike `lsp-mode`.
+2.  Fewest number of Tramp hangs.  This _could_ just be a symptom of my particular setup,
     though.
-2.  `eglot` will have built-in support in future Emacs versions.  This may or may not be
+3.  `eglot` will have built-in support in future Emacs versions.  This may or may not be
     worth a damn to other Emacs users.
-3.  `pyright` has been strictly faster at error checking and diagnostic updates as
+4.  `pyright` has been strictly faster at error checking and diagnostic updates as
     compared to `python-language-server` in the machines I'm using.
 
 One hiccup remained though: `pyright` is typically a system or user installation, not
