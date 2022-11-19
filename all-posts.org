@@ -4,7 +4,7 @@
 #+HUGO_WEIGHT: auto
 #+HUGO_AUTO_SET_LASTMOD: t
 
-* Emacs                                                              :@emacs:
+* Emacs :@emacs:
 All posts in here will have the category set to /emacs/
 
 ** TODO Fully Remote Python Development in Emacs         :python:remote:lsp:
@@ -21,3 +21,12 @@ All posts in here will have the category set to /emacs/
 *** Remote virtual environments
 
 *** Remote LSP
+
+** TODO Moving My Emacs Configuration to a Literate Programming DocumentLiterate
+
+** TODO Getting ~eglot~ + ~pyright-langserver~ to Use the Correct Virtual Environment (With Tramp Support!) :python:lsp:eglot:tramp:remote:
+:properties:
+:export_file_name: emacs-eglot-pyrightconfig
+:export_date: <2022-11-19 Sat>
+:export_hugo_menu: :menu "main"
+:end:
