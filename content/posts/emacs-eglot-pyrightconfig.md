@@ -1,8 +1,7 @@
 ---
 title: "Virtual Environments with Eglot, Tramp, and Pyright"
-author: ["Robb"]
 date: 2022-11-19T00:00:00-05:00
-lastmod: 2022-11-19T18:12:45-05:00
+lastmod: 2022-11-20T09:29:37-05:00
 tags: ["python", "lsp", "eglot", "tramp", "remote"]
 categories: ["emacs"]
 draft: false
@@ -56,17 +55,11 @@ on my selection.
 
 ## Getting Functions That Write `pyrightconfig.json` {#getting-functions-that-write-pyrightconfig-dot-json}
 
-To start, let's assume I've got the `venvPath` and `venv` as strings already, and I just want to format it as JSON text that we'll dump into a file later.
+**Edit 2022-11-20:** Thanks to Mickey Petersen of [mastering emacs](https://www.masteringemacs.org/) for pointing out that
+`json-encode` exists.  I originally had my own function `pyrightconfig--json-contents` here,
+but I've modified the function below to use this built-in version instead.
 
-```emacs-lisp
-(defun pyrightconfig--json-contents (venvPath venv)
-  (format "{
-    \"venvPath\": \"%s\",
-    \"venv\": \"%s\"
-}" venvPath venv))
-```
-
-Now the more interesting part.  We really just need to do three things:
+We really just need to do three things:
 
 1.  Prompt for a directory that houses a Python virtual environment
 2.  Break the result into an absolute parent path + base name, cleaning any Tramp prefix in
@@ -104,7 +97,7 @@ an assumption here and use `vc-git-root` instead of something more generic.
          (out-file (expand-file-name "pyrightconfig.json" base-dir))
 
          ;; Finally, get a string with the JSON payload.
-         (out-contents (pyrightconfig--json-contents venvPath venv)))
+         (out-contents (json-encode (list :venvPath venvPath :venv venv))))
 
     ;; Emacs uses buffers for everything.  This creates a temp buffer, inserts
     ;; the JSON payload, then flushes that content to final `pyrightconfig.json'
