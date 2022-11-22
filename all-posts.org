@@ -22,13 +22,19 @@ All posts in here will have the category set to /emacs/
 
 *** Remote LSP
 
-** TODO Moving My Emacs Configuration to a Literate Programming Document
+** DONE Moving My Emacs Configuration to a Literate Programming Document
+:properties:
+:export_file_name: emacs-literate-announcement
+:export_date: <2022-11-21 Mon>
+:end:
+
+I've got a (relatively) stable version of my Emacs configuration as a literate document now.  It's easy to read either on [[https://github.com/renzmann/.emacs.d#my-literate-emacsd][my GitHub]] or [[https://robbmann.io/emacsd][my website]].  The website version may lag behind my GitHub verison a bit, but they should be pretty close.  Many thanks to the maintainers of [[https://ox-hugo.scripter.co/][ox-hugo]] for making it possible.
+
 
 ** DONE Virtual Environments with Eglot, Tramp, and Pyright :python:lsp:eglot:tramp:remote:
 :properties:
 :export_file_name: emacs-eglot-pyrightconfig
 :export_date: <2022-11-19 Sat>
-:export_hugo_menu: :menu "main"
 :end:
 
 *** Motivation
