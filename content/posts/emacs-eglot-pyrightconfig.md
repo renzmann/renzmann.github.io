@@ -5,11 +5,6 @@ lastmod: 2022-11-20T09:29:37-05:00
 tags: ["python", "lsp", "eglot", "tramp", "remote"]
 categories: ["emacs"]
 draft: false
-weight: 2002
-menu:
-  main:
-    weight: 2002
-    identifier: "virtual-environments-with-eglot-tramp-and-pyright"
 ---
 
 ## Motivation {#motivation}
