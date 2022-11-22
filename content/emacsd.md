@@ -191,7 +191,7 @@ There are also a few hand-made packages I keep around in a special `.emacs.d/sit
 ## Theme {#theme}
 
 [
-Prot's](https://protesilaos.com/) themes have been reliably legible in nearly every situation.  Now with his new [ef-themes](https://protesilaos.com/emacs/ef-themes), they're pretty, too!  First, the `ef-themes-headings` variable will creates larger, bolder headings when in [Org-mode](#org-mode).
+Prot's](https://protesilaos.com/) themes have been reliably legible in nearly every situation.  Now with his new [ef-themes](https://protesilaos.com/emacs/ef-themes), they're pretty, too!  First, the `ef-themes-headings` variable creates larger, bolder headings when in [Org-mode](#org-mode).
 
 ```emacs-lisp
 (use-package ef-themes
@@ -648,8 +648,6 @@ Forms a large foundation of my workflow.  [This package](https://github.com/mina
         xref-show-definitions-function #'consult-xref)
   )
 ```
-
-TODO: Definitely check out the [recommended configuration](https://github.com/minad/consult#use-package-example) for all the options we could set here.
 
 
 ## Misc. Settings {#misc-dot-settings}
