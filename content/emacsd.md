@@ -498,7 +498,7 @@ When using `isearch` to jump to things, it's sometimes convenient to re-position
 #### `C-c w` {#c-c-w}
 
 ```emacs-lisp
-;; (global-set-key (kbd "C-c w") #')
+(global-set-key (kbd "C-c w") #'whitespace-mode)
 ```
 
 
@@ -1857,10 +1857,11 @@ Modeled after Vim's `ci`, `ca`, `yi`, and `ya` commands, these let us yank or ki
 
 There are several other interesting options that I haven't tried out yet, including:
 
--   [org-download](https://github.com/abo-abo/org-download)
--   [math-delimiters](https://github.com/oantolin/math-delimiters)
--   [oantolin/placeholder](https://github.com/oantolin/placeholder)
--   [emacs-eaf/emacs-application-framework](https://github.com/emacs-eaf/emacs-application-framework) &lt;--- big hassle
+-   [ ] [org-download](https://github.com/abo-abo/org-download)
+-   [ ] [math-delimiters](https://github.com/oantolin/math-delimiters)
+-   [ ] [oantolin/placeholder](https://github.com/oantolin/placeholder)
+-   [X] [emacs-eaf/emacs-application-framework](https://github.com/emacs-eaf/emacs-application-framework) &lt;--- big hassle
+-   [ ] [multiple-cursors](https://github.com/magnars/multiple-cursors.el)
 
 
 ## Inspirations {#inspirations}
@@ -1869,6 +1870,7 @@ Here's where I put the typical quote about standing on one form of shoulders or 
 
 -   [Protesilaos Stavrou](https://protesilaos.com/)
 -   [Ramón Panadestein](https://panadestein.github.io/emacsd/)
+-   [Mickey Petersen](https://www.masteringemacs.org/)
 
 
 ## Footer {#footer}
