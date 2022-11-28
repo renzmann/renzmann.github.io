@@ -16,9 +16,14 @@
   weight = 10
 
 [[main]]
+  name = ".emacs.d"
+  pageref = "emacsd"
+  weight = 20
+
+[[main]]
   name = "Resume"
   url = "/resume.pdf"
-  weight = 20
+  weight = 30
 
 # [[main]]
 #   name = "Posts"
