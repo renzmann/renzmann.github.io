@@ -21,3 +21,78 @@ All posts in here will have the category set to /emacs/
 *** Remote virtual environments
 
 *** Remote LSP
+
+** Inline =matplotlib= Images in Org-mode
+
+Less intuitive than we might hope.
+
+#+begin_src shell :results no
+python3 -m venv .venv
+.venv/bin/python -m pip install matplotlib
+#+end_src
+
+#+RESULTS:
+| Collecting   | matplotlib                                     |                                           |               |                  |                  |                  |              |                |              |                 |                       |            |            |
+| Downloading  | matplotlib-3.6.2-cp39-cp39-macosx_10_12_x86_64.whl | (7.3                                      | MB)           |                  |                  |                  |              |                |              |                 |                       |            |            |
+| Collecting   | pillow>=6.2.0                                  |                                           |               |                  |                  |                  |              |                |              |                 |                       |            |            |
+| Downloading  | Pillow-9.3.0-cp39-cp39-macosx_10_10_x86_64.whl     | (3.3                                      | MB)           |                  |                  |                  |              |                |              |                 |                       |            |            |
+| Collecting   | packaging>=20.0                                |                                           |               |                  |                  |                  |              |                |              |                 |                       |            |            |
+| Using        | cached                                         | packaging-21.3-py3-none-any.whl           | (40           | kB)              |                  |                  |              |                |              |                 |                       |            |            |
+| Collecting   | kiwisolver>=1.0.1                              |                                           |               |                  |                  |                  |              |                |              |                 |                       |            |            |
+| Downloading  | kiwisolver-1.4.4-cp39-cp39-macosx_10_9_x86_64.whl  | (65                                       | kB)           |                  |                  |                  |              |                |              |                 |                       |            |            |
+| Collecting   | fonttools>=4.22.0                              |                                           |               |                  |                  |                  |              |                |              |                 |                       |            |            |
+| Downloading  | fonttools-4.38.0-py3-none-any.whl              | (965                                      | kB)           |                  |                  |                  |              |                |              |                 |                       |            |            |
+| Collecting   | python-dateutil>=2.7                           |                                           |               |                  |                  |                  |              |                |              |                 |                       |            |            |
+| Using        | cached                                         | python_dateutil-2.8.2-py2.py3-none-any.whl | (247          | kB)              |                  |                  |              |                |              |                 |                       |            |            |
+| Collecting   | pyparsing>=2.2.1                               |                                           |               |                  |                  |                  |              |                |              |                 |                       |            |            |
+| Using        | cached                                         | pyparsing-3.0.9-py3-none-any.whl          | (98           | kB)              |                  |                  |              |                |              |                 |                       |            |            |
+| Collecting   | cycler>=0.10                                   |                                           |               |                  |                  |                  |              |                |              |                 |                       |            |            |
+| Downloading  | cycler-0.11.0-py3-none-any.whl                 | (6.4                                      | kB)           |                  |                  |                  |              |                |              |                 |                       |            |            |
+| Collecting   | contourpy>=1.0.1                               |                                           |               |                  |                  |                  |              |                |              |                 |                       |            |            |
+| Downloading  | contourpy-1.0.6-cp39-cp39-macosx_10_9_x86_64.whl   | (240                                      | kB)           |                  |                  |                  |              |                |              |                 |                       |            |            |
+| Collecting   | numpy>=1.19                                    |                                           |               |                  |                  |                  |              |                |              |                 |                       |            |            |
+| Using        | cached                                         | numpy-1.23.4-cp39-cp39-macosx_10_9_x86_64.whl | (18.1         | MB)              |                  |                  |              |                |              |                 |                       |            |            |
+| Collecting   | six>=1.5                                       |                                           |               |                  |                  |                  |              |                |              |                 |                       |            |            |
+| Using        | cached                                         | six-1.16.0-py2.py3-none-any.whl           | (11           | kB)              |                  |                  |              |                |              |                 |                       |            |            |
+| Installing   | collected                                      | packages:                                 | six,          | pyparsing,       | numpy,           | python-dateutil, | pillow,      | packaging,     | kiwisolver,  | fonttools,      | cycler,               | contourpy, | matplotlib |
+| Successfully | installed                                      | contourpy-1.0.6                           | cycler-0.11.0 | fonttools-4.38.0 | kiwisolver-1.4.4 | matplotlib-3.6.2 | numpy-1.23.4 | packaging-21.3 | pillow-9.3.0 | pyparsing-3.0.9 | python-dateutil-2.8.2 | six-1.16.0 |            |
+
+Without running a session, here is the most basic functional example
+
+#+begin_src python :python .venv/bin/python :results file
+from random import random
+
+import matplotlib.pyplot as plt
+
+xs = [random() for _ in range(100)]
+ys = [random() for _ in range(100)]
+
+fig, ax = plt.subplots(figsize=(5, 5))
+ax.scatter(xs, ys)
+ax.set_title("A Random Scatterplot")
+fig.savefig("demo.png")
+return "demo.png"
+#+end_src
+
+#+RESULTS:
+[[file:demo.png]]
+
+It's annoying how we have to specify the file name twice, so we can tangle in a variable as a header arg too
+
+#+begin_src python :python .venv/bin/python :results file :var fp="demo.png"
+from random import random
+
+import matplotlib.pyplot as plt
+
+xs = [random() for _ in range(100)]
+ys = [random() for _ in range(100)]
+
+fig, ax = plt.subplots(figsize=(5, 5))
+ax.scatter(xs, ys)
+ax.set_title("A Random Scatterplot")
+fig.savefig(fp)
+return fp
+#+end_src
+#+attr_html: :width 500
+#+RESULTS:
+[[file:hello.png]]
