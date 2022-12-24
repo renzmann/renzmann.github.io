@@ -65,28 +65,25 @@ draft: false
     - [Meta/Alt Modifications](#meta-alt-modifications)
     - [F5-F9](#f5-f9)
     - [Super bindings](#super-bindings)
-- [Consult](#consult)
+- [Consulting `completing-read`](#consulting-completing-read)
 - [Autocompletion](#autocompletion)
     - [Completion style: Orderless](#completion-style-orderless)
     - [Nicer display of `*Completions*`](#nicer-display-of-completions)
     - [Keybindings to interact with `*Completions*`](#keybindings-to-interact-with-completions)
     - [Minibuffer completion with `vertico` and `marginalia`](#minibuffer-completion-with-vertico-and-marginalia)
     - [Completion at point with `corfu`](#completion-at-point-with-corfu)
+- [Tramp](#tramp)
 - [Language-specific major modes](#language-specific-major-modes)
     - [Org-mode](#org-mode)
     - [SQL](#sql)
     - [Python](#python)
     - [Markdown](#markdown)
-    - [yaml](#yaml)
-    - [Haskell](#haskell)
-    - [Golang](#golang)
-    - [Lua](#lua)
-    - [Rust](#rust)
-    - [Scala](#scala)
     - [AutoHotkey](#autohotkey)
     - [csv-mode](#csv-mode)
-- [Tramp](#tramp)
 - [Small tool configuration](#small-tool-configuration)
+    - [Embark](#embark)
+    - [Coterm mode](#coterm-mode)
+    - [Multiple cursors](#multiple-cursors)
     - [Visual fill column](#visual-fill-column)
     - [Magit](#magit)
     - [Change or copy inner/outer](#change-or-copy-inner-outer)
@@ -955,18 +952,45 @@ in a `:bind` statement with `use-package` somewhere else.
 ```
 
 
-#### `C-c h` {#c-c-h}
-
-```emacs-lisp
-(global-set-key (kbd "C-c h") #'consult-history)
-```
-
-
 #### `C-c i` jump to a header in my configuration {#c-c-i-jump-to-a-header-in-my-configuration}
 
 ```emacs-lisp
 (global-set-key (kbd "C-c i i") #'renz/jump-init)
 (global-set-key (kbd "C-c i l") #'renz/jump-configuration)
+```
+
+
+#### `C-c j` Toggle window split {#c-c-j-toggle-window-split}
+
+[Toggling windows](https://www.emacswiki.org/emacs/ToggleWindowSplit) from vertical to horizontal splits and vice-versa.
+
+```emacs-lisp
+(defun toggle-window-split ()
+  (interactive)
+  (if (= (count-windows) 2)
+      (let* ((this-win-buffer (window-buffer))
+             (next-win-buffer (window-buffer (next-window)))
+             (this-win-edges (window-edges (selected-window)))
+             (next-win-edges (window-edges (next-window)))
+             (this-win-2nd (not (and (<= (car this-win-edges)
+                                         (car next-win-edges))
+                                     (<= (cadr this-win-edges)
+                                         (cadr next-win-edges)))))
+             (splitter
+              (if (= (car this-win-edges)
+                     (car (window-edges (next-window))))
+                  'split-window-horizontally
+                'split-window-vertically)))
+        (delete-other-windows)
+        (let ((first-win (selected-window)))
+          (funcall splitter)
+          (if this-win-2nd (other-window 1))
+          (set-window-buffer (selected-window) this-win-buffer)
+          (set-window-buffer (next-window) next-win-buffer)
+          (select-window first-win)
+          (if this-win-2nd (other-window 1))))))
+
+(global-set-key (kbd "C-c j") #'toggle-window-split)
 ```
 
 
@@ -989,8 +1013,7 @@ in a `:bind` statement with `use-package` somewhere else.
 ```emacs-lisp
 (global-set-key (kbd "C-c s s") #'shell)
 (global-set-key (kbd "C-c s e") #'eshell)
-(global-set-key (kbd "C-c s t") #'ansi-term)
-(global-set-key (kbd "C-c s v") #'vterm)
+(global-set-key (kbd "C-c s t") #'term)
 ```
 
 
@@ -1083,16 +1106,15 @@ on their operating system.
 ```
 
 
-## Consult {#consult}
+## Consulting `completing-read` {#consulting-completing-read}
 
-Forms a large foundation of my workflow.  [This package](https://github.com/minad/consult) provides a strictly
+[Consult](https://github.com/minad/consult) forms a large foundation of my workflow.  It provides a strictly
 superior experience switching between buffers, performing `grep` or `rg` with live
 results as you type, and scanning through a document for lines matching an
 expression with `consult-line`.
 
 ```emacs-lisp
 (use-package consult
-
   :bind(
         ;; C-x bindings (ctl-x-map)
         ("C-x M-:" . consult-complex-command)     ;; orig. repeat-complex-command
@@ -1302,7 +1324,15 @@ futzing.  _Especially_ in the case where I'm looking to tab-complete things like
 
 ```emacs-lisp
 (use-package vertico
-  :config (vertico-mode))
+  :config
+  (vertico-mode)
+  (vertico-buffer-mode -1)
+  (define-key vertico-map "\M-q" #'vertico-quick-insert)
+  (define-key vertico-map "\C-q" #'vertico-quick-exit)
+
+  (vertico-multiform-mode)
+  (setq vertico-multiform-categories
+        '((consult-grep buffer))))
 ```
 
 Combining `vertico`'s forces with [marginalia](https://github.com/minad/marginalia) creates a lovely minibuffer
@@ -1315,6 +1345,17 @@ function, without requiring me to actually open the `*Help*` buffer.
 ```emacs-lisp
 (use-package marginalia
   :config (marginalia-mode))
+```
+
+For some eye candy, I _could_ add some all-the-icons goodies as well.
+
+```emacs-lisp
+(use-package all-the-icons-completion
+  :if (display-graphic-p)
+  :after (marginalia all-the-icons)
+  :hook (marginalia-mode . all-the-icons-completion-marginalia-setup)
+  :init
+  (all-the-icons-completion-mode))
 ```
 
 
@@ -1400,6 +1441,93 @@ prefer to just use the easier and more intuitive `TAB`.
 
 ```emacs-lisp
 (setq tab-always-indent 'complete)
+```
+
+
+## Tramp {#tramp}
+
+Tramp (Transparent Remote Access Multiple Protocol) allows us to access files on
+a remote machine, and edit them locally.  This is great for simple changes or
+quickly testing out some Python on a VM somewhere.  It isn't as snappy as using
+the TTY version or an X-forwarded Emacs from the server directly, so if I _can_
+set up Emacs remotely, I usually do.  When I don't want to or don't have the
+time, Tramp is a godsend.  There are, however, many foibles to guard against,
+particularly with how interacts with version control and `.dir-locals`.  The
+Tramp manual (distributed with Emacs) recommends adjusting these for some speed
+improvements:
+
+```emacs-lisp
+(use-package tramp
+  :config
+  (setq vc-handled-backends '(Git)
+        file-name-inhibit-locks t
+        tramp-inline-compress-start-size 1000
+        tramp-copy-size-limit 10000
+        tramp-verbose 1))
+```
+
+eglot is [actively working](https://github.com/joaotavora/eglot/issues/859) on an issue related to timers causing a "Forbidden
+reentrant call of Tramp" message and freezing.  In the meantime, this setting
+was recommended.
+
+```emacs-lisp
+(setq tramp-use-ssh-controlmaster-options nil)
+```
+
+For some time I was having a lot of trouble with prohibitive slowness over
+Tramp, and after careful scrutiny of the logs on (I believe) `tramp-verbose 6`, I
+found out that enabling remote dir-locals was causing a huge bottleneck.  On
+every operation it would trace up the filesystem tree back to the root
+directory, scanning for a `.dir-locals` file.  Since some of the drives were
+network-mounted, this caused thousands of network calls per file operation,
+obviously slowing things down a lot.  Because of this, I've opted to simply
+disable `.dir-locals` over Tramp entirely, since I don't really use it much, if at
+all.
+
+```emacs-lisp
+;; (setq enable-remote-dir-locals t)
+```
+
+When using [conda](https://anaconda.org), I keep a special conda environment named `robbmann` for
+locally-installed and managed command line utilities.  Sometimes I link these
+over to `.local/bin`, and other times I forget.  For the latter case, I tend to
+include it in a lot of my PATH-setting situations.
+
+```emacs-lisp
+(add-to-list 'tramp-remote-path "~/.local/bin")
+(add-to-list 'tramp-remote-path "~/.conda/envs/robbmann/bin")
+```
+
+[Disabling VC](https://www.gnu.org/software/emacs/manual/html_node/tramp/Frequently-Asked-Questions.html) _does_ seem to speed things up a little, but it's not an acceptable
+thing to put in, since I so frequently use VC over tramp.  Fully disabling VC
+would include this snippet:
+
+```emacs-lisp
+(remove-hook 'find-file-hook 'vc-find-file-hook)
+
+(setq vc-ignore-dir-regexp
+      (format "\\(%s\\)\\|\\(%s\\)"
+              vc-ignore-dir-regexp
+              tramp-file-name-regexp))
+```
+
+Additionally, these came up as other potential options [from the doom-emacs
+issues](https://github.com/doomemacs/doomemacs/issues/3909), which I do not currently include.
+
+```emacs-lisp
+(setq tramp-default-method "scp")
+(setq projectile--mode-line "Projectile")
+```
+
+I often need to set these in ~/.ssh/config for TRAMP to speed up
+
+```text
+Host *
+     ControlMaster auto
+     ControlPath ~/.ssh/master-%h:%p
+     ControlPersist 10m
+     ForwardAgent yes
+     ServerAliveInterval 60
 ```
 
 
@@ -1588,20 +1716,15 @@ A [lovely look](https://github.com/minad/org-modern) for `org-mode` by minad.
    org-agenda-current-time-string
    "⭠ now ─────────────────────────────────────────────────")
 
+  (if (display-graphic-p)
+      (setq org-modern-table t)
+    (setq org-modern-table nil))
+
   (global-org-modern-mode))
-```
-
-Looking into this: <https://github.com/oantolin/embark>
-
-```emacs-lisp
-(use-package embark)
 ```
 
 
 ### SQL {#sql}
-
-I'm not yet sure how to get Hive-SQL (`.hql`) recognized with the `:mode` keyword.
-When I figure that out I'll move that part up.
 
 ```emacs-lisp
 (defun renz/sql-mode-hook ()
@@ -1654,14 +1777,14 @@ When I figure that out I'll move that part up.
   (setq sqlind-basic-offset 4))
 
 (add-hook 'sqlind-minor-mode-hook #'renz/sql-indentation-offsets)
-(add-to-list 'auto-mode-alist '("\\.hql" . sql-mode))
 (add-hook 'sql-mode-hook #'renz/sql-mode-hook)
 (add-hook 'sql-mode-hook 'sqlup-mode)
 (add-hook 'sql-mode-hook 'sqlind-minor-mode)
 (add-hook 'sql-interactive-mode-hook 'sqlup-mode)
 
 (use-package hive2
-  :after (sql))
+  :after (sql)
+  :mode ("\\.hql" . sql-mode))
 
 (use-package ob-sql-mode
   :after (sql))
@@ -1847,54 +1970,6 @@ Enable syntax highlighting within code fences for markdown
 ```
 
 
-### yaml {#yaml}
-
-```emacs-lisp
-(use-package yaml-mode)
-```
-
-
-### Haskell {#haskell}
-
-Enemy of the state.
-
-```emacs-lisp
-(use-package haskell-mode)
-```
-
-
-### Golang {#golang}
-
-Winner of "cutest language mascot" since 2009.
-
-```emacs-lisp
-(use-package go-mode)
-```
-
-
-### Lua {#lua}
-
-```emacs-lisp
-(use-package lua-mode)
-```
-
-
-### Rust {#rust}
-
-Feeling crabby?
-
-```emacs-lisp
-(use-package rust-mode)
-```
-
-
-### Scala {#scala}
-
-```emacs-lisp
-(use-package scala-mode)
-```
-
-
 ### AutoHotkey {#autohotkey}
 
 ```emacs-lisp
@@ -1913,95 +1988,60 @@ Handy for viewing data quickly.
 ```
 
 
-## Tramp {#tramp}
-
-Tramp (Transparent Remote Access Multiple Protocol) allows us to access files on
-a remote machine, and edit them locally.  This is great for simple changes or
-quickly testing out some Python on a VM somewhere.  It isn't as snappy as using
-the TTY version or an X-forwarded Emacs from the server directly, so if I _can_
-set up Emacs remotely, I usually do.  When I don't want to or don't have the
-time, Tramp is a godsend.  There are, however, many foibles to guard against,
-particularly with how interacts with version control and `.dir-locals`.  The
-Tramp manual (distributed with Emacs) recommends adjusting these for some speed
-improvements:
-
-```emacs-lisp
-(setq vc-handled-backends '(Git))
-(setq file-name-inhibit-locks t)
-(setq tramp-inline-compress-start-size 1000)
-(setq tramp-copy-size-limit 10000)
-(setq tramp-verbose 1)
-```
-
-eglot is [actively working](https://github.com/joaotavora/eglot/issues/859) on an issue related to timers causing a "Forbidden
-reentrant call of Tramp" message and freezing.  In the meantime, this setting
-was recommended.
-
-```emacs-lisp
-(setq tramp-use-ssh-controlmaster-options nil)
-```
-
-For some time I was having a lot of trouble with prohibitive slowness over
-Tramp, and after careful scrutiny of the logs on (I believe) `tramp-verbose 6`, I
-found out that enabling remote dir-locals was causing a huge bottleneck.  On
-every operation it would trace up the filesystem tree back to the root
-directory, scanning for a `.dir-locals` file.  Since some of the drives were
-network-mounted, this caused thousands of network calls per file operation,
-obviously slowing things down a lot.  Because of this, I've opted to simply
-disable `.dir-locals` over Tramp entirely, since I don't really use it much, if at
-all.
-
-```emacs-lisp
-;; (setq enable-remote-dir-locals t)
-```
-
-When using [conda](https://anaconda.org), I keep a special conda environment named `robbmann` for
-locally-installed and managed command line utilities.  Sometimes I link these
-over to `.local/bin`, and other times I forget.  For the latter case, I tend to
-include it in a lot of my PATH-setting situations.
-
-```emacs-lisp
-(add-to-list 'tramp-remote-path "~/.local/bin")
-(add-to-list 'tramp-remote-path "~/.conda/envs/robbmann/bin")
-```
-
-[Disabling VC](https://www.gnu.org/software/emacs/manual/html_node/tramp/Frequently-Asked-Questions.html) _does_ seem to speed things up a little, but it's not an acceptable
-thing to put in, since I so frequently use VC over tramp.  Fully disabling VC
-would include this snippet:
-
-```emacs-lisp
-(remove-hook 'find-file-hook 'vc-find-file-hook)
-
-(setq vc-ignore-dir-regexp
-      (format "\\(%s\\)\\|\\(%s\\)"
-              vc-ignore-dir-regexp
-              tramp-file-name-regexp))
-```
-
-Additionally, these came up as other potential options [from the doom-emacs
-issues](https://github.com/doomemacs/doomemacs/issues/3909), which I do not currently include.
-
-```emacs-lisp
-(setq tramp-default-method "scp")
-(setq projectile--mode-line "Projectile")
-```
-
-I often need to set these in ~/.ssh/config for TRAMP to speed up
-
-```text
-Host *
-     ControlMaster auto
-     ControlPath ~/.ssh/master-%h:%p
-     ControlPersist 10m
-     ForwardAgent yes
-     ServerAliveInterval 60
-```
-
-
 ## Small tool configuration {#small-tool-configuration}
 
 Most of these are third party installs that require only a little configuration,
 and don't warrant a big top-level header.
+
+
+### Embark {#embark}
+
+<https://github.com/oantolin/embark>
+
+```emacs-lisp
+(use-package embark
+  :bind
+  (("C-." . embark-act)
+   ("C-\\" . embark-dwim)
+   ("C-h B" . embark-bindings))
+
+  :init
+  ;; Optionally replace the key help with a completing-read interface
+  ;; (setq prefix-help-command #'embark-prefix-help-command)
+
+  :config
+  ;; Hide the mode line of the Embark live/completions buffers
+  (add-to-list 'display-buffer-alist
+               '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
+                 nil
+                 (window-parameters (mode-line-format . none)))))
+
+
+(use-package embark-consult
+  :hook
+  (embark-collect-mode . consult-preview-at-point-mode))
+```
+
+
+### Coterm mode {#coterm-mode}
+
+Adds the ability to use TUI programs in shell mode.
+
+```emacs-lisp
+(coterm-mode)
+```
+
+
+### Multiple cursors {#multiple-cursors}
+
+A bit like multi-cursor for Jupyter or VSCode, but with a lot of configurable flexibility.
+
+```emacs-lisp
+(use-package multiple-cursors
+  :config
+  (global-unset-key (kbd "M-<down-mouse-1>"))
+  (global-set-key (kbd "M-<mouse-1>") 'mc/add-cursor-on-click))
+```
 
 
 ### Visual fill column {#visual-fill-column}
