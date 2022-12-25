@@ -134,6 +134,24 @@ update this table.  For now though, the 16 bit colors don't react to
 my color theme, and so on Windows I rely singularly on GUI mode,
 rather than WSL or emacs inside Alacritty.
 
+If I had to sum up the theme of my configuration, it would be "vanilla extract".
+In only a few instances do I change overt behavior of Emacs, the most noticiable
+departures of course being the color theme, [vertico](https://github.com/minad/vertico) minibuffer completion, and
+[corfu](https://github.com/minad/corfu) completion-at-point.  Even with those, though, I want a configuration that
+fits my hands in such a way that I remain comfortable using `emacs -Q` with very
+little disruption to my normal muscle memory and workflow.
+
+I do make changes to things that I feel "should have been included."  Some
+examples of this would be error message support for `pyright` in a `*Compilation*`
+buffer, reasonable indentation behavior for SQL files, updating buffers
+automatically if their contents change on disk, and syntax highlighting for
+source blocks in Markdown.  You may notice that despite the laudable goal of
+intentded minimalism, this document is is still quite long, as I have found many
+(ever increasing) quirky behaviors of Emacs that I tweak.
+
+Most of my time is spent in Org, SQL, Python, and Bash, so the majority of
+configuration lies around these sections.
+
 
 ## Tangling {#tangling}
 
@@ -161,6 +179,8 @@ contributors, such as:
 -   [Protesilaos Stavrou](https://protesilaos.com/)
 -   [Ramón Panadestein](https://panadestein.github.io/emacsd/)
 -   [Mickey Petersen](https://www.masteringemacs.org/)
+-   [Daniel Mendler](https://github.com/minad)
+-   [Omar Antolín Camarena](https://github.com/oantolin)
 
 
 ## Header {#header}
@@ -896,9 +916,10 @@ prose, or diagnostics from a language server.  In either case, I like having
 next/previous on easy to reach chords.
 
 ```emacs-lisp
-(with-eval-after-load 'flymake
-  (define-key flymake-mode-map (kbd "M-n") 'flymake-goto-next-error)
-  (define-key flymake-mode-map (kbd "M-p") 'flymake-goto-prev-error))
+(use-package flymake
+  :bind (:map flymake-mode-map
+         ("M-n" . flymake-goto-next-error)
+         ("M-p" . flymake-goto-prev-error)))
 ```
 
 When using `isearch` to jump to things, it's sometimes convenient to re-position
