@@ -73,6 +73,7 @@ draft: false
     - [Minibuffer completion with `vertico` and `marginalia`](#minibuffer-completion-with-vertico-and-marginalia)
     - [Completion at point with `corfu`](#completion-at-point-with-corfu)
 - [Tramp](#tramp)
+- [TreeSitter](#treesitter)
 - [Language-specific major modes](#language-specific-major-modes)
     - [Org-mode](#org-mode)
     - [SQL](#sql)
@@ -108,7 +109,7 @@ git clone --depth 1 https://github.com/renzmann/.emacs.d ~/.emacs.d
 ```
 
 All external dependency sources are explicitly included under the `elpa/`
-directory, meaning it's as simple as clone'n'go.  Opening this document under my
+directory, meaning it's as simple as "clone-n-go".  Opening this document under my
 configuration looks like so:
 
 {{< figure src="https://user-images.githubusercontent.com/32076780/201825125-aa94bfa3-0d1a-47d4-b451-be3718850da2.jpg" width="800px" >}}
@@ -177,7 +178,7 @@ have the following header and [footer:](#footer)
 ;; URL: https://robbmann.io/
 
 ;;; Commentary:
-;; A fully fledged, reproducible Emacs configuration
+;; A mostly minimal, reproducible Emacs configuration
 
 ;;; Code:
 ```
@@ -198,17 +199,25 @@ I prefer having custom modify its own file.  This next snippet ensures any
 ## Packages {#packages}
 
 The initial cornerstone of every Emacs configuration is a decision on package
-management and configuration.  Since `use-package` will have built-in support in a
-future Emacs version, I'm going to use that along with the built-in `package.el`.
-I don't have much reason other than the stability of them being built-in for
-choosing them.
+management and configuration.  I opt for `use-package` and `package.el`, since both
+are built-in to Emacs 29+, which helps maximize stability and portability.  I do
+not use the `:ensure t` keyword to install packages.  Instead, I rely on `M-x
+package-install` and `M-x package-delete` to manage installations, and allow
+`use-package` only to handle the configuration and loading of packages.  As
+mentioned in the introduction, each package's source is explicitly included into
+version control of my configuration, so I don't worry too much about pinning
+package versions in this file.  When I want to update a package, I use `M-x
+package-update`, the `package.el` user interface, or delete the package's source
+folder and restart emacs.  Should something go wrong, I roll back to a previous
+commit.  So far, this method has been reliable for keeping my `init.el` (this
+README), `custom.el`, the `package-selected-packages` variable, and `elpa/` directory
+all in sync with one another.
 
 ```emacs-lisp
 (eval-when-compile
   (package-autoremove)
   (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
-  (package-install-selected-packages)
-  (require 'use-package))
+  (package-install-selected-packages))
 ```
 
 There are also a few hand-made packages I keep around in a special
@@ -295,7 +304,8 @@ Very little to do here.  Emacs on Linux seems to "just work".
 
 ```emacs-lisp
 (when (eq system-type 'gnu/linux)
-  (set-face-attribute 'default nil :font "Hack Nerd Font Mono-11"))
+  ;; (set-face-attribute 'default nil :font "Hack Nerd Font Mono-11")
+  )
 ```
 
 
@@ -1531,6 +1541,43 @@ Host *
 ```
 
 
+## TreeSitter {#treesitter}
+
+Emacs 29 added native [TreeSitter](https://tree-sitter.github.io/tree-sitter/) support.  TreeSitter is a new way of
+incrementally parsing source code that offers superior navigation and syntax
+highlighting.  To fully realize this benefit, however, it requires that we
+install `tree-sitter` grammars independently from Emacs.  Right now, I'm using
+[casouri's modules](https://github.com/casouri/tree-sitter-module), which I build and install under `~/.emacs.d/tree-sitter`, if
+they don't already exist under `/usr/local/lib/` or `~/.local/lib`.
+
+```shell
+git clone git@github.com:casouri/tree-sitter-module.git
+cd tree-sitter-module
+./batch.sh
+mkdir -p ~/.emacs.d/tree-sitter
+cp ./dist/* ~/.emacs.d/tree-sitter/
+```
+
+In case of the latter, I just add extra paths to `treesit-extra-load-path`
+explicitly.
+
+```emacs-lisp
+(add-to-list 'treesit-extra-load-path "/usr/local/lib/")
+(add-to-list 'treesit-extra-load-path "~/.local/lib/")
+```
+
+For the full instructions, the commit history of adding the `tree-sitter` modules
+to Emacs included a [full guide](https://git.savannah.gnu.org/cgit/emacs.git/plain/admin/notes/tree-sitter/starter-guide?h=feature/tree-sitter), which can be read in Info under "Parsing Program
+Source".
+
+```text
+C-h i d m elisp RET g Parsing Program Source RET
+```
+
+Enabling TreeSitter is done on a per-language basis to override the default
+major mode with the corresponding TreeSitter version.
+
+
 ## Language-specific major modes {#language-specific-major-modes}
 
 
@@ -1837,6 +1884,7 @@ programs exist is a small time saver.
 
 ```emacs-lisp
 (use-package python
+  :mode ("\\.py" . python-ts-mode)
   :config
   (if (executable-find "mypy")
       (setq python-check-command "mypy"))
