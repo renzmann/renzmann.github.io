@@ -65,10 +65,10 @@ rather than WSL or emacs inside Alacritty.
 
 If I had to sum up the theme of my configuration, it would be "vanilla extract".
 In only a few instances do I change overt behavior of Emacs, the most noticiable
-departures of course being the color theme, [vertico](https://github.com/minad/vertico) minibuffer completion, and
-[corfu](https://github.com/minad/corfu) completion-at-point.  Even with those, though, I want a configuration that
-fits my hands in such a way that I remain comfortable using `emacs -Q` with very
-little disruption to my normal muscle memory and workflow.
+departures of course being the color theme and [corfu](https://github.com/minad/corfu) completion-at-point.  Even
+with those, though, I want a configuration that fits my hands in such a way that
+I remain comfortable using `emacs -Q` with very little disruption to my normal
+muscle memory and workflow.
 
 I do make changes to things that I feel "should have been included."  Some
 examples of this would be error message support for `pyright` in a `*Compilation*`
@@ -759,9 +759,10 @@ Emacs has [some standards](https://www.gnu.org/software/emacs/manual/html_node/e
 non-standard modifications are marked as such.
 
 
-### Keybound functions {#keybound-functions}
+### My utility functions {#my-utility-functions}
 
-Special utility functions that we'll bind to user keys.
+Eventually, some of my custom functions had a logical abstraction, which I
+extract and put up here for them to use.
 
 ```emacs-lisp
 (defun renz/--jump-section (dirname prompt extension)
@@ -771,39 +772,6 @@ emacs config site with matching `extension' regexp"
    (concat dirname
            (completing-read prompt
                             (directory-files dirname nil extension)))))
-
-(setq renz/site-lisp-dir (expand-file-name "site-lisp/" user-emacs-directory))
-
-(defun renz/jump-configuration ()
-  "Prompt for a .el file in my site-lisp folder, then go there."
-  (interactive)
-  (renz/--jump-section renz/site-lisp-dir
-                       "Elisp config files: "
-                       ".*\.el$"))
-
-(defun renz/jump-org ()
-  "Prompt for an org file in my emacs directory, then go there."
-  (interactive)
-  (renz/--jump-section renz/org-home
-                       "Org files: "
-                       ".*\.org$"))
-
-(defun renz/jump-init ()
-  (interactive)
-  (find-file (expand-file-name "README.org" user-emacs-directory))
-  (consult-org-heading))
-
-(defun renz/find-tag ()
-  "Use completing-read to navigate to a tag"
-  (interactive)
-  (xref-find-definitions (completing-read "Find tag: " tags-completion-table)))
-
-(defun renz/consult-grep ()
-  "Live grep using `rg' if found, otherwise `grep'"
-  (interactive)
-  (if (executable-find "rg")
-      (consult-ripgrep)
-    (consult-grep)))
 ```
 
 
@@ -866,35 +834,45 @@ Provided by a [stack overflow answer](https://emacs.stackexchange.com/a/52554).
 ```
 
 
+### Overriding defaults {#overriding-defaults}
+
+Some default bindings aren't useful for me, so I bind them to actions I take
+more frequently.
+
+```emacs-lisp
+(global-set-key (kbd "C-x C-p") 'previous-buffer)  ; Overrides `mark-page'
+(global-set-key (kbd "C-x C-n") 'next-buffer)      ; Overrides `set-goal-column'
+```
+
+
 ### C-c bindings {#c-c-bindings}
 
 `C-c` &lt;letter&gt; is always free for users.  It may seem like overkill how I set a
 header for each possible `C-c` combination, but it's incredibly handy when I want
 to jump directly to one of these headings while in another buffer.  See
 e.g. `renz/jump-init`, which allows me to narrow in on a particular key I'd like
-to bind by leveraging `completing-read`.  If a `C-c <letter>` combination is missing as a header, then I'm probably using it
-in a `:bind` statement with `use-package` somewhere else.
+to bind by leveraging `completing-read`.  If a `C-c <letter>` combination is missing
+as a header, then I'm probably using it in a `:bind` statement with `use-package`
+somewhere else.
 
 
-#### `C-c b` scroll-bar-mode {#c-c-b-scroll-bar-mode}
+#### `C-c b` build / compile {#c-c-b-build-compile}
 
 ```emacs-lisp
-;; (global-set-key (kbd "C-c a") #')
-(global-set-key (kbd "C-c b") #'scroll-bar-mode)
+(global-set-key (kbd "C-c b") #'compile)
+(global-set-key (kbd "C-c B") #'recompile)
 ```
 
 
 #### `C-c d` jump to a tag {#c-c-d-jump-to-a-tag}
 
 ```emacs-lisp
+(defun renz/find-tag ()
+  "Use completing-read to navigate to a tag"
+  (interactive)
+  (xref-find-definitions (completing-read "Find tag: " tags-completion-table)))
+
 (global-set-key (kbd "C-c d") #'renz/find-tag)
-```
-
-
-#### `C-c e` {#c-c-e}
-
-```emacs-lisp
-;; (global-set-key (kbd "C-c e") #')
 ```
 
 
@@ -915,6 +893,28 @@ in a `:bind` statement with `use-package` somewhere else.
 #### `C-c i` jump to a header in my configuration {#c-c-i-jump-to-a-header-in-my-configuration}
 
 ```emacs-lisp
+
+(setq renz/site-lisp-dir (expand-file-name "site-lisp/" user-emacs-directory))
+
+(defun renz/jump-configuration ()
+  "Prompt for a .el file in my site-lisp folder, then go there."
+  (interactive)
+  (renz/--jump-section renz/site-lisp-dir
+                       "Elisp config files: "
+                       ".*\.el$"))
+
+(defun renz/jump-org ()
+  "Prompt for an org file in my emacs directory, then go there."
+  (interactive)
+  (renz/--jump-section renz/org-home
+                       "Org files: "
+                       ".*\.org$"))
+
+(defun renz/jump-init ()
+  (interactive)
+  (find-file (expand-file-name "README.org" user-emacs-directory))
+  (consult-org-heading))
+
 (global-set-key (kbd "C-c i i") #'renz/jump-init)
 (global-set-key (kbd "C-c i l") #'renz/jump-configuration)
 ```
@@ -977,38 +977,10 @@ in a `:bind` statement with `use-package` somewhere else.
 ```
 
 
-#### `C-c t` {#c-c-t}
-
-```emacs-lisp
-;; (global-set-key (kbd "C-c t") #')
-```
-
-
-#### `C-c u` Consult grep/rg {#c-c-u-consult-grep-rg}
-
-```emacs-lisp
-(global-set-key (kbd "C-c u") #'renz/consult-grep)
-```
-
-
-#### `C-c w` {#c-c-w}
+#### `C-c w` whitespace mode {#c-c-w-whitespace-mode}
 
 ```emacs-lisp
 (global-set-key (kbd "C-c w") #'whitespace-mode)
-```
-
-
-#### `C-c x` {#c-c-x}
-
-```emacs-lisp
-;; (global-set-key (kbd "C-c x") #')
-```
-
-
-#### `C-c z` {#c-c-z}
-
-```emacs-lisp
-;; (global-set-key (kbd "C-c z") #')
 ```
 
 
@@ -1021,35 +993,13 @@ in a `:bind` statement with `use-package` somewhere else.
 ```
 
 
-### Meta/Alt Modifications {#meta-alt-modifications}
-
-```emacs-lisp
-(with-eval-after-load 'dired
-(define-key dired-mode-map (kbd "M-S-j") 'dired-goto-file))
-```
-
-
 ### F5-F9 {#f5-f9}
 
 Like the `C-c <letter>` bindings, these are reserved for users.  In practice, even
 though there are few of these keys, I tend to forget which is which.  So I wind
-up using things bound to my `C-c` keymaps instead, since they come from a natural,
-nested language.
-
-```emacs-lisp
-(global-set-key (kbd "<f5>") #'compile)
-(global-set-key (kbd "M-<f5>") #'recompile)
-;; (global-set-key (kbd "<f6>") #')
-;; (global-set-key (kbd "M-<f6>") #')
-;; (global-set-key (kbd "<f7>") #')
-;; (global-set-key (kbd "M-<f7>") #')
-;; (global-set-key (kbd "<f8>") #')
-;; (global-set-key (kbd "M-<f8>") #')
-;; (global-set-key (kbd "<f9>") #'vterm)
-(global-set-key (kbd "M-<f9>") #'eshell)
-(global-set-key (kbd "S-<f9>") #'ansi-term)
-(global-set-key (kbd "s-<f9>") #'shell)
-```
+up using things bound to my `C-c` keymaps instead.  The `C-c` kyes from a more
+natural, nested language in my head, so it feels more like I'm "speaking Emacs"
+that way.
 
 
 ### Super bindings {#super-bindings}
@@ -1159,15 +1109,8 @@ automatically complete text.  There are actually two things that
 Emacs on its own does not have a nice pop-up-menu like Vim for completing text
 at point.  For both the minibuffer and `completion-at-point` it uses a special
 buffer called `*Completions*`, from which we can see (and optionally select) a
-completion from potential candidates.  It only updates when issuing a command,
-such as hitting TAB, rather than updating live as we type, which makes it a bit
-clunky compared to what we see in modern editors.  We will lean on some external
-packages to remedy this, but before getting to that we have two orders of
-business:
-
-1.  Setting the _completion style_
-2.  Enhancing the behavior of the default `*Completions*` buffer and how we can
-    interact with it.
+completion from potential candidates.  Before we get to tweak those settings,
+though, we first need to oil the engine with an enhanced _completion style_
 
 
 ### Completion style: Orderless {#completion-style-orderless}
@@ -1185,8 +1128,8 @@ much like your default TAB-complete at a Bash shell.
 I've found the [orderless](https://github.com/oantolin/orderless) completion style especially well-suited to Emacs.  It
 allows me to type short strings that can match the symbol I'm looking for in any
 order.  In Emacs, I may not know if I'm looking for `package-list` or
-`list-packages`.  In either case, I can just type "`pack lis`" in the minibuffer to find
-the correct one.
+`list-packages`.  In either case, I can just type "`pack lis`" in the minibuffer to
+find the correct one.
 
 ```emacs-lisp
 (use-package orderless
@@ -1198,125 +1141,92 @@ the correct one.
 ```
 
 
-### Nicer display of `*Completions*` {#nicer-display-of-completions}
+### Nicer Display and Behavior of `*Completions*` {#nicer-display-and-behavior-of-completions}
 
-With the _completion style_ set, we have to now configure the interfaces for
-_displaying_ candidates as we type.  The natural place to start would be the
-built-in `*Completions*` buffer.  First, I want candidates displayed as a single,
-vertical list.
+With the _completion style_ set, we now have to configure the interface for
+_displaying_ candidates as we type.  First, I want candidates displayed as a
+single, vertical list.
 
 ```emacs-lisp
 (setq completions-format 'one-column)
 ```
 
 Also, when using the built-in completion-at-point, the `*Completions*` buffer can
-sometimes take up the whole screen when there are a lot of candidates.  [Setting
-this](https://www.gnu.org/software/emacs/manual/html_node/emacs/Temporary-Displays.html) prevents that:
+sometimes take up the whole screen when there are a lot of candidates.
 
 ```emacs-lisp
-(temp-buffer-resize-mode)
-(setq temp-buffer-max-height 20)
+(setq completions-max-height 15)
 ```
 
-
-#### Live `*Completions*` buffer {#live-completions-buffer}
-
-[An interesting idea by oantolin.](https://github.com/oantolin/live-completions)  Given how modest in scope it is, and how close
-to Vanilla Emacs it stays, I might actually try it sometime.
-
-
-### Keybindings to interact with `*Completions*` {#keybindings-to-interact-with-completions}
-
-If there is a convenient way to interact with the `*Completions*` buffer from a
-buffer with default key bindings, I am not aware of it.  Because of this, I set
-a few convenience functions for navigating to, selecting, and closing the buffer
-in the case I do need to use it.
+Some time ago, Prot wrote a package called [MCT](https://github.com/protesilaos/mct/blob/main/mct.el) (Minibuffer and Completions in
+Tandem) that enhanced the default minibuffer and `*Completions*` buffer behavior
+to act more like what we expect of a modern editor's auto-complete.  He
+discontinued development of that project once it became clear that Emacs 29 was
+going to include similar behavior as a configurable option.  These are the
+options in question.
 
 ```emacs-lisp
-(defun renz/completion-accept ()
-  "Expand current text to first completion result"
-  (interactive)
-  ;; FIXME In python REPL, if we go back inside a symbol and edit it
-  ;;       to narrow the candidate list, then accept something with
-  ;;       this function, the trailing text isn't erased
-  (switch-to-completions)
-  (choose-completion))
-
-(defun renz/jump-completion ()
-  "Jump to second completion."
-  (interactive)
-  (switch-to-completions)
-  (next-completion 1))
-
-(defun renz/completion-kill-completion-buffer ()
-  "Close the *Completions* buffer without switching to it"
-  (interactive)
-  (kill-buffer "*Completions*"))
+(setq completion-auto-help 'always
+      completion-auto-select t
+      completion-show-help nil
+      completions-sort nil)
 ```
 
-Much like Vim's built-in completion with the pop-up menu, I set `C-n` and `C-p` as a
-way to select completion candidates out of the `*Completions*` buffer.
+Another nice addition to Emacs 29 is the option to sort completion candidates
+with any supplied function.  Below is one example provided by Prot, which
+prioritzes history, followed by lexicographical order, then length.
 
 ```emacs-lisp
-(define-key completion-in-region-mode-map (kbd "C-n") 'renz/jump-completion)
-(define-key completion-list-mode-map (kbd "C-n") 'next-completion)
-(define-key completion-list-mode-map (kbd "C-p") 'previous-completion)
+(defun renz/sort-by-alpha-length (elems)
+  "Sort ELEMS first alphabetically, then by length."
+  (sort elems (lambda (c1 c2)
+                (or (string-version-lessp c1 c2)
+                    (< (length c1) (length c2))))))
+
+(defun renz/sort-by-history (elems)
+  "Sort ELEMS by minibuffer history.
+Use `mct-sort-sort-by-alpha-length' if no history is available."
+  (if-let ((hist (and (not (eq minibuffer-history-variable t))
+                      (symbol-value minibuffer-history-variable))))
+      (minibuffer--sort-by-position hist elems)
+    (renz/sort-by-alpha-length elems)))
+
+(defun renz/completion-category ()
+  "Return completion category."
+  (when-let ((window (active-minibuffer-window)))
+    (with-current-buffer (window-buffer window)
+      (completion-metadata-get
+       (completion-metadata (buffer-substring-no-properties
+                             (minibuffer-prompt-end)
+                             (max (minibuffer-prompt-end) (point)))
+                            minibuffer-completion-table
+                            minibuffer-completion-predicate)
+       'category))))
+
+(defun renz/sort-multi-category (elems)
+  "Sort ELEMS per completion category."
+  (pcase (renz/completion-category)
+    ('nil elems) ; no sorting
+    ('kill-ring elems)
+    ('project-file (renz/sort-by-alpha-length elems))
+    (_ (renz/sort-by-history elems))))
+
+(setq completions-sort #'renz/sort-multi-category)
 ```
 
-For a while, I thought keys like `RET`, `TAB`, and similar would be intuitive
-candidates for accepting completion candidates.  That turned out to be a problem
-because there's a good chance you'll mess up required functionality in shell,
-minibuffer, and related modes.  So, instead, I opt for the similar `C-j`.
+Ideally, I would have a function that prioritizes based on _relevance_, which is
+not always a trivial algorithm.
 
-```emacs-lisp
-(define-key completion-in-region-mode-map (kbd "C-j") 'renz/completion-accept)
-(define-key completion-list-mode-map (kbd "C-j") 'choose-completion)
-```
-
-
-### Minibuffer completion with `vertico` and `marginalia` {#minibuffer-completion-with-vertico-and-marginalia}
-
-It's worth noting that the `fido-vertical` built-in is pretty good, but I had
-issues with micro-freezes in some situations.  [vertico](https://github.com/minad/vertico), on the other hand, has
-been lightning quick, and has intuitive keybindings that don't require any
-futzing.  _Especially_ in the case where I'm looking to tab-complete things like
-`C-x C-f /ssh:<thing>`.
-
-```emacs-lisp
-(use-package vertico
-  :config
-  (vertico-mode)
-  (vertico-buffer-mode -1)
-  (define-key vertico-map "\M-q" #'vertico-quick-insert)
-  (define-key vertico-map "\C-q" #'vertico-quick-exit)
-
-  (vertico-multiform-mode)
-  (setq vertico-multiform-categories
-        '((consult-grep buffer))))
-```
-
-Combining `vertico`'s forces with [marginalia](https://github.com/minad/marginalia) creates a lovely minibuffer
-completion experience that rivals (or even beats) modern IDE and VSCode command
-palettes.  `marginalia` adds a short, context-aware description next to completion
-candidates in the minibuffer.  For instance, using `C-h f` will show me if a
-function is already bound to a key, and give me the top-level description of the
-function, without requiring me to actually open the `*Help*` buffer.
-
-```emacs-lisp
-(use-package marginalia
-  :config (marginalia-mode))
-```
-
-For some eye candy, I _could_ add some all-the-icons goodies as well.
-
-```emacs-lisp
-(use-package all-the-icons-completion
-  :if (display-graphic-p)
-  :after (marginalia all-the-icons)
-  :hook (marginalia-mode . all-the-icons-completion-marginalia-setup)
-  :init
-  (all-the-icons-completion-mode))
-```
+What all of the above form isn't _quite_ the live-updating version that [Oantolin](https://github.com/oantolin/live-completions),
+MCT, or vertico offer, but it's pretty close. The `*Completions*` buffer updates
+after every `<SPC>`, which is the natural filtering mechanism for `orderless`.  For
+a while I was using the snappy, battle-tested [vertico](https://github.com/minad/vertico).  Recently, however, I
+found [a demo](https://www.youtube.com/watch?v=roSD50L2z-A) Prot gave of MCT where he explained the philosophy behind the
+delayed candidate display (as opposed to vertico's immediate feedback) as
+contributing less visual noise for fast typists, which I was initially skeptical
+of, but have also come to appreciate.  Following that, in tandem with a stable
+Emacs 29 release, I've replaced my vertico workflow with the enhanced "vanilla
+extract" behavior.
 
 
 ### Completion at point with `corfu` {#completion-at-point-with-corfu}
@@ -1356,15 +1266,6 @@ I've also enabled the TNG (Tab-n-go) style of completion, as laid out in corfu's
         ([backtab] . corfu-previous))
 
   :config
-  (defun corfu-enable-always-in-minibuffer ()
-    "Enable Corfu in the minibuffer if Vertico/Mct are not active."
-    (unless (or (bound-and-true-p mct--active)
-                (bound-and-true-p vertico--input))
-      ;; (setq-local corfu-auto nil) ;; Enable/disable auto completion
-      (setq-local corfu-echo-delay nil ;; Disable automatic echo and popup
-                  corfu-popupinfo-delay nil)
-      (corfu-mode 1)))
-
   (defun corfu-send-shell (&rest _)
     "Send completion candidate when inside comint/eshell."
     (cond
@@ -1377,9 +1278,7 @@ I've also enabled the TNG (Tab-n-go) style of completion, as laid out in corfu's
         corfu-auto-delay 0.0
         corfu-quit-no-match 'separator)
 
-  (add-hook 'minibuffer-setup-hook #'corfu-enable-always-in-minibuffer 1)
   (advice-add #'corfu-insert :after #'corfu-send-shell)
-
   (global-corfu-mode))
 ```
 
@@ -1401,6 +1300,46 @@ prefer to just use the easier and more intuitive `TAB`.
 
 ```emacs-lisp
 (setq tab-always-indent 'complete)
+```
+
+
+### Corfu Extensions With `cape` {#corfu-extensions-with-cape}
+
+```emacs-lisp
+(use-package cape
+  ;; Bind dedicated completion commands
+  ;; Alternative prefix keys: C-c p, M-p, M-+, ...
+  :bind (("C-c t p" . completion-at-point) ;; capf
+         ("C-c t t" . complete-tag)        ;; etags
+         ("C-c t d" . cape-dabbrev)        ;; or dabbrev-completion
+         ("C-c t h" . cape-history)
+         ("C-c t f" . cape-file)
+         ("C-c t k" . cape-keyword)
+         ("C-c t s" . cape-symbol)
+         ("C-c t a" . cape-abbrev)
+         ("C-c t i" . cape-ispell)
+         ("C-c t l" . cape-line)
+         ("C-c t w" . cape-dict)
+         ("C-c t \\" . cape-tex)
+         ("C-c t _" . cape-tex)
+         ("C-c t ^" . cape-tex)
+         ("C-c t &" . cape-sgml)
+         ("C-c t r" . cape-rfc1345))
+  :init
+  ;; Add `completion-at-point-functions', used by `completion-at-point'.
+  (add-to-list 'completion-at-point-functions #'cape-dabbrev)
+  (add-to-list 'completion-at-point-functions #'cape-file)
+  (add-to-list 'completion-at-point-functions #'cape-history)
+  (add-to-list 'completion-at-point-functions #'cape-keyword)
+  ;;(add-to-list 'completion-at-point-functions #'cape-tex)
+  ;;(add-to-list 'completion-at-point-functions #'cape-sgml)
+  ;;(add-to-list 'completion-at-point-functions #'cape-rfc1345)
+  (add-to-list 'completion-at-point-functions #'cape-abbrev)
+  (add-to-list 'completion-at-point-functions #'cape-ispell)
+  (add-to-list 'completion-at-point-functions #'cape-dict)
+  (add-to-list 'completion-at-point-functions #'cape-symbol)
+  ;;(add-to-list 'completion-at-point-functions #'cape-line)
+)
 ```
 
 
@@ -1675,8 +1614,8 @@ latter over the former, I've removed the `org-startup-indented` call.
   ;; Python has its own =:async yes= header argument we can use, so there's no
   ;; need to include it with ~ob-async~.
   (setq ob-async-no-async-languages-alist '("python"))
-  ;; I'm having trouble rembering why I added this following line, except that I
-  ;; belive it has something to do with exporting to HTML with syntax
+  ;; I'm having trouble remembering why I added this following line, except that I
+  ;; believe it has something to do with exporting to HTML with syntax
   ;; highlighting.
   (setq org-html-htmlize-output-type 'css))
 ```
