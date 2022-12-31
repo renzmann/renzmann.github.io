@@ -214,12 +214,13 @@ environment.
 
 *** Follow-ups
 
-Feel free to [[https://github.com/renzmann/.emacs.d/blob/30480545b04ac05448af32bd796d8cb8edda531f/site-lisp/pyrightconfig.el][take this package]] and modify it to suit your needs.  Over time I might make
-some modifications to it:
+Feel free to [[https://github.com/renzmann/.emacs.d/blob/30480545b04ac05448af32bd796d8cb8edda531f/site-lisp/pyrightconfig.el][take this package]] and modify it to suit your needs.  Over time I
+might make some modifications to it:
 
 1. Maybe integrate with the variety of ~activate~ functions?  So activating or setting a
    venv root for use with ~run-python~ automatically sets this.
 2. Support other VC roots than just git
-3. I'd love to get to VSCode-like intelligence about common venv locations and just prompt
-   for those automatically through =completing-read=, instead of going through the pathing
-   processing myself.  Maybe that would become a function like =pyrightconfig-suggest=.
+3. I'd love to get to VSCode-like intelligence about common venv locations and
+   just prompt for those automatically through =completing-read=, instead of going
+   through the pathing processing myself.  Maybe that would become a function
+   like =pyrightconfig-suggest=.
