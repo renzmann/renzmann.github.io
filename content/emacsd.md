@@ -38,10 +38,10 @@ git clone --depth 1 https://github.com/renzmann/.emacs.d ~/.emacs.d
 ```
 
 All external dependency sources are explicitly included under the `elpa/`
-directory, meaning it's as simple as "clone-n-go".  Opening this document under my
-configuration looks like so:
+directory, meaning it's as simple as "clone-n-go".  Opening this document under
+my configuration looks like so:
 
-{{< figure src="https://user-images.githubusercontent.com/32076780/201825125-aa94bfa3-0d1a-47d4-b451-be3718850da2.jpg" width="800px" >}}
+{{< figure src="https://user-images.githubusercontent.com/32076780/209576965-0c428bff-bea2-4b06-8373-37dfa4e4d86d.png" width="800px" >}}
 
 If you prefer a prettier reading experience, check out this same document weaved
 into [my website.](https://robbmann.io/emacsd/)
@@ -49,8 +49,8 @@ into [my website.](https://robbmann.io/emacsd/)
 
 ## Goals {#goals}
 
-I use all three of the major platforms, in both GUI and TTY mode.  So
-this config is designed to work equally well for:
+I use all three of the major platforms, in both GUI and TTY mode.  So this
+config is designed to work equally well for:
 
 | platform | terminal | GUI | ssh + TTY | Tramp |
 |----------|----------|-----|-----------|-------|
@@ -58,14 +58,14 @@ this config is designed to work equally well for:
 | macOS    | ✅       | ✅  | ✅        | ✅    |
 | Windows  | ❌       | ✅  | ❌        | ✅    |
 
-Once I figure out how to get colors working in Windows terminal, I'll
-update this table.  For now though, the 16 bit colors don't react to
-my color theme, and so on Windows I rely singularly on GUI mode,
-rather than WSL or emacs inside Alacritty.
+Once I figure out how to get colors working in Windows terminal, I'll update
+this table.  For now though, the 16 bit colors don't react to my color theme,
+and so on Windows I rely singularly on GUI mode, rather than WSL or emacs inside
+Alacritty.
 
 If I had to sum up the theme of my configuration, it would be "vanilla extract".
 In only a few instances do I change overt behavior of Emacs, the most noticiable
-departures of course being the color theme and [corfu](https://github.com/minad/corfu) completion-at-point.  Even
+departure of course being the color theme and [corfu](https://github.com/minad/corfu) completion-at-point.  Even
 with those, though, I want a configuration that fits my hands in such a way that
 I remain comfortable using `emacs -Q` with very little disruption to my normal
 muscle memory and workflow.
@@ -149,23 +149,40 @@ I prefer having custom modify its own file.  This next snippet ensures any
 
 The initial cornerstone of every Emacs configuration is a decision on package
 management and configuration.  I opt for `use-package` and `package.el`, since both
-are built-in to Emacs 29+, which helps maximize stability and portability.  I do
-not use the `:ensure t` keyword to install packages.  Instead, I rely on `M-x
-package-install` and `M-x package-delete` to manage installations, and allow
-`use-package` only to handle the configuration and loading of packages.  As
+are built-in to Emacs 29+, which helps maximize stability and portability.
+
+To avoid loading packages twice, [the manual](https://www.gnu.org/software/emacs/manual/html_node/emacs/Package-Installation.html) recommends disabling
+`package-enable-at-startup` in `init.el`.
+
+```emacs-lisp
+(setq package-enable-at-startup nil)
+```
+
+MELPA (Milypostman's Emacs Lisp Package Archive) is the largest repository for
+elisp sources that aren't a part of the official GNU ELPA.  To install packages
+from it, we need it on the `package-archives` list.
+
+```emacs-lisp
+(add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
+```
+
+I do not use the `:ensure t` keyword in `use-package` declarations to install
+packages.  Instead, I rely on `M-x package-install` and `M-x package-delete`, and
+only permit `use-package` to handle the configuration and loading of packages.  As
 mentioned in the introduction, each package's source is explicitly included into
 version control of my configuration, so I don't worry too much about pinning
 package versions in this file.  When I want to update a package, I use `M-x
 package-update`, the `package.el` user interface, or delete the package's source
-folder and restart emacs.  Should something go wrong, I roll back to a previous
-commit.  So far, this method has been reliable for keeping my `init.el` (this
-README), `custom.el`, the `package-selected-packages` variable, and `elpa/` directory
-all in sync with one another.
+folder and use `renz/package-sync` (defined below).  Should something go wrong, I
+roll back to a previous commit.  So far, this method has been reliable for
+keeping my `init.el` (this README), `custom.el`, the `package-selected-packages`
+variable, and `elpa/` directory all in sync with one another.
 
 ```emacs-lisp
-(eval-when-compile
+(defun renz/package-sync ()
+  "Remove unused sources and install any missing ones"
+  (interactive)
   (package-autoremove)
-  (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
   (package-install-selected-packages))
 ```
 
@@ -192,51 +209,42 @@ with `msys64`.
 (when (memq system-type '(windows-nt cygwin ms-dos))
   ;; Set a better font on Windows
   (set-face-attribute 'default nil :font "Hack NF-12")
+
   ;; Alternate ispell when we've got msys on Windows
   (setq ispell-program-name "aspell.exe")
+
   ;; Set default shell to pwsh
-  ;; (setq explicit-shell-file-name "pwsh")
-  ;; Enable use of Winkey as super
-  (setq w32-pass-lwindow-to-system nil)
-  (setq w32-lwindow-modifier 'super) ; Left Windows key
-  (setq w32-pass-rwindow-to-system nil)
-  (setq w32-rwindow-modifier 'super) ; Right Windows key
-  ;; If we want to use a hotkey, we have to also register each
-  ;; combination specifically, like this:
-  (w32-register-hot-key [s-a])
-  (w32-register-hot-key [s-b])
-  (w32-register-hot-key [s-c])
-  (w32-register-hot-key [s-d])
-  (w32-register-hot-key [s-e])
-  (w32-register-hot-key [s-f])
-  (w32-register-hot-key [s-g])
-  (w32-register-hot-key [s-h])
-  (w32-register-hot-key [s-i])
-  (w32-register-hot-key [s-j])
-  (w32-register-hot-key [s-k])
-  ;; s-l can NEVER be registered as a key combination, since Windows
-  ;; handles it at a much lower level.
-  ;; (w32-register-hot-key [s-l])
-  (w32-register-hot-key [s-m])
-  (w32-register-hot-key [s-n])
-  (w32-register-hot-key [s-o])
-  (w32-register-hot-key [s-p])
-  (w32-register-hot-key [s-q])
-  (w32-register-hot-key [s-r])
-  (w32-register-hot-key [s-s])
-  (w32-register-hot-key [s-t])
-  (w32-register-hot-key [s-u])
-  (w32-register-hot-key [s-v])
-  (w32-register-hot-key [s-w])
-  (w32-register-hot-key [s-x])
-  (w32-register-hot-key [s-y])
-  (w32-register-hot-key [s-z]))
+  (setq explicit-shell-file-name "pwsh")
+  )
 ```
+
+For a time I considered enabling the use of the winkey like this:
+
+```emacs-lisp
+(setq w32-pass-lwindow-to-system nil)
+(setq w32-lwindow-modifier 'super) ; Left Windows key
+(setq w32-pass-rwindow-to-system nil)
+(setq w32-rwindow-modifier 'super) ; Right Windows key
+```
+
+Followed by enabling specific chords, such as "winkey+a":
+
+```emacs-lisp
+(w32-register-hot-key [s-a])
+```
+
+Since I've taken a more TTY-friendly approach for my config in general, where
+super can be a bit tough to integrate with both the windowing application _and_
+the terminal emulator, I've mostly given up on the GUI key in favor of other
+chords, especially the `C-c` ones.
 
 
 ### macOS {#macos}
 
-Launching Emacs from the typical application launcher or command-space usually won't capture any modifications to `$PATH`, typically handled in a file like `~/.profile` or `~/.bashrc`. So, the main configuration included here is from [exec-path-from-shell](https://github.com/purcell/exec-path-from-shell).
+Launching Emacs from the typical application launcher or command-space usually
+won't capture any modifications to `$PATH`, typically handled in a file like
+`~/.profile` or `~/.bashrc`. So, the main configuration included here is from
+[exec-path-from-shell](https://github.com/purcell/exec-path-from-shell).
 
 ```emacs-lisp
 (when (eq system-type 'darwin)
@@ -249,12 +257,12 @@ Launching Emacs from the typical application launcher or command-space usually w
 
 ### Linux {#linux}
 
-Very little to do here.  Emacs on Linux seems to "just work".
+Very little to do here.  Emacs on Linux seems to "just work".  When I have the
+Hack font installed, I sometimes turn it on by manually evaluating this block,
+though.
 
 ```emacs-lisp
-(when (eq system-type 'gnu/linux)
-  ;; (set-face-attribute 'default nil :font "Hack Nerd Font Mono-11")
-  )
+(set-face-attribute 'default nil :font "Hack Nerd Font Mono-11")
 ```
 
 
@@ -323,19 +331,6 @@ Kitty for me, I haven't spent too much time looking into it.
 
 My settings for base Emacs.  Assuming I ran with _no_ plugins (ala `emacs -Q`), I
 would still set most of these by hand at one point or another.
-
-
-### `dabbrev`: swap `M-/` and `C-M-/` {#dabbrev-swap-m-and-c-m}
-
-```emacs-lisp
-(use-package dabbrev
-  ;; Swap M-/ and C-M-/
-  :bind (("M-/" . dabbrev-completion)
-         ("C-M-/" . dabbrev-expand))
-  ;; Other useful Dabbrev configurations.
-  :custom
-  (dabbrev-ignored-buffer-regexps '("\\.\\(?:pdf\\|jpe?g\\|png\\)\\'")))
-```
 
 
 ### Mode line {#mode-line}
@@ -417,17 +412,6 @@ currently on.
 
 ```emacs-lisp
 (scroll-bar-mode -1)
-```
-
-
-### Inhibit splash screen {#inhibit-splash-screen}
-
-When I was starting out, the OG GNU Splash was a _super_ helpful screen.  Lately I
-haven't needed the reminder links as often, but I sometimes get back to it to
-with `C-h C-a`.
-
-```emacs-lisp
-(setq inhibit-splash-screen t)
 ```
 
 
@@ -542,18 +526,6 @@ of elisp I wrote when first learning Emacs.
 ```
 
 The bell is really, _really_ annoying.
-
-
-### Enable split-window dired copying {#enable-split-window-dired-copying}
-
-Do-What-I-Mean (DWIM) copying is for when two dired windows are open, and we
-want to copy something from one location to the other.  By enabling
-`dired-dwim-target`, it auto-populates the minibuffer with the other dired
-window's path when issuing a copy command with `C`.
-
-```emacs-lisp
-(setq dired-dwim-target t)
-```
 
 
 ### Automatically create matching parens in programming modes {#automatically-create-matching-parens-in-programming-modes}
@@ -678,16 +650,6 @@ From an [Emacs stackexchange](https://emacs.stackexchange.com/a/44604) answer.
 ```
 
 
-### Make `dired` human-readable {#make-dired-human-readable}
-
-By default, `dired` uses bytes instead of "K", "Mb", or "G" for file sizes.
-
-```emacs-lisp
-(setq dired-listing-switches "-alFh")
-;; (setq-default dired-hide-details-mode t)
-```
-
-
 ### Confirm when exiting Emacs {#confirm-when-exiting-emacs}
 
 It's very annoying when I'm working and suddenly I meant to do `C-c C-x`, but
@@ -751,18 +713,8 @@ I'll uncomment the second part.
 
 ## Keybindings {#keybindings}
 
-In the unlikely event that something below is loaded incorrectly and causes
-initialization to stop, I like to have my basic key command loaded early,
-especially so that navigating to the error can happen more quickly.
-
-Emacs has [some standards](https://www.gnu.org/software/emacs/manual/html_node/emacs/Key-Bindings.html) about where user-configured keys should go.  Other
-non-standard modifications are marked as such.
-
-
-### My utility functions {#my-utility-functions}
-
-Eventually, some of my custom functions had a logical abstraction, which I
-extract and put up here for them to use.
+Eventually, some of the custom functions that I bound to convenient keys had a
+logical abstraction, which I extract and put up here for them to use.
 
 ```emacs-lisp
 (defun renz/--jump-section (dirname prompt extension)
@@ -847,9 +799,10 @@ more frequently.
 
 ### C-c bindings {#c-c-bindings}
 
-`C-c` &lt;letter&gt; is always free for users.  It may seem like overkill how I set a
-header for each possible `C-c` combination, but it's incredibly handy when I want
-to jump directly to one of these headings while in another buffer.  See
+Emacs has [some standards](https://www.gnu.org/software/emacs/manual/html_node/emacs/Key-Bindings.html) about where user-configured keys should go; `C-c
+<letter>` is always free for users.  It may seem like overkill how I set a header
+for each possible `C-c` combination, but it's incredibly handy when I want to jump
+directly to one of these headings while in another buffer.  See
 e.g. `renz/jump-init`, which allows me to narrow in on a particular key I'd like
 to bind by leveraging `completing-read`.  If a `C-c <letter>` combination is missing
 as a header, then I'm probably using it in a `:bind` statement with `use-package`
@@ -883,17 +836,9 @@ somewhere else.
 ```
 
 
-#### `C-c g` find file at point {#c-c-g-find-file-at-point}
-
-```emacs-lisp
-(global-set-key (kbd "C-c g") #'ffap)  ; inspired by vim `gf`
-```
-
-
 #### `C-c i` jump to a header in my configuration {#c-c-i-jump-to-a-header-in-my-configuration}
 
 ```emacs-lisp
-
 (setq renz/site-lisp-dir (expand-file-name "site-lisp/" user-emacs-directory))
 
 (defun renz/jump-configuration ()
@@ -902,13 +847,6 @@ somewhere else.
   (renz/--jump-section renz/site-lisp-dir
                        "Elisp config files: "
                        ".*\.el$"))
-
-(defun renz/jump-org ()
-  "Prompt for an org file in my emacs directory, then go there."
-  (interactive)
-  (renz/--jump-section renz/org-home
-                       "Org files: "
-                       ".*\.org$"))
 
 (defun renz/jump-init ()
   (interactive)
@@ -1000,20 +938,6 @@ though there are few of these keys, I tend to forget which is which.  So I wind
 up using things bound to my `C-c` keymaps instead.  The `C-c` kyes from a more
 natural, nested language in my head, so it feels more like I'm "speaking Emacs"
 that way.
-
-
-### Super bindings {#super-bindings}
-
-See the [Microsoft Windows](#microsoft-windows) section for some hackery required to get these working
-on their operating system.
-
-```emacs-lisp
-(global-set-key (kbd "s-c") #'kill-ring-save)
-(global-set-key (kbd "s-q") #'save-buffers-kill-terminal)
-(global-set-key (kbd "s-s") #'save-buffer)
-(global-set-key (kbd "s-t") #'tab-new)
-(global-set-key (kbd "s-v") #'yank)
-```
 
 
 ## Consulting `completing-read` {#consulting-completing-read}
@@ -1166,10 +1090,11 @@ going to include similar behavior as a configurable option.  These are the
 options in question.
 
 ```emacs-lisp
-(setq completion-auto-help 'always
-      completion-auto-select t
+(setq completion-auto-help 'visible
+      completion-auto-select 'second-tab
       completion-show-help nil
-      completions-sort nil)
+      completions-sort nil
+      completions-header-format nil)
 ```
 
 Another nice addition to Emacs 29 is the option to sort completion candidates
@@ -1218,7 +1143,7 @@ Ideally, I would have a function that prioritizes based on _relevance_, which is
 not always a trivial algorithm.
 
 What all of the above form isn't _quite_ the live-updating version that [Oantolin](https://github.com/oantolin/live-completions),
-MCT, or vertico offer, but it's pretty close. The `*Completions*` buffer updates
+MCT, or vertico offer, but it'sg pretty close. The `*Completions*` buffer updates
 after every `<SPC>`, which is the natural filtering mechanism for `orderless`.  For
 a while I was using the snappy, battle-tested [vertico](https://github.com/minad/vertico).  Recently, however, I
 found [a demo](https://www.youtube.com/watch?v=roSD50L2z-A) Prot gave of MCT where he explained the philosophy behind the
@@ -1228,118 +1153,34 @@ of, but have also come to appreciate.  Following that, in tandem with a stable
 Emacs 29 release, I've replaced my vertico workflow with the enhanced "vanilla
 extract" behavior.
 
-
-### Completion at point with `corfu` {#completion-at-point-with-corfu}
-
-For `completion-at-=point` suggestions, I like `corfu` a lot.  It's philosophy is to
-stick as close as possible to the native Emacs internal API as possible, without
-reinventing the wheel.  In my experience, this has meant far fewer integration
-troubles with other packages.  It uses child frames for displaying the
-completion candidates, however, which means we need a separate `corfu-terminal`
-extension for it to work in TTY mode.  While `use-package` has the `:unless` and `:if`
-keywords, I seem to have trouble getting them to actually work with
-`display-graphic-p`, and the official instructions with `window-system` wasn't
-working for me.  Hence, it's wrapped in an `unless` block.
-
-I've also enabled the TNG (Tab-n-go) style of completion, as laid out in corfu's
-[README](https://github.com/minad/corfu#tab-and-go-completion).
+When actively selecting candidates, `C-n` and `C-p` are much more convenient than
+the default `M-<up>` and `M-<down>` bindings.
 
 ```emacs-lisp
-(unless (display-graphic-p)
-  (use-package corfu-terminal
-    :config
-    (corfu-terminal-mode +1)))
-
-(use-package corfu
-  :demand t
-
-  :custom
-  (corfu-cycle t)             ;; Enable cycling for `corfu-next/previous'
-  (corfu-preselect-first nil) ;; Disable candidate preselection
-
-  :bind
-  (:map corfu-map
-        ("M-SPC" . corfu-insert-separator)
-        ("TAB" . corfu-next)
-        ([tab] . corfu-next)
-        ("S-TAB" . corfu-previous)
-        ([backtab] . corfu-previous))
-
-  :config
-  (defun corfu-send-shell (&rest _)
-    "Send completion candidate when inside comint/eshell."
-    (cond
-     ((and (derived-mode-p 'eshell-mode) (fboundp 'eshell-send-input))
-      (eshell-send-input))
-     ((and (derived-mode-p 'comint-mode)  (fboundp 'comint-send-input))
-      (comint-send-input))))
-
-  (setq corfu-auto t
-        corfu-auto-delay 0.0
-        corfu-quit-no-match 'separator)
-
-  (advice-add #'corfu-insert :after #'corfu-send-shell)
-  (global-corfu-mode))
+(define-key minibuffer-local-map (kbd "C-p") #'minibuffer-previous-completion)
+(define-key minibuffer-local-map (kbd "C-n") #'minibuffer-next-completion)
 ```
 
-There are some cases over Tramp, however, where corfu will case some performance
-issues.  Especially in the case where some folders under the `/` root might be
-mounted over a network.  In that case, I sometimes call this
-`renz/disable-corfu-remote`, which only disables corfu in the current buffer if
-it's being handled by Tramp.
 
-```emacs-lisp
-(defun renz/disable-corfu-remote ()
-  (when (and (fboundp 'corfu-mode)
-             (file-remote-p default-directory))
-    (corfu-mode -1)))
-```
+### Completion at point {#completion-at-point}
 
-Finally, Emacs uses `M-TAB`, or the equivalent `C-M-i` for `completion-at-point`.  I'd much
-prefer to just use the easier and more intuitive `TAB`.
+For a long time I was using [corfu](https://github.com/minad/corfu) for a pop-up menu like Vim's for completing
+symbols in a buffer.  With the `*Completions*` buffer improvements in Emacs 29,
+I've also reverted this back to something much closer to Vanilla.  The only
+change I make here is the key for requesting the candidate list; by default
+Emacs uses `M-TAB`, or the equivalent `C-M-i` for `completion-at-point`.  I'd much
+prefer to use the easier and more intuitive `TAB`.
 
 ```emacs-lisp
 (setq tab-always-indent 'complete)
 ```
 
-
-### Corfu Extensions With `cape` {#corfu-extensions-with-cape}
+Again, we set `C-n` and `C-p` when completion-in-region is active for selecting
+candidates.
 
 ```emacs-lisp
-(use-package cape
-  ;; Bind dedicated completion commands
-  ;; Alternative prefix keys: C-c p, M-p, M-+, ...
-  :bind (("C-c t p" . completion-at-point) ;; capf
-         ("C-c t t" . complete-tag)        ;; etags
-         ("C-c t d" . cape-dabbrev)        ;; or dabbrev-completion
-         ("C-c t h" . cape-history)
-         ("C-c t f" . cape-file)
-         ("C-c t k" . cape-keyword)
-         ("C-c t s" . cape-symbol)
-         ("C-c t a" . cape-abbrev)
-         ("C-c t i" . cape-ispell)
-         ("C-c t l" . cape-line)
-         ("C-c t w" . cape-dict)
-         ("C-c t \\" . cape-tex)
-         ("C-c t _" . cape-tex)
-         ("C-c t ^" . cape-tex)
-         ("C-c t &" . cape-sgml)
-         ("C-c t r" . cape-rfc1345))
-  :init
-  ;; Add `completion-at-point-functions', used by `completion-at-point'.
-  (add-to-list 'completion-at-point-functions #'cape-dabbrev)
-  (add-to-list 'completion-at-point-functions #'cape-file)
-  (add-to-list 'completion-at-point-functions #'cape-history)
-  (add-to-list 'completion-at-point-functions #'cape-keyword)
-  ;;(add-to-list 'completion-at-point-functions #'cape-tex)
-  ;;(add-to-list 'completion-at-point-functions #'cape-sgml)
-  ;;(add-to-list 'completion-at-point-functions #'cape-rfc1345)
-  (add-to-list 'completion-at-point-functions #'cape-abbrev)
-  (add-to-list 'completion-at-point-functions #'cape-ispell)
-  (add-to-list 'completion-at-point-functions #'cape-dict)
-  (add-to-list 'completion-at-point-functions #'cape-symbol)
-  ;;(add-to-list 'completion-at-point-functions #'cape-line)
-)
+(define-key completion-in-region-mode-map (kbd "C-p") #'minibuffer-previous-completion)
+(define-key completion-in-region-mode-map (kbd "C-n") #'minibuffer-next-completion)
 ```
 
 
@@ -1357,12 +1198,14 @@ improvements:
 
 ```emacs-lisp
 (use-package tramp
+  :defer t
   :config
   (setq vc-handled-backends '(Git)
         file-name-inhibit-locks t
         tramp-inline-compress-start-size 1000
         tramp-copy-size-limit 10000
-        tramp-verbose 1))
+        tramp-verbose 1)
+  (add-to-list 'tramp-remote-path 'tramp-own-remote-path))
 ```
 
 eglot is [actively working](https://github.com/joaotavora/eglot/issues/859) on an issue related to timers causing a "Forbidden
@@ -1385,16 +1228,6 @@ all.
 
 ```emacs-lisp
 ;; (setq enable-remote-dir-locals t)
-```
-
-When using [conda](https://anaconda.org), I keep a special conda environment named `robbmann` for
-locally-installed and managed command line utilities.  Sometimes I link these
-over to `.local/bin`, and other times I forget.  For the latter case, I tend to
-include it in a lot of my PATH-setting situations.
-
-```emacs-lisp
-(add-to-list 'tramp-remote-path "~/.local/bin")
-(add-to-list 'tramp-remote-path "~/.conda/envs/robbmann/bin")
 ```
 
 [Disabling VC](https://www.gnu.org/software/emacs/manual/html_node/tramp/Frequently-Asked-Questions.html) _does_ seem to speed things up a little, but it's not an acceptable
@@ -1492,33 +1325,6 @@ which the following enables.
 (setq org-image-actual-width nil)
 ```
 
-I often want to kill and paste entire `src` blocks at a time, along with their
-results.  For a time, I included the following command:
-
-```emacs-lisp
-(defun renz/org-kill-src-block ()
-  "Kill the src block around point, if applicable."
-  (interactive)
-  (org-babel-remove-result)
-  (org-mark-element)
-  (kill-region nil nil t))
-```
-
-However, this won't add the contents of the `#+RESULTS:` block to the kill-ring,
-which meant I confused myself often.  Instead, I've found that simply doing `M-h
-M-h` if there's a result block, or simply `M-h` if there isn't one, followed by
-either `M-w` or `C-w`, depending on whether I want to save or kill, is perfectly
-fast enough.
-
-I also use `org-mode` for writing [my blog.](https://robbmann.io/posts)  With a little help from [an article](https://willschenk.com/articles/2019/using_org_mode_in_hugo/) we
-have exporting to Hugo-specific markdown.  Without the export, Hugo can read Org
-files _okay-ish_, but you wind up missing some nice QoL features, like header
-links.
-
-```emacs-lisp
-(use-package ox-hugo)
-```
-
 `org-mode` provides `org-babel-tangle-jump-to-org`, which jumps back to an Org
 source file from within the tangled code.  `renz/org-babel-tangle-jump-to-src`,
 defined below, does the opposite - given the Org source file and point inside a
@@ -1559,9 +1365,14 @@ latter over the former, I've removed the `org-startup-indented` call.
 (use-package org
   :hook
   ((org-mode . (lambda () (progn
-                           (add-hook 'after-save-hook #'org-babel-tangle :append :local)
-                           (add-hook 'org-babel-after-execute-hook #'renz/display-ansi-colors))))
-   )
+                            (add-hook 'after-save-hook #'org-babel-tangle :append :local)
+                            (add-hook 'org-babel-after-execute-hook #'renz/display-ansi-colors)))))
+
+  :init
+  (defun renz/jump-org ()
+    "Prompt for an org file in my emacs directory, then go there."
+    (interactive)
+    (renz/--jump-section renz/org-home "Org files: " ".*\.org$"))
 
   :bind
   (("C-c o a" . org-agenda)
@@ -1594,18 +1405,16 @@ latter over the former, I've removed the `org-startup-indented` call.
      (gnuplot . t)
      (awk . t)
      (latex . t)))
-   ;; Outside the typical TODO/DONE states, I like to use DEAD as an indicator
-   ;; that something is fully blocked, but not done.
-   (setq org-todo-keywords '((sequence "TODO" "DEAD" "DONE")))
-   (setq org-agenda-files '("~/.emacs.d/org/work.org")
-         org-hugo-front-matter-format "yaml"))
+
+  (setq org-agenda-files '("~/.emacs.d/org/work.org")
+        org-hugo-front-matter-format "yaml"))
 ```
 
 `ob-async` adds asynchronous source block execution to some modes that otherwise wouldn't have it.
 
 ```emacs-lisp
 (use-package ob-async
-
+  :after org
   :config
   (add-hook 'ob-async-pre-execute-src-block-hook
             #'(lambda ()
@@ -1630,7 +1439,6 @@ A [lovely look](https://github.com/minad/org-modern) for `org-mode` by minad.
   :after org
   :config
   (setq
-   ;; Edit settings
    org-auto-align-tags nil
    org-tags-column 0
    org-catch-invisible-edits 'show-and-error
@@ -1657,6 +1465,42 @@ A [lovely look](https://github.com/minad/org-modern) for `org-mode` by minad.
     (setq org-modern-table nil))
 
   (global-org-modern-mode))
+```
+
+
+#### Code block syntax highlighting for HTML export {#code-block-syntax-highlighting-for-html-export}
+
+```emacs-lisp
+(use-package htmlize
+  :after (org))
+```
+
+
+#### Copying images out of org-babel {#copying-images-out-of-org-babel}
+
+Offers two functions:
+
+-   `ox-clip-formatted-copy`
+-   `ox-clip-image-to-clipboard`
+
+<!--listend-->
+
+```emacs-lisp
+(use-package ox-clip
+  :after org)
+```
+
+
+#### Exporting to Hugo {#exporting-to-hugo}
+
+I also use `org-mode` for writing [my blog.](https://robbmann.io/posts)  With a little help from [an article](https://willschenk.com/articles/2019/using_org_mode_in_hugo/) we
+have exporting to Hugo-specific markdown.  Without the export, Hugo can read Org
+files _okay-ish_, but you wind up missing some nice QoL features, like header
+links.
+
+```emacs-lisp
+(use-package ox-hugo
+  :after org)
 ```
 
 
@@ -1712,11 +1556,16 @@ A [lovely look](https://github.com/minad/org-modern) for `org-mode` by minad.
         renz/sql-indentation-offsets-alist)
   (setq sqlind-basic-offset 4))
 
-(add-hook 'sqlind-minor-mode-hook #'renz/sql-indentation-offsets)
-(add-hook 'sql-mode-hook #'renz/sql-mode-hook)
-(add-hook 'sql-mode-hook 'sqlup-mode)
-(add-hook 'sql-mode-hook 'sqlind-minor-mode)
-(add-hook 'sql-interactive-mode-hook 'sqlup-mode)
+(use-package sql-indent
+  :hook (sqlind-minor-mode . renz/sql-indentation-offsets))
+
+(use-package sql-mode
+  :hook ((sql-mode . renz/sql-mode-hook)
+         (sql-mode . sqlup-mode)
+         (sql-mode . sqlind-minor-mode)))
+
+(use-package sqlup-mode
+  :hook sql-interactive-mode)
 
 (use-package hive2
   :after (sql)
@@ -1738,6 +1587,10 @@ A [lovely look](https://github.com/minad/org-modern) for `org-mode` by minad.
     (use-package sqlformat
       :after (sql))
     ```
+
+    When I get to it, I think what I'll do instead is rewrite this to simply pipe
+    the current buffer into `sql-formatter`, and use a bit of elisp to determine whether
+    a `.sql-formatter-config.json` exists in the VC root directory.
 
 
 ### Python {#python}
@@ -1799,54 +1652,19 @@ Virtualenvs require `.dir-locals.el` to have something like:
 ((python-mode . ((python-shell-virtualenv-root . "/path/to/my/.venv"))))
 ```
 
-However, this only operates on \`run-python' shells.
-
-`pyvenv` solves the otherwise very annoying problem of getting external tools like
-\`compile' and \`eshell' to also use our virtual environment's python.  I may
-still use `.dir-locals.el` to set things like the `python-check-command` on a
-per-project basis, though.  I don't use `pyvenv` much now though, since the vast
-majority of my development time is spent over Tramp, which `pyvenv` does not
-support.  When I did, the code looked a bit like this:
-
-```emacs-lisp
-(when (package-installed-p 'pyvenv)
-  (pyvenv-mode)
-  ;; (add-hook 'pyvenv-post-activate-hooks 'pyvenv-restart-python)
-  ;; (pyvenv-tracking-mode)
-  ;; (setenv "WORKON_HOME" "~/.conda/envs")
-  )
-```
-
-For a while, it looks like Emacs was trying out something called [semantic-mode](https://www.gnu.org/software/emacs/manual/html_node/semantic/Semantic-mode.html),
-which looks a lot like a precursor to what we now know as the [Language Server
-Protocol](https://microsoft.github.io/language-server-protocol/).  Enabling it was done through adding the `semantic-mode` hook to your
-language's major mode hook:
-
-```emacs-lisp
-(add-hook 'python-mode-hook 'semantic-mode)
-```
-
-Don't mark the check command and virtualenv variables as unsafe.
+However, this only operates on \`run-python' shells.  Also, for projects, we need to
+make sure that setting the virtualenv root is marked as safe.
 
 ```emacs-lisp
 (put 'python-check-command 'safe-local-variable #'stringp)
 (put 'python-shell-virtualenv-root 'safe-local-variable #'stringp)
 ```
 
-To have `eglot` always start up for a python buffer, we would tangle this line
-into `init.el`.  However, this can cause a significant loading delay over Tramp,
-and I would prefer snappy, simple access with LSP provided on an as-needed
-basis.
-
-```emacs-lisp
-(add-hook 'python-mode-hook 'eglot-ensure)
-```
-
 Eventually, I would like to try the [emacs-jupyter](https://github.com/dzop/emacs-jupyter) package to interface with
 Jupyter kernels from org-mode.
 
 
-#### pyrightconfig.json, Tramp, and eglot {#pyrightconfig-dot-json-tramp-and-eglot}
+#### pyrightconfig.json {#pyrightconfig-dot-json}
 
 The most consistent way to get `eglot` to properly configure the python virtual
 environment with `pyright` is to have a static file at the root of the project,
@@ -1879,30 +1697,22 @@ Formatting a buffer with `black` has never been easier!
 ### Markdown {#markdown}
 
 Some folks like to write markdown without hard line breaks.  When viewing those
-documents, I can use the `renz/md-hook` to view it as if there were line breaks in
+documents, I can use `M-x renz/md-hook` to view it as if there were line breaks in
 it.
 
 ```emacs-lisp
 (defun renz/md-hook ()
+  "View buffer in visual fill mode with 80 character width."
+  (interactive)
   (visual-fill-column-mode)
   (setq-local fill-column 80))
-
-(use-package markdown-mode
-  ;; :config
-  ;; (add-hook 'markdown-mode-hook #'renz/md-hook)
-  )
-
-(use-package poly-markdown
-  :after (markdown-mode))
 ```
 
-
-#### Code syntax in Markdown {#code-syntax-in-markdown}
-
-Enable syntax highlighting within code fences for markdown
+`poly-markdown-mode` enables syntax highlighting within code fences for markdown.
 
 ```emacs-lisp
-(use-package poly-mode
+(use-package poly-markdown
+  :after (markdown-mode)
   :mode ("\\.md" . poly-markdown-mode))
 ```
 
@@ -1927,8 +1737,52 @@ Handy for viewing data quickly.
 
 ## Small tool configuration {#small-tool-configuration}
 
-Most of these are third party installs that require only a little configuration,
-and don't warrant a big top-level header.
+These are tweaks for both third party packages and those bundled with emacs that
+require little configuration and don't warrant a top-level header.
+
+
+### Git gutter {#git-gutter}
+
+Shows a little icon outside the fringe when working version has changes.
+
+```emacs-lisp
+(use-package git-gutter
+  :demand t
+  :bind ("C-c v s" . git-gutter:stage-hunk)
+  :config (global-git-gutter-mode))
+```
+
+
+### `dabbrev`: swap `M-/` and `C-M-/` {#dabbrev-swap-m-and-c-m}
+
+```emacs-lisp
+(use-package dabbrev
+  ;; Swap M-/ and C-M-/
+  :bind (("M-/" . dabbrev-completion)
+         ("C-M-/" . dabbrev-expand))
+  ;; Other useful Dabbrev configurations.
+  :custom
+  (dabbrev-ignored-buffer-regexps '("\\.\\(?:pdf\\|jpe?g\\|png\\)\\'")))
+```
+
+
+### dired {#dired}
+
+By default, `dired` uses bytes instead of "K", "Mb", or "G" for file sizes.  I
+also have it hide the mode, size, and owner of each file by default.
+
+```emacs-lisp
+(use-package dired
+  :hook (dired-mode . dired-hide-details-mode)
+  :config
+  (setq dired-listing-switches "-alFh")
+  (setq dired-dwim-target t))
+```
+
+Also enabled above is Do-What-I-Mean (DWIM) copying.  This is for when two dired
+windows are open, and we want to copy something from one location to the other.
+By enabling `dired-dwim-target`, it auto-populates the minibuffer with the other
+dired window's path when issuing a copy command with `C`.
 
 
 ### Embark {#embark}
@@ -1965,7 +1819,9 @@ and don't warrant a big top-level header.
 Adds the ability to use TUI programs in shell mode.
 
 ```emacs-lisp
-(coterm-mode)
+(use-package coterm
+  :config
+  (coterm-mode))
 ```
 
 
@@ -1999,7 +1855,8 @@ word.
 The one and only.
 
 ```emacs-lisp
-(use-package magit)
+(use-package magit
+  :bind ("C-c g" . magit-status))
 ```
 
 As a reminder - when using pre-commit hooks it may take a while for the hooks to
@@ -2028,29 +1885,6 @@ Ecosia requires JavaScript, unfortunately.
 (use-package eww
   :config
   (setq eww-search-prefix "https://duckduckgo.com/html/?q="))
-```
-
-
-### diff-hl {#diff-hl}
-
-Adds highlighting to the fringe to see what's been added, deleted, or modified
-from `git`'s perspective.
-
-```emacs-lisp
-(use-package diff-hl
-  :bind ("C-c v" . diff-hl-mode))
-```
-
-Another option (which I haven't really looked at) is `git-gutter-fringe`.
-
-
-### GNU Plot {#gnu-plot}
-
-Scientific plotting - the old fashioned way!
-
-```emacs-lisp
-(use-package gnuplot
-  :after (org))
 ```
 
 
@@ -2094,6 +1928,9 @@ Often used when changing up my `init.el`.
 
 ### Language Server Protocol (LSP) with `eglot` {#language-server-protocol--lsp--with-eglot}
 
+As of version 29, [eglot](https://github.com/joaotavora/eglot) (Emacs polyGLOT) is bundled with Emacs.  It provides Emacs with the
+client side configuration for the [language server protocol](https://microsoft.github.io/language-server-protocol/).
+
 ```emacs-lisp
 (use-package eglot
   :bind (("C-c l c" . eglot-reconnect)
@@ -2105,27 +1942,25 @@ Often used when changing up my `init.el`.
          ("C-c l s" . eglot-shutdown)))
 ```
 
-
-#### Code block syntax highlighting for HTML export {#code-block-syntax-highlighting-for-html-export}
+To have `eglot` always start up for a python buffer, we would tangle this line
+into `init.el`.  However, this can cause a significant loading delay over Tramp,
+and I would prefer snappy, simple access with LSP provided on an as-needed
+basis.
 
 ```emacs-lisp
-(use-package htmlize
-  :after (org))
+(add-hook 'python-mode-hook 'eglot-ensure)
 ```
 
 
-#### Copying images out of org-babel {#copying-images-out-of-org-babel}
+#### Side show: `semantic-mode` {#side-show-semantic-mode}
 
-Offers two functions:
-
--   `ox-clip-formatted-copy`
--   `ox-clip-image-to-clipboard`
-
-<!--listend-->
+For a while, it looks like Emacs was trying out something called [semantic-mode](https://www.gnu.org/software/emacs/manual/html_node/semantic/Semantic-mode.html),
+which looks a lot like a precursor to what we now know as the [Language Server
+Protocol](https://microsoft.github.io/language-server-protocol/).  Enabling it was done through adding the `semantic-mode` hook to your
+language's major mode hook:
 
 ```emacs-lisp
-(use-package ox-clip
-  :after org)
+(add-hook 'python-mode-hook 'semantic-mode)
 ```
 
 
