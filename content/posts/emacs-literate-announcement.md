@@ -2,7 +2,7 @@
 title: "Moving My Emacs Configuration to a Literate Programming Document"
 author: ["Robb"]
 date: 2022-11-21T00:00:00-05:00
-lastmod: 2022-11-21T20:43:00-05:00
+lastmod: 2022-12-31T07:45:29-05:00
 categories: ["emacs"]
 draft: false
 weight: 2002

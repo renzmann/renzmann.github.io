@@ -1,10 +1,12 @@
 ---
 title: "Virtual Environments with Eglot, Tramp, and Pyright"
+author: ["Robb"]
 date: 2022-11-19T00:00:00-05:00
-lastmod: 2022-11-20T09:29:37-05:00
+lastmod: 2022-12-31T07:45:30-05:00
 tags: ["python", "lsp", "eglot", "tramp", "remote"]
 categories: ["emacs"]
 draft: false
+weight: 2003
 ---
 
 ## Motivation {#motivation}
@@ -110,12 +112,13 @@ environment.
 
 ## Follow-ups {#follow-ups}
 
-Feel free to [take this package](https://github.com/renzmann/.emacs.d/blob/30480545b04ac05448af32bd796d8cb8edda531f/site-lisp/pyrightconfig.el) and modify it to suit your needs.  Over time I might make
-some modifications to it:
+Feel free to [take this package](https://github.com/renzmann/.emacs.d/blob/30480545b04ac05448af32bd796d8cb8edda531f/site-lisp/pyrightconfig.el) and modify it to suit your needs.  Over time I
+might make some modifications to it:
 
 1.  Maybe integrate with the variety of `activate` functions?  So activating or setting a
     venv root for use with `run-python` automatically sets this.
 2.  Support other VC roots than just git
-3.  I'd love to get to VSCode-like intelligence about common venv locations and just prompt
-    for those automatically through `completing-read`, instead of going through the pathing
-    processing myself.  Maybe that would become a function like `pyrightconfig-suggest`.
+3.  I'd love to get to VSCode-like intelligence about common venv locations and
+    just prompt for those automatically through `completing-read`, instead of going
+    through the pathing processing myself.  Maybe that would become a function
+    like `pyrightconfig-suggest`.
