@@ -49,8 +49,8 @@ into [my website.](https://robbmann.io/emacsd/)
 
 ## Goals {#goals}
 
-I use all three of the major platforms, in both GUI and TTY mode.  So this
-config is designed to work equally well for:
+I use Emacs 28+ all three of the major platforms, in both GUI and TTY mode.  So
+this config is designed to work equally well for:
 
 | platform | terminal | GUI | ssh + TTY | Tramp |
 |----------|----------|-----|-----------|-------|
@@ -65,21 +65,24 @@ Alacritty.
 
 If I had to sum up the theme of my configuration, it would be "vanilla extract".
 In only a few instances do I change overt behavior of Emacs, the most noticiable
-departure of course being the color theme and [corfu](https://github.com/minad/corfu) completion-at-point.  Even
-with those, though, I want a configuration that fits my hands in such a way that
-I remain comfortable using `emacs -Q` with very little disruption to my normal
-muscle memory and workflow.
+departures of course being the color theme, vertico minibuffer, and [corfu](https://github.com/minad/corfu)
+completion-at-point.  Even with those, though, I want a configuration that fits
+my hands in such a way that I remain comfortable using `emacs -Q` with very little
+disruption to my normal muscle memory and workflow.
 
 I do make changes to things that I feel "should have been included."  Some
-examples of this would be error message support for `pyright` in a `*Compilation*`
-buffer, reasonable indentation behavior for SQL files, updating buffers
-automatically if their contents change on disk, and syntax highlighting for
-source blocks in Markdown.  You may notice that despite the laudable goal of
-intentded minimalism, this document is is still quite long, as I have found many
-(ever increasing) quirky behaviors of Emacs that I tweak.
+examples of this are:
 
-Most of my time is spent in Org, SQL, Python, and Bash, so the majority of
-configuration lies around these sections.
+1.  Additional major modes for languages like Markdown, go, and rust
+2.  Error message support for `pyright` in a `*Compilation*` buffer
+3.  Reasonable indentation behavior for SQL files
+4.  Updating buffers automatically if their contents change on disk
+5.  Syntax highlighting for Source blocks in Markdown.
+
+You may notice that despite the laudable goal of intended minimalism, this
+document is is still quite long, as I have found many (ever increasing) quirky
+behaviors of Emacs that I tweak.  Most of my time is spent in Org, SQL, Python,
+Bash, and Markdown, so the majority of configuration lies around these sections.
 
 
 ## Tangling {#tangling}
@@ -206,7 +209,11 @@ default shell to `pwsh` and explicitly pathing out `aspell`, which I always inst
 with `msys64`.
 
 ```emacs-lisp
-(when (memq system-type '(windows-nt cygwin ms-dos))
+(defun renz/windowsp ()
+  "Are we on Microsoft Windows?"
+  (memq system-type '(windows-nt cygwin ms-dos)))
+
+(when (renz/windowsp)
   ;; Set a better font on Windows
   (set-face-attribute 'default nil :font "Hack NF-12")
 
@@ -1065,122 +1072,96 @@ find the correct one.
 ```
 
 
-### Nicer Display and Behavior of `*Completions*` {#nicer-display-and-behavior-of-completions}
+### Minibuffer completion with vertico {#minibuffer-completion-with-vertico}
 
-With the _completion style_ set, we now have to configure the interface for
-_displaying_ candidates as we type.  First, I want candidates displayed as a
-single, vertical list.
+[Vertico](https://github.com/minad/vertico) is lightning quick, and has intuitive keybindings that don’t require any
+futzing. Especially in the case where I’m looking to tab-complete things like
+C-x C-f /ssh:&lt;thing&gt;.
 
 ```emacs-lisp
-(setq completions-format 'one-column)
+(use-package vertico
+  :config
+  (vertico-mode)
+  (vertico-buffer-mode -1)
+  (define-key vertico-map "\M-q" #'vertico-quick-insert)
+  (define-key vertico-map "\C-q" #'vertico-quick-exit)
+
+  (vertico-multiform-mode)
+  (setq vertico-multiform-categories
+        '((consult-grep buffer))))
 ```
 
-Also, when using the built-in completion-at-point, the `*Completions*` buffer can
-sometimes take up the whole screen when there are a lot of candidates.
+Combining vertico’s forces with [marginalia](https://github.com/minad/marginalia) creates a lovely minibuffer
+completion experience that rivals (or even beats) modern IDE and VSCode command
+palettes. marginalia adds a short, context-aware description next to completion
+candidates in the minibuffer. For instance, using C-h f will show me if a
+function is already bound to a key, and give me the top-level description of the
+function, without requiring me to actually open the **Help** buffer.
+
+
+### corfu {#corfu}
+
+For completion-at-point suggestions, I like [corfu](https://github.com/minad/corfu) a lot. It’s philosophy is to
+stick as close as possible to the native Emacs internal API as possible, without
+reinventing the wheel. In my experience, this has meant far fewer integration
+troubles with other packages. It uses child frames for displaying the completion
+candidates, however, which means we need a separate corfu-terminal extension for
+it to work in TTY mode. While use-package has the :unless and :if keywords, I
+seem to have trouble getting them to actually work with display-graphic-p, and
+the official instructions with window-system wasn’t working for me. Hence, it’s
+wrapped in an unless block.
+
+I’ve also enabled the TNG (Tab-n-go) style of completion, as laid out in corfu’s
+[README](https://github.com/minad/corfu#tab-and-go-completion).
 
 ```emacs-lisp
-(setq completions-max-height 15)
-```
+(use-package corfu-terminal
+  :unless (display-graphic-p)
+  :config
+  (corfu-terminal-mode +1))
 
-Some time ago, Prot wrote a package called [MCT](https://github.com/protesilaos/mct/blob/main/mct.el) (Minibuffer and Completions in
-Tandem) that enhanced the default minibuffer and `*Completions*` buffer behavior
-to act more like what we expect of a modern editor's auto-complete.  He
-discontinued development of that project once it became clear that Emacs 29 was
-going to include similar behavior as a configurable option.  These are the
-options in question.
+(use-package corfu
+  :demand t
 
-```emacs-lisp
-(setq completion-auto-help 'visible
-      completion-auto-select 'second-tab
-      completion-show-help nil
-      completions-sort nil
-      completions-header-format nil)
-```
+  :custom
+  (corfu-cycle t)             ;; Enable cycling for `corfu-next/previous'
+  (corfu-preselect-first nil) ;; Disable candidate preselection
 
-Another nice addition to Emacs 29 is the option to sort completion candidates
-with any supplied function.  Below is one example provided by Prot, which
-prioritzes history, followed by lexicographical order, then length.
+  :bind
+  (:map corfu-map
+        ("M-SPC" . corfu-insert-separator)
+        ("TAB" . corfu-next)
+        ([tab] . corfu-next)
+        ("S-TAB" . corfu-previous)
+        ([backtab] . corfu-previous))
 
-```emacs-lisp
-(defun renz/sort-by-alpha-length (elems)
-  "Sort ELEMS first alphabetically, then by length."
-  (sort elems (lambda (c1 c2)
-                (or (string-version-lessp c1 c2)
-                    (< (length c1) (length c2))))))
+  :config
+  (defun corfu-enable-always-in-minibuffer ()
+    "Enable Corfu in the minibuffer if Vertico/Mct are not active."
+    (unless (or (bound-and-true-p mct--active)
+                (bound-and-true-p vertico--input)
+                (eq (current-local-map) read-passwd-map))
+      ;; (setq-local corfu-auto nil) ;; Enable/disable auto completion
+      (setq-local corfu-echo-delay nil ;; Disable automatic echo and popup
+                  corfu-popupinfo-delay nil)
+      (corfu-mode 1)))
 
-(defun renz/sort-by-history (elems)
-  "Sort ELEMS by minibuffer history.
-Use `mct-sort-sort-by-alpha-length' if no history is available."
-  (if-let ((hist (and (not (eq minibuffer-history-variable t))
-                      (symbol-value minibuffer-history-variable))))
-      (minibuffer--sort-by-position hist elems)
-    (renz/sort-by-alpha-length elems)))
+  (defun corfu-send-shell (&rest _)
+    "Send completion candidate when inside comint/eshell."
+    (cond
+     ((and (derived-mode-p 'eshell-mode) (fboundp 'eshell-send-input))
+      (eshell-send-input))
+     ((and (derived-mode-p 'comint-mode)  (fboundp 'comint-send-input))
+      (comint-send-input))))
 
-(defun renz/completion-category ()
-  "Return completion category."
-  (when-let ((window (active-minibuffer-window)))
-    (with-current-buffer (window-buffer window)
-      (completion-metadata-get
-       (completion-metadata (buffer-substring-no-properties
-                             (minibuffer-prompt-end)
-                             (max (minibuffer-prompt-end) (point)))
-                            minibuffer-completion-table
-                            minibuffer-completion-predicate)
-       'category))))
+  (setq corfu-auto t
+        corfu-auto-delay 0.0
+        corfu-quit-no-match 'separator)
 
-(defun renz/sort-multi-category (elems)
-  "Sort ELEMS per completion category."
-  (pcase (renz/completion-category)
-    ('nil elems) ; no sorting
-    ('kill-ring elems)
-    ('project-file (renz/sort-by-alpha-length elems))
-    (_ (renz/sort-by-history elems))))
+  (add-hook 'minibuffer-setup-hook #'corfu-enable-always-in-minibuffer 1)
+  (advice-add #'corfu-insert :after #'corfu-send-shell)
 
-(setq completions-sort #'renz/sort-multi-category)
-```
-
-Ideally, I would have a function that prioritizes based on _relevance_, which is
-not always a trivial algorithm.
-
-What all of the above form isn't _quite_ the live-updating version that [Oantolin](https://github.com/oantolin/live-completions),
-MCT, or vertico offer, but it'sg pretty close. The `*Completions*` buffer updates
-after every `<SPC>`, which is the natural filtering mechanism for `orderless`.  For
-a while I was using the snappy, battle-tested [vertico](https://github.com/minad/vertico).  Recently, however, I
-found [a demo](https://www.youtube.com/watch?v=roSD50L2z-A) Prot gave of MCT where he explained the philosophy behind the
-delayed candidate display (as opposed to vertico's immediate feedback) as
-contributing less visual noise for fast typists, which I was initially skeptical
-of, but have also come to appreciate.  Following that, in tandem with a stable
-Emacs 29 release, I've replaced my vertico workflow with the enhanced "vanilla
-extract" behavior.
-
-When actively selecting candidates, `C-n` and `C-p` are much more convenient than
-the default `M-<up>` and `M-<down>` bindings.
-
-```emacs-lisp
-(define-key minibuffer-local-map (kbd "C-p") #'minibuffer-previous-completion)
-(define-key minibuffer-local-map (kbd "C-n") #'minibuffer-next-completion)
-```
-
-
-### Completion at point {#completion-at-point}
-
-For a long time I was using [corfu](https://github.com/minad/corfu) for a pop-up menu like Vim's for completing
-symbols in a buffer.  With the `*Completions*` buffer improvements in Emacs 29,
-I've also reverted this back to something much closer to Vanilla.  The only
-change I make here is the key for requesting the candidate list; by default
-Emacs uses `M-TAB`, or the equivalent `C-M-i` for `completion-at-point`.  I'd much
-prefer to use the easier and more intuitive `TAB`.
-
-```emacs-lisp
-(setq tab-always-indent 'complete)
-```
-
-Again, we set `C-n` and `C-p` when completion-in-region is active for selecting
-candidates.
-
-```emacs-lisp
-(define-key completion-in-region-mode-map (kbd "C-p") #'minibuffer-previous-completion)
-(define-key completion-in-region-mode-map (kbd "C-n") #'minibuffer-next-completion)
+  (global-corfu-mode))
 ```
 
 
@@ -1284,8 +1265,9 @@ In case of the latter, I just add extra paths to `treesit-extra-load-path`
 explicitly.
 
 ```emacs-lisp
-(add-to-list 'treesit-extra-load-path "/usr/local/lib/")
-(add-to-list 'treesit-extra-load-path "~/.local/lib/")
+(when (boundp 'treesit-extra-load-path)
+  (add-to-list 'treesit-extra-load-path "/usr/local/lib/")
+  (add-to-list 'treesit-extra-load-path "~/.local/lib/"))
 ```
 
 For the full instructions, the commit history of adding the `tree-sitter` modules
@@ -1626,7 +1608,6 @@ programs exist is a small time saver.
 
 ```emacs-lisp
 (use-package python
-  :mode ("\\.py" . python-ts-mode)
   :config
   (if (executable-find "mypy")
       (setq python-check-command "mypy"))
@@ -1820,20 +1801,9 @@ Adds the ability to use TUI programs in shell mode.
 
 ```emacs-lisp
 (use-package coterm
+  :unless (renz/windowsp)
   :config
   (coterm-mode))
-```
-
-
-### Multiple cursors {#multiple-cursors}
-
-A bit like multi-cursor for Jupyter or VSCode, but with a lot of configurable flexibility.
-
-```emacs-lisp
-(use-package multiple-cursors
-  :config
-  (global-unset-key (kbd "M-<down-mouse-1>"))
-  (global-set-key (kbd "M-<mouse-1>") 'mc/add-cursor-on-click))
 ```
 
 
