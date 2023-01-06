@@ -1,29 +1,32 @@
 ---
 title: "The *Completions* Buffer Gets a Big Upgrade in Emacs 29"
 date: 2022-12-31T00:00:00-05:00
-lastmod: 2023-01-06T10:21:07-05:00
+lastmod: 2023-01-06T10:49:48-05:00
 categories: ["emacs"]
 draft: false
 weight: 2004
 ---
 
-There's been a lot of talk about how `eglot` and `tree-sitter` are coming to Emacs
-29, but I've seen less buzz around the new functionality coming to the vanilla
-&lowast;Completions&lowast; buffer.  Now, I've been an ardent [vertico](https://github.com/minad/vertico) + [orderless](https://github.com/oantolin/orderless) +
-[marginalia](https://github.com/minad/marginalia/) + [corfu](https://github.com/minad/corfu) user since seriously picking up Emacs over the summer, and
-when initially looking for options I found [Prot's MCT](https://protesilaos.com/emacs/mct) pretty alluring.  I didn't
-choose it since he had already decided to [discontine development](https://protesilaos.com/codelog/2022-04-14-emacs-discontinue-mct/) given upcoming
-changes in Emacs 29, and as of writing, even he opted for [vertico](https://git.sr.ht/~protesilaos/dotfiles/tree/437a303b90b3354ca1a1d08cb2f793183d1b4c48/item/emacs/.emacs.d/prot-emacs-modules/prot-emacs-completion.el#L141) and [corfu](https://git.sr.ht/~protesilaos/dotfiles/tree/437a303b90b3354ca1a1d08cb2f793183d1b4c48/item/emacs/.emacs.d/prot-emacs-modules/prot-emacs-completion.el#L300).
+There's been a lot of talk about how `eglot` and `tree-sitter` will be distributed
+with Emacs 29, but I've seen less buzz around the new functionality coming to
+the vanilla &lowast;Completions&lowast; buffer.  Now, I've been an ardent [vertico](https://github.com/minad/vertico) +
+[orderless](https://github.com/oantolin/orderless) + [marginalia](https://github.com/minad/marginalia/) + [corfu](https://github.com/minad/corfu) user since seriously picking up Emacs over the
+summer, and when initially looking for options I found [Prot's MCT](https://protesilaos.com/emacs/mct) pretty
+alluring.  I didn't choose it since he had already decided to [discontine
+development](https://protesilaos.com/codelog/2022-04-14-emacs-discontinue-mct/) given upcoming changes in Emacs 29, and as of writing even he
+opted for [vertico](https://git.sr.ht/~protesilaos/dotfiles/tree/437a303b90b3354ca1a1d08cb2f793183d1b4c48/item/emacs/.emacs.d/prot-emacs-modules/prot-emacs-completion.el#L141) and [corfu](https://git.sr.ht/~protesilaos/dotfiles/tree/437a303b90b3354ca1a1d08cb2f793183d1b4c48/item/emacs/.emacs.d/prot-emacs-modules/prot-emacs-completion.el#L300).
 
 There is still that tempting, bitter fruit on the horizon though - maximizing
 everything I can out of the vanilla Emacs experience.  Getting to that mythical
 "vanilla extract" that keeps my muscle memory nearly entirely intact between
-`emacs -Q` and my config.
+`emacs -Q` and my config (check out "Goals" in my [.emacs.d](https://robbmann.io/emacsd/#goals) to see the reasoning
+behind why I would want this).
 
-Now that TreeSitter, `use-package`, and `eglot` all got merged into the `emacs-29`
+Now that `treesit.el`, `use-package`, and `eglot` are all merged into the `emacs-29`
 branch, I finally decided to give our good old friend the &lowast;Completions&lowast; buffer
-another try, so that you don't have to.  Some verbiage below is taken directly
-from `C-h n` (`view-emacs-news`)
+another try, so that you don't have to.
+
+(Some verbiage below is taken directly from `C-h n` (`view-emacs-news`))
 
 
 ## New 'visible' and 'always' values for 'completion-auto-help' {#new-visible-and-always-values-for-completion-auto-help}
@@ -31,8 +34,8 @@ from `C-h n` (`view-emacs-news`)
 There are two new values to control the way the "&lowast;Completions&lowast;" buffer behaves
 after pressing a 'TAB' if completion is not unique.
 
-The (old) default value `t` always hides the completion buffer after some completion is
-made.
+The (old) default value `t` always hides the completion buffer after some
+completion is made.
 
 ```emacs-lisp
 (setq completion-auto-help t)
@@ -40,12 +43,11 @@ made.
 
 {{< figure src="/ox-hugo/auto-help-t.gif" >}}
 
-The value 'always' updates or shows the "&lowast;Completions&lowast;" buffer after any attempt
-to complete, including the first time we press TAB.  In comparison to the one
-above, also notice that the buffer pops up as soon as I complete `~/.emacs.d/`,
-while before I had to start another completion by typing `tra<TAB>`.  Also, after
-completing `transient/`, the buffer once again updates with the contents of that
-directory.
+The value 'always' updates or shows the &lowast;Completions&lowast; buffer after any attempt
+to complete, including the first time we press TAB.  Comparing to the one above,
+notice that the buffer pops up as soon as I complete `~/.emacs.d/`.  Before, I had
+to start another completion by typing `tra<TAB>`.  Also, after completing
+`transient/`, the buffer once again updates with the contents of that directory.
 
 ```emacs-lisp
 (setq completion-auto-help 'always)
@@ -64,10 +66,10 @@ are already visible.  The main difference in this one is that we don't get the
 {{< figure src="/ox-hugo/auto-help-visible.gif" >}}
 
 If your goal is reduction of visual noise because you already know how a chain
-of `TAB`'s are going to complete, then this seems like a good option.
+of `TAB`'s are going to complete, then 'visible' seems like a good option.
 
 
-## The "&lowast;Completions&lowast;" buffer can now be automatically selected. {#the-and-lowast-completions-and-lowast-buffer-can-now-be-automatically-selected-dot}
+## The &lowast;Completions&lowast; buffer can now be automatically selected. {#the-and-lowast-completions-and-lowast-buffer-can-now-be-automatically-selected-dot}
 
 This was my biggest gripe with &lowast;Completions&lowast; and what made it downright unusable
 for completion-at-point.  Here's what the current behavior looks like with
@@ -152,7 +154,7 @@ candidates I use frequently near the top, followed by the length of their name.
   "Sort ELEMS first alphabetically, then by length."
   (sort elems (lambda (c1 c2)
                 (or (string-version-lessp c1 c2)
-                    (< (length c1) (length c2))))))
+                    (< (length c1) (length c2)))))))
 
 (defun renz/sort-by-history (elems)
   "Sort ELEMS by minibuffer history.
@@ -220,9 +222,9 @@ alongside the candidate I choose.  Vanilla Emacs will remind me about what key
 combination I _could_ have used, which I can check any time with `C-h e` (the
 &lowast;Messages&lowast; buffer), and I can use `C-h f` directly from the minibuffer, so this
 only get -0.5.  The fact that I need extra key strikes compared to something
-like Corfu's Tab-N-Go is an annoyance, but just requires a bit of muscle
-memory change.  The real impasse here, though, is that candidates aren't shown
-until requested.  I think Prot summed it up best here:
+like Corfu's Tab-N-Go is an annoyance, but just requires a bit of muscle memory
+change.  The real impasse here, though, is that candidates aren't shown until
+requested.  I think Prot summed it up best here:
 
 > Vertico has official extensions which can make it work exactly like MCT without
 > any of MCT’s drawbacks. These extensions can also expand Vertico’s powers such
@@ -231,6 +233,8 @@ until requested.  I think Prot summed it up best here:
 > switch-to-buffer list horizontally in the minibuffer, and present find-file in a
 > vertical list—whatever the user wants).
 
-So will I stick with just &lowast;Completions&lowast;?  No, probably not.  But I will give it
-an honest chance to see just how far I can push it, [much in the spirit of MCT](https://github.com/protesilaos/mct#12-alternatives),
+So will I stick with just &lowast;Completions&lowast;?  No, probably not.  But these changes
+do put the default completion system squarely in the "usable" category, which
+I'm not sure I could have said before Emacs 29.  I will give it an
+honest chance to see just how far I can push it, [much in the spirit of MCT](https://github.com/protesilaos/mct#12-alternatives),
 before switching Vertico and Corfu back on.
