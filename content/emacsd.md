@@ -301,7 +301,6 @@ Then, the configure scripts:
     --with-xml2 \
     --with-xpm \
     --without-dbus \
-
     --without-pop
 ```
 
