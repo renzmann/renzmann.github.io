@@ -9,6 +9,7 @@ draft: false
 <div class="heading">Table of Contents</div>
 
 - [Goals](#goals)
+- [Notable Features](#notable-features)
 - [Tangling](#tangling)
 - [Inspirations](#inspirations)
 - [Header](#header)
@@ -18,10 +19,9 @@ draft: false
 - [Theme: `ef-themes`](#theme-ef-themes)
 - [Emacs' Built-in Settings](#emacs-built-in-settings)
 - [Keybindings](#keybindings)
-- [Consulting `completing-read`](#consulting-completing-read)
-- [Autocompletion](#autocompletion)
+- [Text Completion](#text-completion)
 - [Tramp](#tramp)
-- [TreeSitter](#treesitter)
+- [<span class="org-todo todo TODO">TODO</span> TreeSitter](#treesitter)
 - [Language-specific major modes](#language-specific-major-modes)
 - [Small tool configuration](#small-tool-configuration)
 - [Start a server for `emacsclient`](#start-a-server-for-emacsclient)
@@ -44,13 +44,31 @@ my configuration looks like so:
 {{< figure src="https://user-images.githubusercontent.com/32076780/209576965-0c428bff-bea2-4b06-8373-37dfa4e4d86d.png" width="800px" >}}
 
 If you prefer a prettier reading experience, check out this same document weaved
-into [my website.](https://robbmann.io/emacsd/)
+into [my website.](https://robbmann.io/emacsd/)  Or, if you're already reading this on my website, check out
+the [source code on GitHub](https://github.com/renzmann/.emacs.d/).
 
 
 ## Goals {#goals}
 
-I use Emacs 28+ all three of the major platforms, in both GUI and TTY mode.  So
-this config is designed to work equally well for:
+If I had to sum up the theme of my configuration, it would be "vanilla extract".
+In only a few instances do I change overt behavior of Emacs, the most noticeable
+departure of course being the color theme with org-modern.  Even with those,
+though, I want a configuration that fits my hands in such a way that I remain
+comfortable using `emacs -Q` with very little disruption to my normal muscle
+memory and workflow.
+
+Aside from these aesthetic and philosophical reasons, there are practical
+concerns this configuration needs to address.  I spend my time on Windows for
+games, macOS or Linux with remote machines for work, and desktop Linux for
+personal projects like building my website.  Some of these situations enforce a
+very slow internet connection and tight security measures for Tramp, which can
+cause modern, "live updating" features like `corfu` and `consult` to hang Emacs.  In
+other cases, I have no access to the outside internet at all (so no ELPA or
+MELPA updates).  Hence, keeping only a small number of external dependencies
+under `elpa/` maximizes portability and maintainability between systems.
+
+Altogether, I wind up using Emacs 28+ on all three of the major platforms, in both
+GUI and TTY mode.  So this config is designed to work equally well for:
 
 | platform | terminal | GUI | ssh + TTY | Tramp |
 |----------|----------|-----|-----------|-------|
@@ -60,29 +78,28 @@ this config is designed to work equally well for:
 
 Once I figure out how to get colors working in Windows terminal, I'll update
 this table.  For now though, the 16 bit colors don't react to my color theme,
-and so on Windows I rely singularly on GUI mode, rather than WSL or emacs inside
+and so on Windows I rely singularly on GUI mode, rather than WSL or Emacs inside
 Alacritty.
 
-If I had to sum up the theme of my configuration, it would be "vanilla extract".
-In only a few instances do I change overt behavior of Emacs, the most noticiable
-departures of course being the color theme, vertico minibuffer, and [corfu](https://github.com/minad/corfu)
-completion-at-point.  Even with those, though, I want a configuration that fits
-my hands in such a way that I remain comfortable using `emacs -Q` with very little
-disruption to my normal muscle memory and workflow.
 
-I do make changes to things that I feel "should have been included."  Some
-examples of this are:
-
-1.  Additional major modes for languages like Markdown, go, and rust
-2.  Error message support for `pyright` in a `*Compilation*` buffer
-3.  Reasonable indentation behavior for SQL files
-4.  Updating buffers automatically if their contents change on disk
-5.  Syntax highlighting for Source blocks in Markdown.
+## Notable Features {#notable-features}
 
 You may notice that despite the laudable goal of intended minimalism, this
 document is is still quite long, as I have found many (ever increasing) quirky
 behaviors of Emacs that I tweak.  Most of my time is spent in Org, SQL, Python,
 Bash, and Markdown, so the majority of configuration lies around these sections.
+
+I do make changes to things that I feel "should have been included."  Some
+examples of this are:
+
+1.  Additional major modes for languages like Markdown, Go, and Rust
+2.  Error message support for `pyright` in a `*Compilation*` buffer
+3.  Reasonable indentation behavior for SQL files
+4.  Updating buffers automatically if their contents change on disk
+5.  Syntax highlighting for Source blocks in Markdown
+6.  Handling ANSI color escape codes in shell output, compilation, and VC buffers
+7.  Ability to run TUI interfaces in comint-mode (shell, eshell) on Linux and
+    macOS
 
 
 ## Tangling {#tangling}
@@ -113,6 +130,7 @@ contributors, such as:
 -   [Mickey Petersen](https://www.masteringemacs.org/)
 -   [Daniel Mendler](https://github.com/minad)
 -   [Omar Antolín Camarena](https://github.com/oantolin)
+-   [Luca's Literate Config](https://www.lucacambiaghi.com/vanilla-emacs/readme.html)
 
 
 ## Header {#header}
@@ -202,6 +220,101 @@ There are also a few hand-made packages I keep around in a special
 
 ### Microsoft Windows {#microsoft-windows}
 
+
+#### Compiling Emacs {#compiling-emacs}
+
+Compiling Emacs on Windows can be a bit of a pain, but it's _mostly_ the same as
+on \*nix.  First, I use [MSYS2-MinGW](https://www.msys2.org/) to compile everything.  From the MinGW
+terminal (NOT the plain MSYS2 one), I install all of these dependencies
+
+```text
+pacman -Su \
+        autoconf \
+        autogen \
+        automake \
+        automake-wrapper \
+        diffutils \
+        git \
+        guile \
+        libgc \
+        libguile \
+        libltdl \
+        libunistring \
+        make \
+        texinfo \
+        mingw-w64-x86_64-binutils \
+        mingw-w64-x86_64-bzip2 \
+        mingw-w64-x86_64-cairo \
+        mingw-w64-x86_64-crt-git \
+        mingw-w64-x86_64-dbus \
+        mingw-w64-x86_64-expat \
+        mingw-w64-x86_64-fontconfig \
+        mingw-w64-x86_64-freetype \
+        mingw-w64-x86_64-gcc \
+        mingw-w64-x86_64-gcc-libs \
+        mingw-w64-x86_64-gdk-pixbuf2 \
+        mingw-w64-x86_64-gettext \
+        mingw-w64-x86_64-giflib \
+        mingw-w64-x86_64-glib2 \
+        mingw-w64-x86_64-gmp \
+        mingw-w64-x86_64-gnutls \
+        mingw-w64-x86_64-harfbuzz \
+        mingw-w64-x86_64-headers-git \
+        mingw-w64-x86_64-imagemagick \
+        mingw-w64-x86_64-isl \
+        mingw-w64-x86_64-libffi \
+        mingw-w64-x86_64-libgccjit \
+        mingw-w64-x86_64-libiconv \
+        mingw-w64-x86_64-libjpeg-turbo \
+        mingw-w64-x86_64-libpng \
+        mingw-w64-x86_64-librsvg \
+        mingw-w64-x86_64-libtiff \
+        mingw-w64-x86_64-libwinpthread-git \
+        mingw-w64-x86_64-libxml2 \
+        mingw-w64-x86_64-mpc \
+        mingw-w64-x86_64-mpfr \
+        mingw-w64-x86_64-pango \
+        mingw-w64-x86_64-pixman \
+        mingw-w64-x86_64-winpthreads \
+        mingw-w64-x86_64-xpm-nox \
+        mingw-w64-x86_64-lcms2 \
+        mingw-w64-x86_64-xz \
+        mingw-w64-x86_64-zlib \
+        tar \
+        wget
+```
+
+Then, the configure scripts:
+
+```text
+./autogen.sh
+./configure \
+    --prefix=/c/emacs-29 \
+    --with-native-compilation \
+    --with-gnutls \
+    --with-jpeg \
+    --with-png \
+    --with-rsvg \
+    --with-tiff \
+    --with-wide-int \
+    --with-xft \
+    --with-xml2 \
+    --with-xpm \
+    --without-dbus \
+
+    --without-pop
+```
+
+And finally the command to compile:
+
+```text
+make --jobs=$(NPROC)
+sudo make install
+```
+
+
+#### Configuration {#configuration}
+
 Windows, funnily enough, has some trouble registering the Windows key as a
 usable modifier for Emacs.  In fact, `s-l` will _never_ be an option, since it's
 handled at the hardware level.  I also add a few nice-to-haves, like setting the
@@ -221,8 +334,7 @@ with `msys64`.
   (setq ispell-program-name "aspell.exe")
 
   ;; Set default shell to pwsh
-  (setq explicit-shell-file-name "pwsh")
-  )
+  (setq explicit-shell-file-name "pwsh"))
 ```
 
 For a time I considered enabling the use of the winkey like this:
@@ -283,20 +395,21 @@ light of the room I'm in.
 
 ```emacs-lisp
 (use-package ef-themes
+  :if (display-graphic-p)
   :demand t
   :bind ("C-c m" . ef-themes-toggle)
 
   :init
   (setq ef-themes-headings
         '((0 . (1.9))
-          (1 . (1.8))
-          (2 . (1.7))
-          (3 . (1.6))
-          (4 . (1.5))
-          (5 . (1.4)) ; absence of weight means `bold'
-          (6 . (1.3))
-          (7 . (1.2))
-          (t . (1.1))))
+          (1 . (1.3))
+          (2 . (1.2))
+          (3 . (1.1))
+          (4 . (1.0))
+          (5 . (1.0)) ; absence of weight means `bold'
+          (6 . (1.0))
+          (7 . (1.0))
+          (t . (1.0))))
   (setq ef-themes-to-toggle '(ef-cherie ef-summer))
 
   :config
@@ -398,6 +511,10 @@ This enables "File -&gt; Open Recent" from the menu bar, and `consult-recent-fil
 
 ```emacs-lisp
 (recentf-mode t)
+
+(defun renz/find-recent-file ()
+  (interactive)
+  (find-file (completing-read "Find recent file: " recentf-list nil t)))
 ```
 
 
@@ -559,7 +676,7 @@ check for mixed tabs, spaces, and line endings.
 
 ```emacs-lisp
 (setq-default truncate-lines t)
-(add-hook 'eshell-mode-hook (toggle-truncate-lines nil))
+(add-hook 'eshell-mode-hook (lambda () (setq-local truncate-lines nil)))
 ```
 
 
@@ -611,8 +728,8 @@ as it appears
 (setq compilation-scroll-output t)
 ```
 
-Enable colors in the `*compilation*` buffer.  Provided by a [helpful stackoverflow
-answer](https://stackoverflow.com/a/3072831/13215205).
+Enable colors in the `*compilation*` buffer.  Provided by a
+[helpful stackoverflow answer](https://stackoverflow.com/a/3072831/13215205).
 
 ```emacs-lisp
 (defun renz/colorize-compilation-buffer ()
@@ -633,8 +750,16 @@ I usually leave the tool bar disabled
 (tool-bar-mode -1)
 ```
 
-The _menu_ bar, on the other hand `(menu-bar-mode)`, is very handy, and I don't
-think I'll ever disable it.
+The _menu_ bar, on the other hand `(menu-bar-mode)`, is very handy, and I only
+disable it on Windows where it looks hideous.
+
+```emacs-lisp
+(when (renz/windowsp)
+  (menu-bar-mode -1))
+```
+
+For newcomers to Emacs, I would strongly discourage disabling either of these,
+since they lend a lot to discovering all its wonderful built-in features.
 
 
 ### Ignore risky .dir-locals.el {#ignore-risky-dot-dir-locals-dot-el}
@@ -857,8 +982,7 @@ somewhere else.
 
 (defun renz/jump-init ()
   (interactive)
-  (find-file (expand-file-name "README.org" user-emacs-directory))
-  (consult-org-heading))
+  (find-file (expand-file-name "README.org" user-emacs-directory)))
 
 (global-set-key (kbd "C-c i i") #'renz/jump-init)
 (global-set-key (kbd "C-c i l") #'renz/jump-configuration)
@@ -913,6 +1037,13 @@ somewhere else.
 ```
 
 
+#### `C-c r` find recent files {#c-c-r-find-recent-files}
+
+```emacs-lisp
+(global-set-key (kbd "C-c r") #'renz/find-recent-file)
+```
+
+
 #### `C-c s` shell {#c-c-s-shell}
 
 ```emacs-lisp
@@ -947,88 +1078,7 @@ natural, nested language in my head, so it feels more like I'm "speaking Emacs"
 that way.
 
 
-## Consulting `completing-read` {#consulting-completing-read}
-
-[Consult](https://github.com/minad/consult) forms a large foundation of my workflow.  It provides a strictly
-superior experience switching between buffers, performing `grep` or `rg` with live
-results as you type, and scanning through a document for lines matching an
-expression with `consult-line`.
-
-```emacs-lisp
-(use-package consult
-  :bind(
-        ;; C-x bindings (ctl-x-map)
-        ("C-x M-:" . consult-complex-command)     ;; orig. repeat-complex-command
-        ("C-x b" . consult-buffer)                ;; orig. switch-to-buffer
-        ("C-x 4 b" . consult-buffer-other-window) ;; orig. switch-to-buffer-other-window
-        ("C-x 5 b" . consult-buffer-other-frame)  ;; orig. switch-to-buffer-other-frame
-        ("C-x r b" . consult-bookmark)            ;; orig. bookmark-jump
-        ("C-x p b" . consult-project-buffer)      ;; orig. project-switch-to-buffer
-
-        ;; Other custom bindings
-        ("M-y" . consult-yank-pop)                ;; orig. yank-pop
-        ("<help> a" . consult-apropos)            ;; orig. apropos-command
-        ("C-c r" . consult-recent-file)
-
-        ;; M-g bindings (goto-map)
-        ("M-g e" . consult-compile-error)
-        ("M-g f" . consult-flymake)               ;; Alternative: consult-flycheck
-        ("M-g g" . consult-goto-line)             ;; orig. goto-line
-        ("M-g M-g" . consult-goto-line)           ;; orig. goto-line
-        ("M-g o" . consult-outline)               ;; Alternative: consult-org-heading
-        ("M-g m" . consult-mark)
-        ("M-g k" . consult-global-mark)
-        ("M-g i" . consult-imenu)
-        ("M-g I" . consult-imenu-multi)
-
-        ;; M-s bindings (search-map)
-        ("M-s d" . consult-find)
-        ("M-s D" . consult-locate)
-        ("M-s g" . consult-grep)
-        ("M-s G" . consult-git-grep)
-        ("M-s r" . consult-ripgrep)
-        ("M-s l" . consult-line)
-        ("M-s L" . consult-line-multi)
-        ("M-s m" . consult-multi-occur)
-        ("M-s k" . consult-keep-lines)
-        ("M-s u" . consult-focus-lines)
-
-        ;; Isearch integration
-        ("M-s e" . consult-isearch-history)
-        :map isearch-mode-map
-        ("M-e" . consult-isearch-history)         ;; orig. isearch-edit-string
-        ("M-s e" . consult-isearch-history)       ;; orig. isearch-edit-string
-        ("M-s l" . consult-line)                  ;; needed by consult-line to detect isearch
-        ("M-s L" . consult-line-multi)            ;; needed by consult-line to detect isearch
-
-        ;; Minibuffer history
-        :map minibuffer-local-map
-        ("M-s" . consult-history)                 ;; orig. next-matching-history-element
-        ("M-r" . consult-history))                ;; orig. previous-matching-history-element
-
-  ;; Enable automatic preview at point in the *Completions* buffer. This is
-  ;; relevant when you use the default completion UI.
-  :hook (completion-list-mode . consult-preview-at-point-mode)
-
-  :init
-  ;; Optionally configure the register formatting. This improves the register
-  ;; preview for `consult-register', `consult-register-load',
-  ;; `consult-register-store' and the Emacs built-ins.
-  (setq register-preview-delay 0.5
-        register-preview-function #'consult-register-format)
-
-  ;; Optionally tweak the register preview window.
-  ;; This adds thin lines, sorting and hides the mode line of the window.
-  (advice-add #'register-preview :override #'consult-register-window)
-
-  ;; Use Consult to select xref locations with preview
-  (setq xref-show-xrefs-function #'consult-xref
-        xref-show-definitions-function #'consult-xref)
-  )
-```
-
-
-## Autocompletion {#autocompletion}
+## Text Completion {#text-completion}
 
 Emacs offers incredible depth and freedom when configuring methods that
 automatically complete text.  There are actually two things that
@@ -1066,102 +1116,114 @@ find the correct one.
 (use-package orderless
   :config
   (add-to-list 'completion-styles 'orderless)
+  (setq orderless-component-separator "[ &]")
 
   :custom
   (completion-category-overrides '((file (styles basic partial-completion)))))
 ```
 
 
-### Minibuffer completion with vertico {#minibuffer-completion-with-vertico}
+### Nicer Display and Behavior of `*Completions*` {#nicer-display-and-behavior-of-completions}
 
-[Vertico](https://github.com/minad/vertico) is lightning quick, and has intuitive keybindings that don’t require any
-futzing. Especially in the case where I’m looking to tab-complete things like
-C-x C-f /ssh:&lt;thing&gt;.
+With the _completion style_ set, we now have to configure the interface for
+_displaying_ candidates as we type.  First, I want candidates displayed as a
+single, vertical list.
 
 ```emacs-lisp
-(use-package vertico
-  :config
-  (vertico-mode)
-  (vertico-buffer-mode -1)
-  (define-key vertico-map "\M-q" #'vertico-quick-insert)
-  (define-key vertico-map "\C-q" #'vertico-quick-exit)
-
-  (vertico-multiform-mode)
-  (setq vertico-multiform-categories
-        '((consult-grep buffer))))
+(setq completions-format 'one-column)
 ```
 
-Combining vertico’s forces with [marginalia](https://github.com/minad/marginalia) creates a lovely minibuffer
-completion experience that rivals (or even beats) modern IDE and VSCode command
-palettes. marginalia adds a short, context-aware description next to completion
-candidates in the minibuffer. For instance, using C-h f will show me if a
-function is already bound to a key, and give me the top-level description of the
-function, without requiring me to actually open the **Help** buffer.
-
-
-### corfu {#corfu}
-
-For completion-at-point suggestions, I like [corfu](https://github.com/minad/corfu) a lot. It’s philosophy is to
-stick as close as possible to the native Emacs internal API as possible, without
-reinventing the wheel. In my experience, this has meant far fewer integration
-troubles with other packages. It uses child frames for displaying the completion
-candidates, however, which means we need a separate corfu-terminal extension for
-it to work in TTY mode. While use-package has the :unless and :if keywords, I
-seem to have trouble getting them to actually work with display-graphic-p, and
-the official instructions with window-system wasn’t working for me. Hence, it’s
-wrapped in an unless block.
-
-I’ve also enabled the TNG (Tab-n-go) style of completion, as laid out in corfu’s
-[README](https://github.com/minad/corfu#tab-and-go-completion).
+Also, when using the built-in completion-at-point, the `*Completions*` buffer can
+sometimes take up the whole screen when there are a lot of candidates.
 
 ```emacs-lisp
-(use-package corfu-terminal
-  :unless (display-graphic-p)
-  :config
-  (corfu-terminal-mode +1))
+(unless (version< emacs-version "29.0")
+  (setq completions-max-height 15))
+```
 
-(use-package corfu
-  :demand t
+Some time ago, Prot wrote a package called [MCT](https://github.com/protesilaos/mct/blob/main/mct.el) (Minibuffer and Completions in
+Tandem) that enhanced the default minibuffer and `*Completions*` buffer behavior
+to act more like what we expect of a modern editor's auto-complete.  He
+discontinued development of that project once it became clear that Emacs 29 was
+going to include similar behavior as a configurable option.  These are the
+options in question.
 
-  :custom
-  (corfu-cycle t)             ;; Enable cycling for `corfu-next/previous'
-  (corfu-preselect-first nil) ;; Disable candidate preselection
+```emacs-lisp
+(unless (version< emacs-version "29.0")
+  (setq completion-auto-help 'visible
+        completion-auto-select 'second-tab
+        completion-show-help nil
+        completions-sort nil
+        completions-header-format nil))
+```
 
-  :bind
-  (:map corfu-map
-        ("M-SPC" . corfu-insert-separator)
-        ("TAB" . corfu-next)
-        ([tab] . corfu-next)
-        ("S-TAB" . corfu-previous)
-        ([backtab] . corfu-previous))
+Another nice addition to Emacs 29 is the option to sort completion candidates
+with any supplied function.  Below is one example provided by Prot, which
+prioritzes history, followed by lexicographical order, then length.
 
-  :config
-  (defun corfu-enable-always-in-minibuffer ()
-    "Enable Corfu in the minibuffer if Vertico/Mct are not active."
-    (unless (or (bound-and-true-p mct--active)
-                (bound-and-true-p vertico--input)
-                (eq (current-local-map) read-passwd-map))
-      ;; (setq-local corfu-auto nil) ;; Enable/disable auto completion
-      (setq-local corfu-echo-delay nil ;; Disable automatic echo and popup
-                  corfu-popupinfo-delay nil)
-      (corfu-mode 1)))
+```emacs-lisp
+(defun renz/sort-by-alpha-length (elems)
+  "Sort ELEMS first alphabetically, then by length."
+  (sort elems (lambda (c1 c2)
+                (or (string-version-lessp c1 c2)
+                    (< (length c1) (length c2))))))
 
-  (defun corfu-send-shell (&rest _)
-    "Send completion candidate when inside comint/eshell."
-    (cond
-     ((and (derived-mode-p 'eshell-mode) (fboundp 'eshell-send-input))
-      (eshell-send-input))
-     ((and (derived-mode-p 'comint-mode)  (fboundp 'comint-send-input))
-      (comint-send-input))))
+(defun renz/sort-by-history (elems)
+  "Sort ELEMS by minibuffer history.
+Use `mct-sort-sort-by-alpha-length' if no history is available."
+  (if-let ((hist (and (not (eq minibuffer-history-variable t))
+                      (symbol-value minibuffer-history-variable))))
+      (minibuffer--sort-by-position hist elems)
+    (renz/sort-by-alpha-length elems)))
 
-  (setq corfu-auto t
-        corfu-auto-delay 0.0
-        corfu-quit-no-match 'separator)
+(defun renz/completion-category ()
+  "Return completion category."
+  (when-let ((window (active-minibuffer-window)))
+    (with-current-buffer (window-buffer window)
+      (completion-metadata-get
+       (completion-metadata (buffer-substring-no-properties
+                             (minibuffer-prompt-end)
+                             (max (minibuffer-prompt-end) (point)))
+                            minibuffer-completion-table
+                            minibuffer-completion-predicate)
+       'category))))
 
-  (add-hook 'minibuffer-setup-hook #'corfu-enable-always-in-minibuffer 1)
-  (advice-add #'corfu-insert :after #'corfu-send-shell)
+(defun renz/sort-multi-category (elems)
+  "Sort ELEMS per completion category."
+  (pcase (renz/completion-category)
+    ('nil elems) ; no sorting
+    ('kill-ring elems)
+    ('project-file (renz/sort-by-alpha-length elems))
+    (_ (renz/sort-by-history elems))))
 
-  (global-corfu-mode))
+(unless (version< emacs-version "29.0")
+  (setq completions-sort #'renz/sort-multi-category))
+```
+
+Ideally, I would have a function that prioritizes based on _relevance_, which is
+not always a trivial algorithm.
+
+What all of the above form isn't _quite_ the live-updating version that [Oantolnin](https://github.com/oantolin/live-completions),
+MCT, or vertico offer, but it's pretty close.  The `*Completions*` buffer updates
+after every `<SPC>`, which is the natural filtering mechanism for `orderless`.
+
+
+### Completion at point {#completion-at-point}
+
+By default, Emacs uses `M-TAB`, or the equivalent `C-M-i` for `completion-at-point`.
+I'd much prefer to use the easier and more intuitive `TAB`.
+
+```emacs-lisp
+(setq tab-always-indent 'complete)
+```
+
+Again, we set `C-n` and `C-p` when completion-in-region is active for selecting
+candidates.
+
+```emacs-lisp
+(unless (version< emacs-version "29.0")
+  (define-key completion-in-region-mode-map (kbd "C-p") #'minibuffer-previous-completion)
+  (define-key completion-in-region-mode-map (kbd "C-n") #'minibuffer-next-completion))
 ```
 
 
@@ -1244,7 +1306,7 @@ Host *
 ```
 
 
-## TreeSitter {#treesitter}
+## <span class="org-todo todo TODO">TODO</span> TreeSitter {#treesitter}
 
 Emacs 29 added native [TreeSitter](https://tree-sitter.github.io/tree-sitter/) support.  TreeSitter is a new way of
 incrementally parsing source code that offers superior navigation and syntax
@@ -1252,6 +1314,8 @@ highlighting.  To fully realize this benefit, however, it requires that we
 install `tree-sitter` grammars independently from Emacs.  Right now, I'm using
 [casouri's modules](https://github.com/casouri/tree-sitter-module), which I build and install under `~/.emacs.d/tree-sitter`, if
 they don't already exist under `/usr/local/lib/` or `~/.local/lib`.
+
+**REMINDER:** We could just use a little lisp here to download the module if on linux or mac...
 
 ```shell
 git clone git@github.com:casouri/tree-sitter-module.git
@@ -1283,6 +1347,14 @@ major mode with the corresponding TreeSitter version.
 
 
 ## Language-specific major modes {#language-specific-major-modes}
+
+
+### TOML {#toml}
+
+```emacs-lisp
+(use-package conf-mode
+  :mode ("\\.toml\\'" . conf-toml-mode))
+```
 
 
 ### Org-mode {#org-mode}
@@ -1361,7 +1433,7 @@ latter over the former, I've removed the `org-startup-indented` call.
    ("C-c o b d" . org-babel-detangle)
    ("C-c o b o" . org-babel-tangle-jump-to-org)
    ("C-c o b s" . renz/org-babel-tangle-jump-to-src)
-   ("C-c o j" . consult-org-heading)
+   ;; ("C-c o j" . consult-org-heading)
    ("C-c o k" . org-babel-remove-result)
    ("C-c o o" . renz/jump-org)
    ("C-c o w" . renz/org-kill-src-block)
@@ -1375,18 +1447,19 @@ latter over the former, I've removed the `org-startup-indented` call.
      (python . t)
      (sql . t)
      (shell . t)
-     (fortran . t)
-     (julia . t)
+     ;; (fortran . t)
+     ;; (julia . t)
      ;; (jupyter . t)
-     (scheme . t)
-     (haskell . t)
+     ;; (scheme . t)
+     ;; (haskell . t)
      (lisp . t)
-     (clojure . t)
-     (C . t)
-     (org . t)
-     (gnuplot . t)
-     (awk . t)
-     (latex . t)))
+     ;; (clojure . t)
+     ;; (C . t)
+     ;; (org . t)
+     ;; (gnuplot . t)
+     ;; (awk . t)
+     ;; (latex . t)
+     ))
 
   (setq org-agenda-files '("~/.emacs.d/org/work.org")
         org-hugo-front-matter-format "yaml"))
@@ -1609,11 +1682,9 @@ programs exist is a small time saver.
 ```emacs-lisp
 (use-package python
   :config
-  (if (executable-find "mypy")
-      (setq python-check-command "mypy"))
-  (if (executable-find "pyright")
-      (setq python-check-command "pyright"))
-  (add-hook 'python-mode-hook #'blacken-mode))
+  (setq python-check-command "ruff")
+  (add-hook 'python-mode-hook #'blacken-mode)
+  (add-hook 'python-mode-hook #'flymake-mode))
 ```
 
 At one point, I ran into something similar to this [elpy issue](https://github.com/jorgenschaefer/elpy/issues/733) on Windows.  The
@@ -1675,6 +1746,16 @@ Formatting a buffer with `black` has never been easier!
 ```
 
 
+#### Activating Virtual Environments Over Tramp {#activating-virtual-environments-over-tramp}
+
+```emacs-lisp
+(use-package tramp-venv
+  :bind
+  (("C-c t v a" . tramp-venv-activate)
+   ("C-c t v d" . tramp-venv-deactivate)))
+```
+
+
 ### Markdown {#markdown}
 
 Some folks like to write markdown without hard line breaks.  When viewing those
@@ -1687,6 +1768,12 @@ it.
   (interactive)
   (visual-fill-column-mode)
   (setq-local fill-column 80))
+```
+
+I make a lot of spelling mistakes as I type...
+
+```emacs-lisp
+(add-hook 'text-mode-hook 'flyspell-mode)
 ```
 
 `poly-markdown-mode` enables syntax highlighting within code fences for markdown.
@@ -1722,18 +1809,6 @@ These are tweaks for both third party packages and those bundled with emacs that
 require little configuration and don't warrant a top-level header.
 
 
-### Git gutter {#git-gutter}
-
-Shows a little icon outside the fringe when working version has changes.
-
-```emacs-lisp
-(use-package git-gutter
-  :demand t
-  :bind ("C-c v s" . git-gutter:stage-hunk)
-  :config (global-git-gutter-mode))
-```
-
-
 ### `dabbrev`: swap `M-/` and `C-M-/` {#dabbrev-swap-m-and-c-m}
 
 ```emacs-lisp
@@ -1764,35 +1839,6 @@ Also enabled above is Do-What-I-Mean (DWIM) copying.  This is for when two dired
 windows are open, and we want to copy something from one location to the other.
 By enabling `dired-dwim-target`, it auto-populates the minibuffer with the other
 dired window's path when issuing a copy command with `C`.
-
-
-### Embark {#embark}
-
-<https://github.com/oantolin/embark>
-
-```emacs-lisp
-(use-package embark
-  :bind
-  (("C-." . embark-act)
-   ("C-\\" . embark-dwim)
-   ("C-h B" . embark-bindings))
-
-  :init
-  ;; Optionally replace the key help with a completing-read interface
-  ;; (setq prefix-help-command #'embark-prefix-help-command)
-
-  :config
-  ;; Hide the mode line of the Embark live/completions buffers
-  (add-to-list 'display-buffer-alist
-               '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
-                 nil
-                 (window-parameters (mode-line-format . none)))))
-
-
-(use-package embark-consult
-  :hook
-  (embark-collect-mode . consult-preview-at-point-mode))
-```
 
 
 ### Coterm mode {#coterm-mode}
@@ -1853,8 +1899,7 @@ Ecosia requires JavaScript, unfortunately.
 
 ```emacs-lisp
 (use-package eww
-  :config
-  (setq eww-search-prefix "https://duckduckgo.com/html/?q="))
+  :config (setq eww-search-prefix "https://duckduckgo.com/html/?q="))
 ```
 
 
