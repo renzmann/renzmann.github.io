@@ -225,17 +225,19 @@ might make some modifications to it:
    through the pathing processing myself.  Maybe that would become a function
    like =pyrightconfig-suggest=.
 
-** TODO The ~*Completions*~ Buffer Gets a Big Upgrade in Emacs 29
+** DONE The ~*Completions*~ Buffer Gets a Big Upgrade in Emacs 29
 :properties:
 :export_file_name: emacs-29-completions
 :export_date: <2022-12-31 Sat>
 :end:
 
-I've been an ardent [[https://github.com/minad/vertico][vertico]] + [[https://github.com/oantolin/orderless][orderless]] + [[https://github.com/minad/marginalia/][marginalia]] + [[https://github.com/minad/corfu][corfu]] user since
-seriously picking up Emacs over the summer.  When initially looking for options
-I found [[https://protesilaos.com/emacs/mct][Prot's MCT]] pretty alluring, but didn't choose it since he had already
-decided to [[https://protesilaos.com/codelog/2022-04-14-emacs-discontinue-mct/][discontine development]] given upcoming changes in Emacs 29.  As of
-writing, even he opted for [[https://git.sr.ht/~protesilaos/dotfiles/tree/437a303b90b3354ca1a1d08cb2f793183d1b4c48/item/emacs/.emacs.d/prot-emacs-modules/prot-emacs-completion.el#L141][vertico]] and [[https://git.sr.ht/~protesilaos/dotfiles/tree/437a303b90b3354ca1a1d08cb2f793183d1b4c48/item/emacs/.emacs.d/prot-emacs-modules/prot-emacs-completion.el#L300][corfu]].
+There's been a lot of talk about how ~eglot~ and ~tree-sitter~ are coming to Emacs
+29, but I've seen less buzz around the new functionality coming to the vanilla
+\ast{}Completions\ast{} buffer.  Now, I've been an ardent [[https://github.com/minad/vertico][vertico]] + [[https://github.com/oantolin/orderless][orderless]] +
+[[https://github.com/minad/marginalia/][marginalia]] + [[https://github.com/minad/corfu][corfu]] user since seriously picking up Emacs over the summer, and
+when initially looking for options I found [[https://protesilaos.com/emacs/mct][Prot's MCT]] pretty alluring.  I didn't
+choose it since he had already decided to [[https://protesilaos.com/codelog/2022-04-14-emacs-discontinue-mct/][discontine development]] given upcoming
+changes in Emacs 29, and as of writing, even he opted for [[https://git.sr.ht/~protesilaos/dotfiles/tree/437a303b90b3354ca1a1d08cb2f793183d1b4c48/item/emacs/.emacs.d/prot-emacs-modules/prot-emacs-completion.el#L141][vertico]] and [[https://git.sr.ht/~protesilaos/dotfiles/tree/437a303b90b3354ca1a1d08cb2f793183d1b4c48/item/emacs/.emacs.d/prot-emacs-modules/prot-emacs-completion.el#L300][corfu]].
 
 There is still that tempting, bitter fruit on the horizon though - maximizing
 everything I can out of the vanilla Emacs experience.  Getting to that mythical
@@ -244,7 +246,8 @@ everything I can out of the vanilla Emacs experience.  Getting to that mythical
 
 Now that TreeSitter, ~use-package~, and ~eglot~ all got merged into the ~emacs-29~
 branch, I finally decided to give our good old friend the \ast{}Completions\ast{} buffer
-another try, so that you don't have to.  Some verbiage below is taken directly from ~C-h n~ (~view-emacs-news~)
+another try, so that you don't have to.  Some verbiage below is taken directly
+from ~C-h n~ (~view-emacs-news~)
 
 *** New 'visible' and 'always' values for 'completion-auto-help'
 There are two new values to control the way the "\ast{}Completions\ast{}" buffer behaves
@@ -257,28 +260,69 @@ made.
 (setq completion-auto-help t)
 #+end_src
 
-file:content/auto-help-t.gif
+file:content/licecap/completion/auto-help-t.gif
 
 The value 'always' updates or shows the "\ast{}Completions\ast{}" buffer after any attempt
 to complete, including the first time we press TAB.  In comparison to the one
-above, also notice that the buffer updates with contents of the ~python~ directory
-after tab-completing it.
+above, also notice that the buffer pops up as soon as I complete =~/.emacs.d/=,
+while before I had to start another completion by typing =tra<TAB>=.  Also, after
+completing =transient/=, the buffer once again updates with the contents of that
+directory.
 
 #+begin_src emacs-lisp :results none
 (setq completion-auto-help 'always)
 #+end_src
 
-file:content/auto-help-always.gif
+file:content/licecap/completion/auto-help-always.gif
 
 The value 'visible' is like 'always', but only updates the completions if they
 are already visible.  The main difference in this one is that we don't get the
-\ast{}Completions\ast{} buffer on the first TAB press:
+\ast{}Completions\ast{} buffer on the first TAB for =~/.emacs.d/=:
 
 #+begin_src emacs-lisp :results none
 (setq completion-auto-help 'visible)
 #+end_src
 
-file:content/auto-help-visible.gif
+file:content/licecap/completion/auto-help-visible.gif
+
+If your goal is reduction of visual noise because you already know how a chain
+of =TAB='s are going to complete, then this seems like a good option.
+
+*** The "\ast{}Completions\ast{}" buffer can now be automatically selected.
+This was my biggest gripe with \ast{}Completions\ast{} and what made it downright unusable
+for completion-at-point.  Here's what the current behavior looks like with
+completion in a buffer:
+
+#+begin_src emacs-lisp
+(setq completion-auto-select nil)
+#+end_src
+
+[[file:content/licecap/completion/auto-select-nil.gif]]
+
+In the minibuffer, we've always had =M-v= to switch to \ast{}Completions\ast{}, but there
+was no analogue for completion-in-region.  Now, in Emacs 29, we can set
+~completion-auto-select~ to one of ~t~ or ~second-tab~ to enable automatic selection
+of the "\ast{}Completions\ast{}" buffer
+
+#+begin_src emacs-lisp :results none
+(setq completion-auto-select t)
+#+end_src
+
+[[file:content/licecap/completion/auto-select-t.gif]]
+
+If the value is 'second-tab', then the first ~TAB~ will display "\ast{}Completions\ast{}",
+and the second one will switch to the "\ast{}Completions\ast" buffer.
+
+#+begin_src emacs-lisp :results none
+(setq completion-auto-select 'second-tab)
+#+end_src
+
+[[file:content/licecap/completion/auto-select-second-tab.gif]]
+
+With 'second-tab', I can use the "\ast{}Completions\ast{}" buffer a lot like how I would
+use ~corfu~: type a bit, request completion with TAB, examine the list, and keep
+typing to narrow the candidates, and request completion again.  If I see the
+option I like, I just hit TAB a few times to get it.
 
 *** New commands for navigating completions from the minibuffer.
  * ~M-<up>~ and ~M-<down>~ for ~minibuffer-next-completion~ and ~minibuffer-previous-completion~
@@ -286,13 +330,15 @@ file:content/auto-help-visible.gif
  * ~C-u M-RET~ to insert active candidate without exiting minibuffer
  * ~C-x <up>~ (~minibuffer-complete-history~) is like ~minibuffer-complete~ but
    completes on the history items instead of the default completion table.
-   ~C-x <down>~ (~minibuffer-complete-defaults~) completes on the list of
-   default items.
+ * ~C-x <down>~ (~minibuffer-complete-defaults~) is like =minibuffer-complete=, but
+   completes on the default items instead of the completion table.
 
-All of the above also work for for ~completion-at-point~ (in-buffer completion).
+The first two also work for ~completion-at-point~ (in-buffer completion).
 
-the arrow keys are an unfortunate choice.  we might want to use something more
-convenient:
+file:content/licecap/completion/completion-nav-commands.gif
+
+Some may find the arrow keys an unfortunate choice, though, and bind completion
+something more convenient:
 
 #+begin_src emacs-lisp
 ;; Up/down when completing in the minibuffer
@@ -304,31 +350,12 @@ convenient:
 (define-key completion-in-region-mode-map (kbd "C-n") #'minibuffer-next-completion)
 #+end_src
 
-file:content/auto-switch.gif
-
-*** The "\ast{}Completions\ast{}" buffer can now be automatically selected.
-Set ~completion-auto-select~ to one of ~t~ or ~second-tab~ to enable automatic
-selection of the "\ast{}Completions\ast{}" buffer
-
-#+begin_src emacs-lisp :results none
-(setq completion-auto-select t)
-#+end_src
-
-file:content/auto-select-t.gif
-
-If the value is 'second-tab', then the first ~TAB~ will display "\ast{}Completions\ast{}",
-and the second one will switch to the "\ast{}Completions\ast" buffer.
-
-#+begin_src emacs-lisp :results none
-(setq completion-auto-select 'second-tab)
-#+end_src
-
-file:content/auto-select-second-tab.gif
-
-With 'second-tab', we can use the "\ast{}Completions\ast{}" buffer a lot like how we might
-use ~corfu~.  We can type a bit, request completion with TAB, examine the list,
-and keep typing to narrow the candidates, without needing to manually exit the
-"\ast{}Completions\ast{}" buffer.
+My apologies to [[https://www.scss.tcd.ie/~sulimanm/posts/default-emacs-completion.html][Mohamed Suliman]], since I was also not able to figure out a fix
+for =eshell= that permits the use of =M-<up>= and =M-<down>= with =M-RET=.  The issue
+there, it seems, is that =eshell= uses its own =pcomplete= instead of
+=completion-at-point=, which comes from =minibuffer.el=.  I have, however, had
+success simply using =TAB= and =BACKTAB= with =RET=, by setting =completion-auto-select=
+to ='second-tab=, as shown above.
 
 *** New user option 'completions-sort'.
 Much like how oantolin's [[https://github.com/oantolin/live-completions][live-completions]] gave us a way to sort candidates in
@@ -374,16 +401,12 @@ Use `mct-sort-sort-by-alpha-length' if no history is available."
 (setq completions-sort #'renz/sort-multi-category)
 #+end_src
 
-Some more nicities added this time around:
-
+*** Other Niceties
  * ~completions-max-height~ limits the height of the "\ast{}Completions\ast{}" buffer
  * ~completions-header-format~ is a string to control the heading line to show in
    the "\ast{}Completions\ast{}" buffer before the list of completions
- * Using ~C-u RET~ on a completion candidate in the "\ast{}Completions\ast{}" buffer inserts
-   the completion to the minibuffer, but doesn't exit the minibuffer.
 
 *** Do We Stick With Vanilla Extract?
-
 Now the fun part - let's tally pros and cons to see if I should abandon
 everything for the Vanilla behavior:
 
