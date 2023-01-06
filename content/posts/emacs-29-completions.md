@@ -1,7 +1,7 @@
 ---
 title: "The *Completions* Buffer Gets a Big Upgrade in Emacs 29"
 date: 2022-12-31T00:00:00-05:00
-lastmod: 2023-01-06T10:49:48-05:00
+lastmod: 2023-01-06T10:51:39-05:00
 categories: ["emacs"]
 draft: false
 weight: 2004
@@ -154,7 +154,7 @@ candidates I use frequently near the top, followed by the length of their name.
   "Sort ELEMS first alphabetically, then by length."
   (sort elems (lambda (c1 c2)
                 (or (string-version-lessp c1 c2)
-                    (< (length c1) (length c2)))))))
+                    (< (length c1) (length c2))))))
 
 (defun renz/sort-by-history (elems)
   "Sort ELEMS by minibuffer history.

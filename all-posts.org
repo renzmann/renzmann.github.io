@@ -370,7 +370,7 @@ candidates I use frequently near the top, followed by the length of their name.
   "Sort ELEMS first alphabetically, then by length."
   (sort elems (lambda (c1 c2)
                 (or (string-version-lessp c1 c2)
-                    (< (length c1) (length c2)))))))
+                    (< (length c1) (length c2))))))
 
 (defun renz/sort-by-history (elems)
   "Sort ELEMS by minibuffer history.
