@@ -1,7 +1,7 @@
 ---
 title: "The *Completions* Buffer Gets a Big Upgrade in Emacs 29"
-date: 2022-12-31T00:00:00-05:00
-lastmod: 2023-01-06T10:51:39-05:00
+date: 2023-01-06T00:00:00-05:00
+lastmod: 2023-01-06T11:07:49-05:00
 categories: ["emacs"]
 draft: false
 weight: 2004
