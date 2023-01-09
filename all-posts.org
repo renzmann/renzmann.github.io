@@ -339,8 +339,8 @@ The first two also work for ~completion-at-point~ (in-buffer completion).
 
 file:content/licecap/completion/completion-nav-commands.gif
 
-Some may find the arrow keys an unfortunate choice, though, and bind completion
-something more convenient:
+Some may find the arrow keys an unfortunate choice, though, and bind something
+more convenient:
 
 #+begin_src emacs-lisp
 ;; Up/down when completing in the minibuffer
