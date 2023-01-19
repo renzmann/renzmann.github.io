@@ -16,12 +16,12 @@ draft: false
 - [Custom](#custom)
 - [Packages](#packages)
 - [OS-specific Configuration](#os-specific-configuration)
-- [Theme: `ef-themes`](#theme-ef-themes)
+- [Theme](#theme)
 - [Emacs' Built-in Settings](#emacs-built-in-settings)
 - [Keybindings](#keybindings)
 - [Text Completion](#text-completion)
 - [Tramp](#tramp)
-- [<span class="org-todo todo TODO">TODO</span> TreeSitter](#treesitter)
+- [TreeSitter](#treesitter)
 - [Language-specific major modes](#language-specific-major-modes)
 - [Small tool configuration](#small-tool-configuration)
 - [Start a server for `emacsclient`](#start-a-server-for-emacsclient)
@@ -30,6 +30,8 @@ draft: false
 
 </div>
 <!--endtoc-->
+
+; -**- coding: utf-8 -**-
 
 Want to use it? Go ahead!
 
@@ -148,7 +150,10 @@ have the following header and [footer:](#footer)
 ;; URL: https://robbmann.io/
 
 ;;; Commentary:
-;; A mostly minimal, reproducible Emacs configuration
+;; A mostly minimal, reproducible Emacs configuration.  This file is
+;; automatically tangled from README.org, with header/footer comments on each
+;; code block that allow for de-tangling the source back to README.org when
+;; working on this file directly.
 
 ;;; Code:
 ```
@@ -176,10 +181,11 @@ To avoid loading packages twice, [the manual](https://www.gnu.org/software/emacs
 `package-enable-at-startup` in `init.el`.
 
 ```emacs-lisp
+(require 'package)
 (setq package-enable-at-startup nil)
 ```
 
-MELPA (Milypostman's Emacs Lisp Package Archive) is the largest repository for
+MELPA (Milkypostman's Emacs Lisp Package Archive) is the largest repository for
 elisp sources that aren't a part of the official GNU ELPA.  To install packages
 from it, we need it on the `package-archives` list.
 
@@ -201,7 +207,7 @@ variable, and `elpa/` directory all in sync with one another.
 
 ```emacs-lisp
 (defun renz/package-sync ()
-  "Remove unused sources and install any missing ones"
+  "Remove unused sources and install any missing ones."
   (interactive)
   (package-autoremove)
   (package-install-selected-packages))
@@ -223,11 +229,11 @@ There are also a few hand-made packages I keep around in a special
 
 #### Compiling Emacs {#compiling-emacs}
 
-Compiling Emacs on Windows can be a bit of a pain, but it's _mostly_ the same as
-on \*nix.  First, I use [MSYS2-MinGW](https://www.msys2.org/) to compile everything.  From the MinGW
-terminal (NOT the plain MSYS2 one), I install all of these dependencies
+Compiling Emacs on Windows can be a bit of a pain, but it’s mostly the same as
+on \*nix.  First, I use [MSYS2-MinGW](https://www.msys2.org/) to compile everything. From the MinGW
+terminal (NOT the plain MSYS2 one), I install all of these dependencies.
 
-```text
+```shell
 pacman -Su \
         autoconf \
         autogen \
@@ -280,17 +286,19 @@ pacman -Su \
         mingw-w64-x86_64-lcms2 \
         mingw-w64-x86_64-xz \
         mingw-w64-x86_64-zlib \
+        mingw-w64-x86_64-tree-sitter \
         tar \
         wget
 ```
 
 Then, the configure scripts:
 
-```text
+```shell
 ./autogen.sh
 ./configure \
     --prefix=/c/emacs-29 \
     --with-native-compilation \
+    --with-tree-sitter \
     --with-gnutls \
     --with-jpeg \
     --with-png \
@@ -306,7 +314,7 @@ Then, the configure scripts:
 
 And finally the command to compile:
 
-```text
+```shell
 make --jobs=$(NPROC)
 sudo make install
 ```
@@ -326,14 +334,12 @@ with `msys64`.
   (memq system-type '(windows-nt cygwin ms-dos)))
 
 (when (renz/windowsp)
-  ;; Set a better font on Windows
+  ;; Set a font that supports emoji
+  (set-fontset-font t 'unicode (font-spec :family "Segoe UI Emoji") nil 'prepend)
   (set-face-attribute 'default nil :font "Hack NF-12")
 
   ;; Alternate ispell when we've got msys on Windows
-  (setq ispell-program-name "aspell.exe")
-
-  ;; Set default shell to pwsh
-  (setq explicit-shell-file-name "pwsh"))
+  (setq ispell-program-name "aspell.exe"))
 ```
 
 For a time I considered enabling the use of the winkey like this:
@@ -355,6 +361,13 @@ Since I've taken a more TTY-friendly approach for my config in general, where
 super can be a bit tough to integrate with both the windowing application _and_
 the terminal emulator, I've mostly given up on the GUI key in favor of other
 chords, especially the `C-c` ones.
+
+
+#### A note on TreeSitter {#a-note-on-treesitter}
+
+When compiling tree-sitter dll's with `treesit-install-language-grammar`, I also
+need to launch Emacs via `runemacs.exe` from the MinGW terminal to ensure the C
+and C++ compilers are both visible and usable.
 
 
 ### macOS {#macos}
@@ -384,7 +397,7 @@ though.
 ```
 
 
-## Theme: `ef-themes` {#theme-ef-themes}
+## Theme {#theme}
 
 [Prot's](https://protesilaos.com/) themes have been reliably legible in nearly every situation.  Now with
 his new [ef-themes](https://protesilaos.com/emacs/ef-themes), they're pretty, too! The `ef-themes-headings` variable creates
@@ -452,6 +465,21 @@ My settings for base Emacs.  Assuming I ran with _no_ plugins (ala `emacs -Q`), 
 would still set most of these by hand at one point or another.
 
 
+### Unicode {#unicode}
+
+Sometimes (especially on Windows), Emacs gets confused about what encoding to
+use.  These setting try to prevent that confusion.
+
+```emacs-lisp
+(prefer-coding-system       'utf-8)
+(set-default-coding-systems 'utf-8)
+(set-terminal-coding-system 'utf-8)
+(set-keyboard-coding-system 'utf-8)
+(setq default-buffer-file-coding-system 'utf-8)
+(setq x-select-request-type '(UTF8_STRING COMPOUND_TEXT TEXT STRING))
+```
+
+
 ### Mode line {#mode-line}
 
 It's easy for the mode line to get cluttered once things like Flymake and eglot
@@ -512,6 +540,7 @@ This enables "File -&gt; Open Recent" from the menu bar, and `consult-recent-fil
 (recentf-mode t)
 
 (defun renz/find-recent-file ()
+  "Find a file that was recently visted using `completing-read'."
   (interactive)
   (find-file (completing-read "Find recent file: " recentf-list nil t)))
 ```
@@ -579,6 +608,31 @@ these favor spaces over tabs, so I prefer this as the default.
 (setq-default indent-tabs-mode nil)
 ```
 
+Generally, though, indentation behavior is set by major-mode functions, which
+may or may not use Emacs' built-in indentation functions.  For instance, when
+trying to find the functions behind indentation in shell mode, I cam across
+`smie.el`, whose introductory comments include this gem:
+
+> OTOH we had to kill many chickens, read many coffee grounds, and practice
+> untold numbers of black magic spells, to come up with the indentation code.
+> Since then, some of that code has been beaten into submission, but the
+> \`smie-indent-keyword' function is still pretty obscure.
+
+Even the [GNU manual](https://www.gnu.org/software/emacs/manual/html_node/elisp/Auto_002dIndentation.html) speaks of it in the same way:
+
+> Writing a good indentation function can be difficult and to a large extent it is
+> still a black art. Many major mode authors will start by writing a simple
+> indentation function that works for simple cases, for example by comparing with
+> the indentation of the previous text line. For most programming languages that
+> are not really line-based, this tends to scale very poorly: improving such a
+> function to let it handle more diverse situations tends to become more and more
+> difficult, resulting in the end with a large, complex, unmaintainable
+> indentation function which nobody dares to touch.
+
+```emacs-lisp
+(add-hook 'sh-mode-hook (lambda () (setq indent-tabs-mode t)))
+```
+
 
 ### Render ASCII color escape codes {#render-ascii-color-escape-codes}
 
@@ -587,6 +641,7 @@ colors in-buffer.
 
 ```emacs-lisp
 (defun renz/display-ansi-colors ()
+  "Render colors in a buffer that contains ASCII color escape codes."
   (interactive)
   (require 'ansi-color)
   (ansi-color-apply-on-region (point-min) (point-max)))
@@ -727,8 +782,8 @@ as it appears
 (setq compilation-scroll-output t)
 ```
 
-Enable colors in the `*compilation*` buffer.  Provided by a
-[helpful stackoverflow answer](https://stackoverflow.com/a/3072831/13215205).
+Enable colors in the `*compilation*` buffer.  Provided by a [helpful stackoverflow
+answer](https://stackoverflow.com/a/3072831/13215205).
 
 ```emacs-lisp
 (defun renz/colorize-compilation-buffer ()
@@ -750,15 +805,15 @@ I usually leave the tool bar disabled
 ```
 
 The _menu_ bar, on the other hand `(menu-bar-mode)`, is very handy, and I only
-disable it on Windows where it looks hideous.
+disable it on Windows, where it looks hideous if I'm running in dark mode.
 
 ```emacs-lisp
 (when (renz/windowsp)
   (menu-bar-mode -1))
 ```
 
-For newcomers to Emacs, I would strongly discourage disabling either of these,
-since they lend a lot to discovering all its wonderful built-in features.
+For newcomers to Emacs, I would strongly discourage disabling the menu bar, as
+it is the most straightforward way to discover Emacs' most useful features.
 
 
 ### Ignore risky .dir-locals.el {#ignore-risky-dot-dir-locals-dot-el}
@@ -849,8 +904,9 @@ logical abstraction, which I extract and put up here for them to use.
 
 ```emacs-lisp
 (defun renz/--jump-section (dirname prompt extension)
-  "For internal use: prompt for a file under `dirname' in the user
-emacs config site with matching `extension' regexp"
+  "Jump to a section of my configuration.
+Asks for a file under `DIRNAME' using `PROMPT' in the user Emacs
+config site with matching `EXTENSION' regexp."
   (find-file
    (concat dirname
            (completing-read prompt
@@ -952,7 +1008,7 @@ somewhere else.
 
 ```emacs-lisp
 (defun renz/find-tag ()
-  "Use completing-read to navigate to a tag"
+  "Use `completing-read' to navigate to a tag."
   (interactive)
   (xref-find-definitions (completing-read "Find tag: " tags-completion-table)))
 
@@ -960,10 +1016,10 @@ somewhere else.
 ```
 
 
-#### `C-c f` hippie-expand {#c-c-f-hippie-expand}
+#### `C-c f` find file at point (ffap) {#c-c-f-find-file-at-point--ffap}
 
 ```emacs-lisp
-(global-set-key (kbd "C-c f") #'hippie-expand)
+(global-set-key (kbd "C-c f") #'ffap)
 ```
 
 
@@ -980,6 +1036,7 @@ somewhere else.
                        ".*\.el$"))
 
 (defun renz/jump-init ()
+  "Jump directly to my literate configuration document."
   (interactive)
   (find-file (expand-file-name "README.org" user-emacs-directory)))
 
@@ -994,6 +1051,7 @@ somewhere else.
 
 ```emacs-lisp
 (defun toggle-window-split ()
+  "Switch between horizontal and vertical split window layout."
   (interactive)
   (if (= (count-windows) 2)
       (let* ((this-win-buffer (window-buffer))
@@ -1049,6 +1107,13 @@ somewhere else.
 (global-set-key (kbd "C-c s s") #'shell)
 (global-set-key (kbd "C-c s e") #'eshell)
 (global-set-key (kbd "C-c s t") #'term)
+```
+
+
+#### `C-c v` open thing at point in browser {#c-c-v-open-thing-at-point-in-browser}
+
+```emacs-lisp
+(global-set-key (kbd "C-c v") #'browse-url-at-point)
 ```
 
 
@@ -1305,27 +1370,18 @@ Host *
 ```
 
 
-## <span class="org-todo todo TODO">TODO</span> TreeSitter {#treesitter}
+## TreeSitter {#treesitter}
+
+
+#### About TreeSitter and its Load Paths {#about-treesitter-and-its-load-paths}
 
 Emacs 29 added native [TreeSitter](https://tree-sitter.github.io/tree-sitter/) support.  TreeSitter is a new way of
 incrementally parsing source code that offers superior navigation and syntax
 highlighting.  To fully realize this benefit, however, it requires that we
 install `tree-sitter` grammars independently from Emacs.  Right now, I'm using
 [casouri's modules](https://github.com/casouri/tree-sitter-module), which I build and install under `~/.emacs.d/tree-sitter`, if
-they don't already exist under `/usr/local/lib/` or `~/.local/lib`.
-
-**REMINDER:** We could just use a little lisp here to download the module if on linux or mac...
-
-```shell
-git clone git@github.com:casouri/tree-sitter-module.git
-cd tree-sitter-module
-./batch.sh
-mkdir -p ~/.emacs.d/tree-sitter
-cp ./dist/* ~/.emacs.d/tree-sitter/
-```
-
-In case of the latter, I just add extra paths to `treesit-extra-load-path`
-explicitly.
+they don't already exist under `/usr/local/lib/` or `~/.local/lib`.  In case of the
+latter, I just add extra paths to `treesit-extra-load-path` explicitly.
 
 ```emacs-lisp
 (when (boundp 'treesit-extra-load-path)
@@ -1345,14 +1401,100 @@ Enabling TreeSitter is done on a per-language basis to override the default
 major mode with the corresponding TreeSitter version.
 
 
+#### Automatically Using TreeSitter modes {#automatically-using-treesitter-modes}
+
+We will have to wait until Emacs 30+ for automatic fallback.  Until then, the
+[recommended workaround](https://archive.casouri.cc/note/2023/tree-sitter-in-emacs-29/index.html) is to derive a mode that picks between them.  So, what we
+start with is a list that defines languages and the source repository for their
+respective TreeSitter grammar.
+
+```emacs-lisp
+(setq treesit-language-source-alist
+      '((bash "https://github.com/tree-sitter/tree-sitter-bash")
+        (c "https://github.com/tree-sitter/tree-sitter-c")
+        (cpp "https://github.com/tree-sitter/tree-sitter-cpp")
+        (csharp "https://github.com/tree-sitter/tree-sitter-c-sharp")
+        (elisp "https://github.com/Wilfred/tree-sitter-elisp")
+        (go "https://github.com/tree-sitter/tree-sitter-go")
+        (html "https://github.com/tree-sitter/tree-sitter-html")
+        (javascript . ("https://github.com/tree-sitter/tree-sitter-javascript" "master" "src"))
+        (json "https://github.com/tree-sitter/tree-sitter-json")
+        (lua "https://github.com/Azganoth/tree-sitter-lua")
+        (make "https://github.com/alemuller/tree-sitter-make")
+        (markdown "https://github.com/ikatyang/tree-sitter-markdown")
+        (python "https://github.com/tree-sitter/tree-sitter-python")
+        (r "https://github.com/r-lib/tree-sitter-r")
+        (rust "https://github.com/tree-sitter/tree-sitter-rust")
+        (toml "https://github.com/tree-sitter/tree-sitter-toml")
+        (tsx-typescript . ("https://github.com/tree-sitter/tree-sitter-typescript" "master" "tsx/src"))
+        (typescript . ("https://github.com/tree-sitter/tree-sitter-typescript" "master" "typescript/src"))
+        (yaml "https://github.com/ikatyang/tree-sitter-yaml")))
+```
+
+At this point, To install a grammar (e.g. for Python), I just need to do `M-x
+treesit-install-language-grammar RET python`.  Now, to build the TreeSitter
+fallback modes, we convert the `car` of each element above to a string, which
+we will format into the derived mode's name and body:
+
+```emacs-lisp
+(setq ts-fallbacks-to-create
+      (mapcar (lambda (x) (symbol-name (car x))) treesit-language-source-alist))
+```
+
+Then, loop over these names to define all the fallback modes:
+
+```emacs-lisp
+(dolist (name ts-fallbacks-to-create)
+  (eval
+   `(define-derived-mode ,(intern (concat name "-ts-or-fallback-mode")) prog-mode ,(concat name " auto")
+      ,(format "Automatically use %s-ts-mode if it's ready, otherwise fall back to %s-mode." name name)
+      (if (treesit-ready-p ',(intern name) t)
+          (,(intern (concat name "-ts-mode")))
+        (,(intern (concat name "-mode")))
+        (message (concat "TreeSitter not ready for " ,name ".  Falling back to `" ,name "-mode'"))))))
+```
+
+Each major mode that I wan automatic fallback for will have this mode added to [its
+specific configuration](#language-specific-major-modes).
+
+
+#### Ooo, aaah, shiny colors {#ooo-aaah-shiny-colors}
+
+I like to program "in Skittles":
+
+```emacs-lisp
+(setq-default treesit-font-lock-level 4)
+```
+
+
 ## Language-specific major modes {#language-specific-major-modes}
 
 
-### TOML {#toml}
+### Shell (Bash, sh, ...) {#shell--bash-sh-dot-dot-dot}
 
 ```emacs-lisp
-(use-package conf-mode
-  :mode ("\\.toml\\'" . conf-toml-mode))
+(defun renz/sh-indentation ()
+  (setq indent-tabs-mode t)
+  (setq tab-width 8))
+
+(add-hook 'sh-mode-hook #'renz/sh-indentation)
+
+;; When the interpreter is explicitly set to "bash", use the TreeSitter mode if
+;; we can
+(add-to-list 'interpreter-mode-alist '("r?bash2?" . bash-ts-or-fallback-mode))
+```
+
+
+### CSS {#css}
+
+```emacs-lisp
+(setq css-indent-offset 2)
+```
+
+For validation, grab [css-validator.jar](https://github.com/w3c/css-validator/releases/download/cssval-20220105/css-validator.jar) and execute it with java:
+
+```text
+java -jar ~/.local/jars/css-validator.jar file:///home/me/my/site/index.html
 ```
 
 
@@ -1360,22 +1502,6 @@ major mode with the corresponding TreeSitter version.
 
 ```emacs-lisp
 (setq renz/org-home "~/org/")
-(setq org-confirm-babel-evaluate nil)
-(setq org-edit-src-content-indentation 0)
-```
-
-I use `consult-org-heading` for jumping between headers now, so I no longer tangle
-this line into my config.
-
-```emacs-lisp
-(setq org-goto-interface 'outline-path-completion)
-```
-
-When displaying images, I usually like to resize them to a comfortable width,
-which the following enables.
-
-```emacs-lisp
-(setq org-image-actual-width nil)
 ```
 
 `org-mode` provides `org-babel-tangle-jump-to-org`, which jumps back to an Org
@@ -1432,11 +1558,19 @@ latter over the former, I've removed the `org-startup-indented` call.
    ("C-c o b d" . org-babel-detangle)
    ("C-c o b o" . org-babel-tangle-jump-to-org)
    ("C-c o b s" . renz/org-babel-tangle-jump-to-src)
-   ;; ("C-c o j" . consult-org-heading)
    ("C-c o k" . org-babel-remove-result)
    ("C-c o o" . renz/jump-org)
    ("C-c o w" . renz/org-kill-src-block)
    ("C-c o y" . ox-clip-image-to-clipboard))
+
+  :custom
+  (org-image-actual-width nil "Enable resizing of images")
+  (org-agenda-files (list (expand-file-name "work.org" renz/org-home)) "Sources for Org agenda view")
+  (org-html-htmlize-output-type nil "See C-h f org-html-htmlize-output-type")
+  (org-confirm-babel-evaluate nil "Don't ask for confirmation when executing src blocks")
+  (org-edit-src-content-indentation 2 "Indent all src blocks by this much")
+  (org-goto-interface 'outline-path-completion "Use completing-read for org-goto (C-c C-j, nicer than imenu)")
+  (org-outline-path-complete-in-steps nil "Flatten the outline path, instead of completing hierarchically")
 
   :config
   (add-to-list 'org-modules 'org-tempo)
@@ -1458,29 +1592,7 @@ latter over the former, I've removed the `org-startup-indented` call.
      ;; (gnuplot . t)
      ;; (awk . t)
      ;; (latex . t)
-     ))
-
-  (setq org-agenda-files '("~/.emacs.d/org/work.org")
-        org-hugo-front-matter-format "yaml"))
-```
-
-`ob-async` adds asynchronous source block execution to some modes that otherwise wouldn't have it.
-
-```emacs-lisp
-(use-package ob-async
-  :after org
-  :config
-  (add-hook 'ob-async-pre-execute-src-block-hook
-            #'(lambda ()
-                (require 'ob-sql-mode)
-                (require 'hive2)))
-  ;; Python has its own =:async yes= header argument we can use, so there's no
-  ;; need to include it with ~ob-async~.
-  (setq ob-async-no-async-languages-alist '("python"))
-  ;; I'm having trouble remembering why I added this following line, except that I
-  ;; believe it has something to do with exporting to HTML with syntax
-  ;; highlighting.
-  (setq org-html-htmlize-output-type 'css))
+     )))
 ```
 
 
@@ -1492,41 +1604,31 @@ A [lovely look](https://github.com/minad/org-modern) for `org-mode` by minad.
 (use-package org-modern
   :after org
   :config
-  (setq
-   org-auto-align-tags nil
-   org-tags-column 0
-   org-catch-invisible-edits 'show-and-error
-   org-special-ctrl-a/e t
-   org-insert-heading-respect-content t
+  (setq org-auto-align-tags nil
+        org-tags-column 0
+        org-catch-invisible-edits 'show-and-error
+        org-special-ctrl-a/e t
+        org-insert-heading-respect-content t
 
-   ;; Org styling, hide markup etc.
-   org-hide-emphasis-markers t
-   org-pretty-entities t
-   org-ellipsis "…"
+        ;; Org styling, hide markup etc.
+        org-hide-emphasis-markers t
+        org-pretty-entities t
+        org-ellipsis "…"
 
-   ;; Agenda styling
-   org-agenda-tags-column 0
-   org-agenda-block-separator ?─
-   org-agenda-time-grid
-   '((daily today require-timed)
-     (800 1000 1200 1400 1600 1800 2000)
-     " ┄┄┄┄┄ " "┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄")
-   org-agenda-current-time-string
-   "⭠ now ─────────────────────────────────────────────────")
+        ;; Agenda styling
+        org-agenda-tags-column 0
+        org-agenda-block-separator ?─
+        org-agenda-time-grid '((daily today require-timed)
+                               (800 1000 1200 1400 1600 1800 2000)
+                               " ┄┄┄┄┄ " "┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄")
+        org-agenda-current-time-string
+        "<─ now ────────────────────────────────────────────────")
 
   (if (display-graphic-p)
       (setq org-modern-table t)
     (setq org-modern-table nil))
 
   (global-org-modern-mode))
-```
-
-
-#### Code block syntax highlighting for HTML export {#code-block-syntax-highlighting-for-html-export}
-
-```emacs-lisp
-(use-package htmlize
-  :after (org))
 ```
 
 
@@ -1541,7 +1643,9 @@ Offers two functions:
 
 ```emacs-lisp
 (use-package ox-clip
-  :after org)
+  :after org
+  :config
+  (setq org-hugo-front-matter-format "yaml"))
 ```
 
 
@@ -1558,75 +1662,27 @@ links.
 ```
 
 
-### SQL {#sql}
+#### Converting JSON to Org Tables {#converting-json-to-org-tables}
+
+I use a small external dependency for this:
 
 ```emacs-lisp
-(defun renz/sql-mode-hook ()
-  (setq tab-width 4)
-  (setq sqlformat-command 'sql-formatter))
+(use-package json-to-org-table
+  :load-path "site-lisp/json-to-org-table/"
+  :after org)
+```
 
-(defvar renz/sql-indentation-offsets-alist
-  '((syntax-error sqlind-report-sytax-error)
-    (in-string sqlind-report-runaway-string)
-    (comment-continuation sqlind-indent-comment-continuation)
-    (comment-start sqlind-indent-comment-start)
-    (toplevel 0)
-    (in-block +)
-    (in-begin-block +)
-    (block-start 0)
-    (block-end 0)
-    (declare-statement +)
-    (package ++)
-    (package-body 0)
-    (create-statement +)
-    (defun-start +)
-    (labeled-statement-start 0)
-    (statement-continuation +)
-    (nested-statement-open sqlind-use-anchor-indentation +)
-    (nested-statement-continuation sqlind-use-previous-line-indentation)
-    (nested-statement-close sqlind-use-anchor-indentation)
-    (with-clause sqlind-use-anchor-indentation)
-    (with-clause-cte +)
-    (with-clause-cte-cont ++)
-    (case-clause 0)
-    (case-clause-item sqlind-use-anchor-indentation +)
-    (case-clause-item-cont sqlind-right-justify-clause)
-    (select-clause 0)
-    (select-column sqlind-indent-select-column)
-    (select-column-continuation sqlind-indent-select-column +)
-    (select-join-condition ++)
-    (select-table sqlind-indent-select-table)
-    (select-table-continuation sqlind-indent-select-table +)
-    (in-select-clause sqlind-lineup-to-clause-end sqlind-right-justify-logical-operator)
-    (insert-clause 0)
-    (in-insert-clause sqlind-lineup-to-clause-end sqlind-right-justify-logical-operator)
-    (delete-clause 0)
-    (in-delete-clause sqlind-lineup-to-clause-end sqlind-right-justify-logical-operator)
-    (update-clause 0)
-    (in-update-clause sqlind-lineup-to-clause-end sqlind-right-justify-logical-operator)))
 
-(defun renz/sql-indentation-offsets ()
-  (setq sqlind-indentation-offsets-alist
-        renz/sql-indentation-offsets-alist)
-  (setq sqlind-basic-offset 4))
+### SQL {#sql}
 
-(use-package sql-indent
-  :hook (sqlind-minor-mode . renz/sql-indentation-offsets))
 
-(use-package sql-mode
-  :hook ((sql-mode . renz/sql-mode-hook)
-         (sql-mode . sqlup-mode)
-         (sql-mode . sqlind-minor-mode)))
+#### Interactive `hive2` mode {#interactive-hive2-mode}
 
-(use-package sqlup-mode
-  :hook sql-interactive-mode)
-
+```emacs-lisp
 (use-package hive2
+  :load-path "site-lisp/"
   :after (sql)
   :mode ("\\.hql" . sql-mode))
-
-(use-package ob-sql-mode
-  :after (sql))
 ```
 
 <!--list-separator-->
@@ -1647,7 +1703,38 @@ links.
     a `.sql-formatter-config.json` exists in the VC root directory.
 
 
+#### BigQuery `sql` Blocks in Org-Babel {#bigquery-sql-blocks-in-org-babel}
+
+Advising `org-babel-execute:sql` in this way allows me to use `#+begin_src sql
+:engine bq :results raw` blocks in org-babel and execute them with `C-c C-c`.  More
+commonly, though, I set `#+PROPERTY: header-args:sql :engine bq :results raw` at
+the top of the document so that I can just mark a `src` block as `sql` and be done
+with it.
+
+```emacs-lisp
+(defun org-babel-execute:bq (orig-fun body params)
+  (if (string-equal-ignore-case (cdr (assq :engine params)) "bq")
+      (json-to-org-table-parse-json-string
+       (org-babel-execute:shell (concat "bq query --format=json --nouse_legacy_sql '" body "'")
+                                params))
+    (org-babel-execute:sql body params)))
+
+(advice-add 'org-babel-execute:sql :around #'org-babel-execute:bq)
+```
+
+
 ### Python {#python}
+
+
+#### Use TreeSitter if we can {#use-treesitter-if-we-can}
+
+```emacs-lisp
+(add-to-list 'auto-mode-alist '("\\.py\\'" . python-ts-or-fallback-mode))
+(add-to-list 'interpreter-mode-alist '("python[0-9.]*" . python-ts-or-fallback-mode))
+```
+
+
+#### Pyright error links in &lowast;compilation&lowast; {#pyright-error-links-in-and-lowast-compilation-and-lowast}
 
 The `M-x compile` feature does not recognize or parse `pyright` error messages out
 of the box, so I add that support myself.  Here's an example error message:
@@ -1674,6 +1761,9 @@ parse file name, line, and column number.
 It would be nice if we could also capture the `\\(error\\|warning\\)` part as
 "KIND", but I'm struggling to get it working.
 
+
+#### Python check with "ruff" {#python-check-with-ruff}
+
 Another nice vanilla feature of `python-mode` is `M-x python-check`, which runs a
 pre-specified linter.  Setting that to `mypy` or `pyright` if either of those
 programs exist is a small time saver.
@@ -1682,9 +1772,11 @@ programs exist is a small time saver.
 (use-package python
   :config
   (setq python-check-command "ruff")
-  (add-hook 'python-mode-hook #'blacken-mode)
   (add-hook 'python-mode-hook #'flymake-mode))
 ```
+
+
+#### Fix Microsoft Windows Issues {#fix-microsoft-windows-issues}
 
 At one point, I ran into something similar to this [elpy issue](https://github.com/jorgenschaefer/elpy/issues/733) on Windows.  The
 culprit was "App Execution Aliases" with python and python3 redirecting to the
@@ -1696,6 +1788,9 @@ winkey -> Manage app execution aliases -> uncheck python and python3
 
 Also on Windows - a `pip install` of `pyreadline3` is required to make
 tab-completion work at all. It provides the `readline` import symbol.
+
+
+#### Make check command and virtualenv root safe for .dir-locals.el {#make-check-command-and-virtualenv-root-safe-for-dot-dir-locals-dot-el}
 
 Virtualenvs require `.dir-locals.el` to have something like:
 
@@ -1710,6 +1805,9 @@ make sure that setting the virtualenv root is marked as safe.
 (put 'python-check-command 'safe-local-variable #'stringp)
 (put 'python-shell-virtualenv-root 'safe-local-variable #'stringp)
 ```
+
+
+#### Emacs Jupyter? {#emacs-jupyter}
 
 Eventually, I would like to try the [emacs-jupyter](https://github.com/dzop/emacs-jupyter) package to interface with
 Jupyter kernels from org-mode.
@@ -1755,6 +1853,15 @@ Formatting a buffer with `black` has never been easier!
 ```
 
 
+#### Tags - jump to definition the old way {#tags-jump-to-definition-the-old-way}
+
+With `C-x p c` `project-compile`:
+
+```text
+find . -name "*.py" -print | etags -
+```
+
+
 ### Markdown {#markdown}
 
 Some folks like to write markdown without hard line breaks.  When viewing those
@@ -1772,7 +1879,7 @@ it.
 I make a lot of spelling mistakes as I type...
 
 ```emacs-lisp
-(add-hook 'text-mode-hook 'flyspell-mode)
+(add-hook 'markdown-mode-hook 'flyspell-mode)
 ```
 
 `poly-markdown-mode` enables syntax highlighting within code fences for markdown.
@@ -1806,6 +1913,16 @@ Handy for viewing data quickly.
 
 These are tweaks for both third party packages and those bundled with emacs that
 require little configuration and don't warrant a top-level header.
+
+
+### `imenu` {#imenu}
+
+```emacs-lisp
+(use-package imenu
+  :config
+  (setq imenu-auto-rescan t
+        org-imenu-depth 3))
+```
 
 
 ### `dabbrev`: swap `M-/` and `C-M-/` {#dabbrev-swap-m-and-c-m}
