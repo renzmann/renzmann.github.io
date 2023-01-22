@@ -12,7 +12,6 @@ All posts in here will have the category set to /emacs/
 :properties:
 :export_file_name: emacs-treesit-auto
 :export_date: <2023-01-22 Sun>
-:export_hugo_menu: :menu "main"
 :end:
 
 Recently, [[https://www.reddit.com/user/casouri/][/u/casouri]] posted a guide to getting started with the new built-in
