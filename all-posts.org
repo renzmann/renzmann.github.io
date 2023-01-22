@@ -8,7 +8,7 @@
 * Emacs :@emacs:
 All posts in here will have the category set to /emacs/
 
-** DONE (Emacs 29) Automatically Using Tree-sitter Modes
+** DONE Getting Emacs 29 to Automatically Use Tree-sitter Modes
 :properties:
 :export_file_name: emacs-treesit-auto
 :export_date: <2023-01-22 Sun>

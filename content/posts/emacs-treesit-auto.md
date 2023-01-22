@@ -1,14 +1,14 @@
 ---
-title: "(Emacs 29) Automatically Using Tree-sitter Modes"
+title: "Getting Emacs 29 to Automatically Use Tree-sitter Modes"
 date: 2023-01-22T00:00:00-05:00
-lastmod: 2023-01-22T16:09:30-05:00
+lastmod: 2023-01-22T16:11:48-05:00
 categories: ["emacs"]
 draft: false
 weight: 2001
 menu:
   main:
     weight: 2001
-    identifier: "emacs-29-automatically-using-tree-sitter-modes"
+    identifier: "getting-emacs-29-to-automatically-use-tree-sitter-modes"
 ---
 
 Recently, [/u/casouri](https://www.reddit.com/user/casouri/) posted a guide to getting started with the new built-in
