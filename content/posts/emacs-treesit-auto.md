@@ -1,7 +1,7 @@
 ---
 title: "Getting Emacs 29 to Automatically Use Tree-sitter Modes"
 date: 2023-01-22T00:00:00-05:00
-lastmod: 2023-01-22T16:12:28-05:00
+lastmod: 2023-01-23T12:55:27-05:00
 categories: ["emacs"]
 draft: false
 weight: 2001
@@ -36,7 +36,9 @@ Then, in your configuration file:
 
 ```emacs-lisp
 (use-package treesit-auto
-  :demand t)
+  :demand t
+  :config
+  (treesit-auto-apply-remap))
 ```
 
 Once I learn how ELPA and MELPA work, I'll try to publish this package there, too.
