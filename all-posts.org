@@ -29,7 +29,7 @@ machine.  If a language's tree-sitter grammar is installed, it will use that
 mode.  If not, it will use the original major mode.  Simple as that!
 
 *** For the impatient: ~treesit-auto.el~
-The package I wound up with is available on GitHub as [[https://github.com/renzmann/treesit-auto.el][treesit-auto.el]].  Using
+The package I wound up with is available on GitHub as [[https://github.com/renzmann/treesit-auto][treesit-auto.el]].  Using
 =package-vc-install=, you can get it right away, and just =use-package= or =require=
 to load it:
 

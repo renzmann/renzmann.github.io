@@ -1,7 +1,8 @@
 ---
 title: "Getting Emacs 29 to Automatically Use Tree-sitter Modes"
+author: ["Robb"]
 date: 2023-01-22T00:00:00-05:00
-lastmod: 2023-01-23T12:55:27-05:00
+lastmod: 2023-01-23T16:09:02-05:00
 categories: ["emacs"]
 draft: false
 weight: 2001
@@ -24,7 +25,7 @@ mode.  If not, it will use the original major mode.  Simple as that!
 
 ## For the impatient: `treesit-auto.el` {#for-the-impatient-treesit-auto-dot-el}
 
-The package I wound up with is available on GitHub as [treesit-auto.el](https://github.com/renzmann/treesit-auto.el).  Using
+The package I wound up with is available on GitHub as [treesit-auto.el](https://github.com/renzmann/treesit-auto).  Using
 `package-vc-install`, you can get it right away, and just `use-package` or `require`
 to load it:
 
