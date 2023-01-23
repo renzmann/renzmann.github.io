@@ -24,7 +24,6 @@ draft: false
 - [TreeSitter](#treesitter)
 - [Language-specific major modes](#language-specific-major-modes)
 - [Small tool configuration](#small-tool-configuration)
-- [Start a server for `emacsclient`](#start-a-server-for-emacsclient)
 - [Don't forget about these](#don-t-forget-about-these)
 - [Footer](#footer)
 
@@ -273,6 +272,7 @@ pacman -Su \
         mingw-w64-x86_64-libpng \
         mingw-w64-x86_64-librsvg \
         mingw-w64-x86_64-libtiff \
+        mingw-w64-x86_64-libwebp \
         mingw-w64-x86_64-libwinpthread-git \
         mingw-w64-x86_64-libxml2 \
         mingw-w64-x86_64-mpc \
@@ -370,6 +370,18 @@ and C++ compilers are both visible and usable.
 
 ### macOS {#macos}
 
+
+#### Installing Emacs {#installing-emacs}
+
+On macOS, I've had the best luck with [jimeh's nightly builds](https://github.com/jimeh/emacs-builds/releases).  These Emacs.app
+bundles have no external dependencies, signed with a developer certificate, and
+notarized by Apple, so it _just works_.  Even without administrator permissions,
+you can drag the bundle to the "Applications" folder under your user home
+instead, and Emacs still works beautifully.
+
+
+#### Configuration {#configuration}
+
 Launching Emacs from the typical application launcher or command-space usually
 won't capture any modifications to `$PATH`, typically handled in a file like
 `~/.profile` or `~/.bashrc`. So, the main configuration included here is from
@@ -380,6 +392,7 @@ won't capture any modifications to `$PATH`, typically handled in a file like
   ;; Uncomment this if we can't install Hack Nerd font
   ;; (set-face-attribute 'default nil :font "Menlo-14")
   (set-face-attribute 'default nil :font "Hack Nerd Font Mono-13")
+  (setq exec-path-from-shell-arguments '("-l"))
   (exec-path-from-shell-initialize))
 ```
 
@@ -461,6 +474,13 @@ Kitty for me, I haven't spent too much time looking into it.
 
 My settings for base Emacs.  Assuming I ran with _no_ plugins (ala `emacs -Q`), I
 would still set most of these by hand at one point or another.
+
+
+### Start a server for `emacsclient` {#start-a-server-for-emacsclient}
+
+```emacs-lisp
+(server-start)
+```
 
 
 ### Unicode {#unicode}
@@ -1399,62 +1419,16 @@ Enabling TreeSitter is done on a per-language basis to override the default
 major mode with the corresponding TreeSitter version.
 
 
-#### Automatically Using TreeSitter modes {#automatically-using-treesitter-modes}
+#### Automatically Using TreeSitter Modes {#automatically-using-treesitter-modes}
 
 We will have to wait until Emacs 30+ for automatic fallback.  Until then, the
-[recommended workaround](https://archive.casouri.cc/note/2023/tree-sitter-in-emacs-29/index.html) is to derive a mode that picks between them.  So, what we
-start with is a list that defines languages and the source repository for their
-respective TreeSitter grammar.
+[recommended workaround](https://archive.casouri.cc/note/2023/tree-sitter-in-emacs-29/index.html) is to derive a mode that picks between them.  Instead,
+I'm hoping I can abuse the new `major-mode-remap-alist` instead.
 
 ```emacs-lisp
-(setq treesit-language-source-alist
-      '((bash "https://github.com/tree-sitter/tree-sitter-bash")
-        (c "https://github.com/tree-sitter/tree-sitter-c")
-        (cpp "https://github.com/tree-sitter/tree-sitter-cpp")
-        (css "https://github.com/tree-sitter/tree-sitter-css")
-        (csharp "https://github.com/tree-sitter/tree-sitter-c-sharp")
-        (elisp "https://github.com/Wilfred/tree-sitter-elisp")
-        (go "https://github.com/tree-sitter/tree-sitter-go")
-        (html "https://github.com/tree-sitter/tree-sitter-html")
-        (javascript . ("https://github.com/tree-sitter/tree-sitter-javascript" "master" "src"))
-        (json "https://github.com/tree-sitter/tree-sitter-json")
-        (lua "https://github.com/Azganoth/tree-sitter-lua")
-        (make "https://github.com/alemuller/tree-sitter-make")
-        (markdown "https://github.com/ikatyang/tree-sitter-markdown")
-        (python "https://github.com/tree-sitter/tree-sitter-python")
-        (r "https://github.com/r-lib/tree-sitter-r")
-        (rust "https://github.com/tree-sitter/tree-sitter-rust")
-        (toml "https://github.com/tree-sitter/tree-sitter-toml")
-        (tsx-typescript . ("https://github.com/tree-sitter/tree-sitter-typescript" "master" "tsx/src"))
-        (typescript . ("https://github.com/tree-sitter/tree-sitter-typescript" "master" "typescript/src"))
-        (yaml "https://github.com/ikatyang/tree-sitter-yaml")))
+(use-package treesit-auto
+  :demand t)
 ```
-
-At this point, To install a grammar (e.g. for Python), I just need to do `M-x
-treesit-install-language-grammar RET python`.  Now, to build the TreeSitter
-fallback modes, we convert the `car` of each element above to a string, which
-we will format into the derived mode's name and body:
-
-```emacs-lisp
-(setq ts-fallbacks-to-create
-      (mapcar (lambda (x) (symbol-name (car x))) treesit-language-source-alist))
-```
-
-Then, loop over these names to define all the fallback modes:
-
-```emacs-lisp
-(dolist (name ts-fallbacks-to-create)
-  (eval
-   `(define-derived-mode ,(intern (concat name "-ts-or-fallback-mode")) prog-mode ,(concat name " auto")
-      ,(format "Automatically use %s-ts-mode if it's ready, otherwise fall back to %s-mode." name name)
-      (if (treesit-ready-p ',(intern name) t)
-          (,(intern (concat name "-ts-mode")))
-        (,(intern (concat name "-mode")))
-        (message (concat "TreeSitter not ready for " ,name ".  Falling back to `" ,name "-mode'"))))))
-```
-
-Each major mode that I wan automatic fallback for will have this mode added to [its
-specific configuration](#language-specific-major-modes).
 
 
 #### Ooo, aaah, shiny colors {#ooo-aaah-shiny-colors}
@@ -1488,6 +1462,7 @@ I like to program "in Skittles":
 
 ```emacs-lisp
 (setq css-indent-offset 2)
+(add-to-list 'auto-mode-alist '("\\.css\\'" . css-ts-or-fallback-mode))
 ```
 
 For validation, grab [css-validator.jar](https://github.com/w3c/css-validator/releases/download/cssval-20220105/css-validator.jar) and execute it with java:
@@ -1725,14 +1700,6 @@ with it.
 ### Python {#python}
 
 
-#### Use TreeSitter if we can {#use-treesitter-if-we-can}
-
-```emacs-lisp
-(add-to-list 'auto-mode-alist '("\\.py\\'" . python-ts-or-fallback-mode))
-(add-to-list 'interpreter-mode-alist '("python[0-9.]*" . python-ts-or-fallback-mode))
-```
-
-
 #### Pyright error links in &lowast;compilation&lowast; {#pyright-error-links-in-and-lowast-compilation-and-lowast}
 
 The `M-x compile` feature does not recognize or parse `pyright` error messages out
@@ -1879,6 +1846,7 @@ I make a lot of spelling mistakes as I type...
 
 ```emacs-lisp
 (add-hook 'markdown-mode-hook 'flyspell-mode)
+(add-hook 'markdown-mode-hook 'auto-fill-mode)
 ```
 
 `poly-markdown-mode` enables syntax highlighting within code fences for markdown.
@@ -1981,33 +1949,6 @@ word.
 ```
 
 
-### Magit {#magit}
-
-The one and only.
-
-```emacs-lisp
-(use-package magit
-  :bind ("C-c g" . magit-status))
-```
-
-As a reminder - when using pre-commit hooks it may take a while for the hooks to
-install.  Magit will asynchronously kick off that process, and we can check on
-it with `$`.  The built-in \`vc\` is _synchronous_, and will block Emacs entirely
-until it's done.  So some of the performance hit from using Magit is well worth
-it in situations like that.
-
-
-### Change or copy inner/outer {#change-or-copy-inner-outer}
-
-```emacs-lisp
-(use-package change-inner
-  :bind (("C-c c i" . change-inner)
-         ("C-c c o" . change-outer)
-         ("C-c y i" . copy-inner)
-         ("C-c y o" . copy-outer)))
-```
-
-
 ### eww - search engine and browser {#eww-search-engine-and-browser}
 
 Ecosia requires JavaScript, unfortunately.
@@ -2091,13 +2032,6 @@ language's major mode hook:
 
 ```emacs-lisp
 (add-hook 'python-mode-hook 'semantic-mode)
-```
-
-
-## Start a server for `emacsclient` {#start-a-server-for-emacsclient}
-
-```emacs-lisp
-(server-start)
 ```
 
 
