@@ -29,9 +29,18 @@ machine.  If a language's tree-sitter grammar is installed, it will use that
 mode.  If not, it will use the original major mode.  Simple as that!
 
 *** For the impatient: ~treesit-auto.el~
-The package I wound up with is available on GitHub as [[https://github.com/renzmann/treesit-auto][treesit-auto.el]].  Using
-=package-vc-install=, you can get it right away, and just =use-package= or =require=
-to load it:
+The package I wound up with is available on GitHub and MELPA as [[https://github.com/renzmann/treesit-auto][treesit-auto.el]].
+So long as MELPA is on your =package-archives= list like this:
+
+#+begin_src emacs-lisp
+  (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
+#+end_src
+
+Then you can use =M-x package-refresh-contents= followed by =M-x package-install
+RET treesit-auto=.
+
+If you also like having a local copy of the git repository itself, then
+=package-vc-install= is a better fit:
 
 #+begin_example
 M-x package-vc-install RET https://github.com/renzmann/treesit-auto.el
@@ -43,12 +52,12 @@ Then, in your configuration file:
   (use-package treesit-auto
     :demand t
     :config
-    (treesit-auto-apply-remap))
+    (global-treesit-auto-mode))
 #+end_src
 
-Once I learn how ELPA and MELPA work, I'll try to publish this package there, too.
+See the README on GitHub for all the goodies you can put in the =:config= block.
 
-*** How the ~treesit-auto.el~ works
+*** Origins of ~treesit-auto.el~
 The recommendation in Yuan's article was to use =define-derived-mode= along with
 =treesit-ready-p=.  In the NEWS (=C-h n=), however, I noticed a new variable
 =major-mode-remap-alist=, which at a glance appears suitable for a similar cause.

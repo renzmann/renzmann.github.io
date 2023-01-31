@@ -1,8 +1,8 @@
 ---
 title: "Getting Emacs 29 to Automatically Use Tree-sitter Modes"
-author: ["Robb"]
+author: ["Enzmann"]
 date: 2023-01-22T00:00:00-05:00
-lastmod: 2023-01-23T16:09:02-05:00
+lastmod: 2023-01-31T06:26:00-05:00
 categories: ["emacs"]
 draft: false
 weight: 2001
@@ -25,9 +25,18 @@ mode.  If not, it will use the original major mode.  Simple as that!
 
 ## For the impatient: `treesit-auto.el` {#for-the-impatient-treesit-auto-dot-el}
 
-The package I wound up with is available on GitHub as [treesit-auto.el](https://github.com/renzmann/treesit-auto).  Using
-`package-vc-install`, you can get it right away, and just `use-package` or `require`
-to load it:
+The package I wound up with is available on GitHub and MELPA as [treesit-auto.el](https://github.com/renzmann/treesit-auto).
+So long as MELPA is on your `package-archives` list like this:
+
+```emacs-lisp
+(add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
+```
+
+Then you can use `M-x package-refresh-contents` followed by `M-x package-install
+RET treesit-auto`.
+
+If you also like having a local copy of the git repository itself, then
+`package-vc-install` is a better fit:
 
 ```text
 M-x package-vc-install RET https://github.com/renzmann/treesit-auto.el
@@ -39,13 +48,13 @@ Then, in your configuration file:
 (use-package treesit-auto
   :demand t
   :config
-  (treesit-auto-apply-remap))
+  (global-treesit-auto-mode))
 ```
 
-Once I learn how ELPA and MELPA work, I'll try to publish this package there, too.
+See the README on GitHub for all the goodies you can put in the `:config` block.
 
 
-## How the `treesit-auto.el` works {#how-the-treesit-auto-dot-el-works}
+## Origins of `treesit-auto.el` {#origins-of-treesit-auto-dot-el}
 
 The recommendation in Yuan's article was to use `define-derived-mode` along with
 `treesit-ready-p`.  In the NEWS (`C-h n`), however, I noticed a new variable
