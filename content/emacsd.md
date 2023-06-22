@@ -12,18 +12,19 @@ draft: false
 - [Notable Features](#notable-features)
 - [Tangling](#tangling)
 - [Inspirations](#inspirations)
+- [Getting Emacs](#getting-emacs)
 - [Header](#header)
 - [Custom](#custom)
+- [Proxy settings](#proxy-settings)
 - [Packages](#packages)
 - [OS-specific Configuration](#os-specific-configuration)
+- [Font](#font)
 - [Theme](#theme)
 - [Emacs' Built-in Settings](#emacs-built-in-settings)
 - [Keybindings](#keybindings)
 - [Text Completion](#text-completion)
-- [Tramp](#tramp)
-- [TreeSitter](#treesitter)
 - [Language-specific major modes](#language-specific-major-modes)
-- [Small tool configuration](#small-tool-configuration)
+- [Tool configuration](#tool-configuration)
 - [Don't forget about these](#don-t-forget-about-these)
 - [Footer](#footer)
 
@@ -33,7 +34,7 @@ draft: false
 Want to use it? Go ahead!
 
 ```shell
-git clone --depth 1 https://github.com/renzmann/.emacs.d ~/.emacs.d
+git clone https://github.com/renzmann/.emacs.d ~/.emacs.d
 ```
 
 All external dependency sources are explicitly included under the `elpa/`
@@ -132,6 +133,78 @@ contributors, such as:
 -   [Luca's Literate Config](https://www.lucacambiaghi.com/vanilla-emacs/readme.html)
 
 
+## Getting Emacs {#getting-emacs}
+
+For a while I would try to compile Emacs myself, but installing the whole
+compilation toolchain hasn't been worth it lately, especially on Windows.
+Instead, I've started simply downloading emacs from these sources on each of the
+platforms:
+
+
+### Windows {#windows}
+
+I go to the [pretest FTP](https://alpha.gnu.org/gnu/emacs/pretest/windows/emacs-29/) to get the latest version of Emacs.  Usually not quite
+up-to-date with the master branch, but still one version number ahead of the
+most recent official release.
+
+
+### Mac {#mac}
+
+On macOS, I've had the best luck with [jimeh's nightly builds](https://github.com/jimeh/emacs-builds/releases).  These Emacs.app
+bundles have no external dependencies, signed with a developer certificate, and
+notarized by Apple, so it _just works_.  Even without administrator permissions,
+you can drag the bundle to the "Applications" folder under your user home
+instead, and Emacs still works beautifully.
+
+In particular, this feature has saved me a lot of headaches that I ran into
+compiling Emacs on my own:
+
+> Emacs.app is signed with a developer certificate and notarized by Apple.
+
+Very nice!
+
+
+### Linux {#linux}
+
+Depending on the machine, I get Emacs one of several ways in a GNU/Linux setup.
+These rank from highest to lowest priority:
+
+1.  Through my system package manager, such as `sudo apt-get install emacs` or `pacman -S emacs`
+2.  Through the [official FTP](https://ftp.gnu.org/gnu/emacs/)
+3.  Through the [pretest FTP](https://alpha.gnu.org/gnu/emacs/pretest/windows/emacs-29/)
+4.  Through [condax](https://github.com/mariusvniekerk/condax)
+5.  Compiling it myself
+
+
+#### Compiling {#compiling}
+
+If I do ever want to compile it myself, these are the options I use, making sure
+to export the correct `CC` and `GCC` variables:
+
+```shell
+git clone git://git.savannah.gnu.org/emacs.git --branch emacs-29 --depth 1
+export CC=/usr/bin/gcc-10 CXX=/usr/bin/gcc-10
+./autogen.sh
+./configure \
+  --prefix=/c/emacs-29 \
+  --with-native-compilation \
+  --with-tree-sitter \
+  --with-gnutls \
+  --with-jpeg \
+  --with-png \
+  --with-rsvg \
+  --with-tiff \
+  --with-wide-int \
+  --with-xft \
+  --with-xml2 \
+  --with-xpm \
+  --without-dbus \
+  --without-pop
+make --jobs=$(nproc)
+sudo make install
+```
+
+
 ## Header {#header}
 
 To comply with the Emacs [conventions for libraries](https://www.gnu.org/software/emacs/manual/html_node/elisp/Library-Headers.html), the tangled init.el must
@@ -158,13 +231,45 @@ have the following header and [footer:](#footer)
 
 ## Custom {#custom}
 
-I prefer having custom modify its own file.  This next snippet ensures any
+I prefer having `custom` modify its own file.  This next snippet ensures any
 `package-install` or `custom` edits go to `custom.el`.
 
 ```emacs-lisp
 (setq custom-file (expand-file-name "custom.el" user-emacs-directory))
 (when (file-exists-p custom-file)
   (load custom-file 'noerror))
+```
+
+
+## Proxy settings {#proxy-settings}
+
+When behind a corporate proxy, we might have to authenticate before we can pull
+packages off MELPA or ELPA.  Emacs only uses the HOST and PORT portions of the
+`http_proxy` and `https_proxy` environment variables, so we need to set LOGIN (user
+id) and PASSWORD ourselves.
+
+I store the login, port, and host variables in a `proxy.el` file (obviously
+outside version control) when I'm on a machine that's behind an http proxy.  We
+grab the password interactively when such a file exists.
+
+```emacs-lisp
+(defun renz/enable-proxy ()
+  (interactive)
+  "Turn on HTTP proxy."
+  (let ((proxy-file (expand-file-name "proxy.el" user-emacs-directory)))
+    (when (file-exists-p proxy-file)
+      (load-file proxy-file)
+      (setq url-proxy-services
+            '(("no_proxy" . "^\\(localhost\\|10.*\\)")
+              ("http" . (concat renz/proxy-host ":" renz/proxy-port))
+              ("https" . (concat renz/proxy-host ":" renz/proxy-port))))
+      (setq url-http-proxy-basic-auth-storage
+            (list
+             (list
+              (concat renz/proxy-host ":" renz/proxy-port)
+              (cons renz/proxy-login
+                    (base64-encode-string
+                     (concat renz/proxy-login ":" (password-read "Proxy password: "))))))))))
 ```
 
 
@@ -223,103 +328,6 @@ There are also a few hand-made packages I keep around in a special
 
 ### Microsoft Windows {#microsoft-windows}
 
-
-#### Compiling Emacs {#compiling-emacs}
-
-Compiling Emacs on Windows can be a bit of a pain, but it’s mostly the same as
-on \*nix.  First, I use [MSYS2-MinGW](https://www.msys2.org/) to compile everything. From the MinGW
-terminal (NOT the plain MSYS2 one), I install all of these dependencies.
-
-```shell
-pacman -Su \
-        autoconf \
-        autogen \
-        automake \
-        automake-wrapper \
-        diffutils \
-        git \
-        guile \
-        libgc \
-        libguile \
-        libltdl \
-        libunistring \
-        make \
-        texinfo \
-        mingw-w64-x86_64-binutils \
-        mingw-w64-x86_64-bzip2 \
-        mingw-w64-x86_64-cairo \
-        mingw-w64-x86_64-crt-git \
-        mingw-w64-x86_64-dbus \
-        mingw-w64-x86_64-expat \
-        mingw-w64-x86_64-fontconfig \
-        mingw-w64-x86_64-freetype \
-        mingw-w64-x86_64-gcc \
-        mingw-w64-x86_64-gcc-libs \
-        mingw-w64-x86_64-gdk-pixbuf2 \
-        mingw-w64-x86_64-gettext \
-        mingw-w64-x86_64-giflib \
-        mingw-w64-x86_64-glib2 \
-        mingw-w64-x86_64-gmp \
-        mingw-w64-x86_64-gnutls \
-        mingw-w64-x86_64-harfbuzz \
-        mingw-w64-x86_64-headers-git \
-        mingw-w64-x86_64-imagemagick \
-        mingw-w64-x86_64-isl \
-        mingw-w64-x86_64-libffi \
-        mingw-w64-x86_64-libgccjit \
-        mingw-w64-x86_64-libiconv \
-        mingw-w64-x86_64-libjpeg-turbo \
-        mingw-w64-x86_64-libpng \
-        mingw-w64-x86_64-librsvg \
-        mingw-w64-x86_64-libtiff \
-        mingw-w64-x86_64-libwebp \
-        mingw-w64-x86_64-libwinpthread-git \
-        mingw-w64-x86_64-libxml2 \
-        mingw-w64-x86_64-mpc \
-        mingw-w64-x86_64-mpfr \
-        mingw-w64-x86_64-pango \
-        mingw-w64-x86_64-pixman \
-        mingw-w64-x86_64-winpthreads \
-        mingw-w64-x86_64-xpm-nox \
-        mingw-w64-x86_64-lcms2 \
-        mingw-w64-x86_64-xz \
-        mingw-w64-x86_64-zlib \
-        mingw-w64-x86_64-tree-sitter \
-        tar \
-        wget
-```
-
-Then, the configure scripts:
-
-```shell
-./autogen.sh
-./configure \
-    --prefix=/c/emacs-29 \
-    --with-native-compilation \
-    --with-tree-sitter \
-    --with-gnutls \
-    --with-jpeg \
-    --with-png \
-    --with-rsvg \
-    --with-tiff \
-    --with-wide-int \
-    --with-xft \
-    --with-xml2 \
-    --with-xpm \
-    --without-dbus \
-    --without-pop
-```
-
-And finally the command to compile:
-
-```shell
-make --jobs=$(NPROC)
-sudo make install
-```
-
-
-#### Configuration {#configuration}
-
 Windows, funnily enough, has some trouble registering the Windows key as a
 usable modifier for Emacs.  In fact, `s-l` will _never_ be an option, since it's
 handled at the hardware level.  I also add a few nice-to-haves, like setting the
@@ -332,10 +340,6 @@ with `msys64`.
   (memq system-type '(windows-nt cygwin ms-dos)))
 
 (when (renz/windowsp)
-  ;; Set a font that supports emoji
-  (set-fontset-font t 'unicode (font-spec :family "Segoe UI Emoji") nil 'prepend)
-  (set-face-attribute 'default nil :font "Hack NF-12")
-
   ;; Alternate ispell when we've got msys on Windows
   (setq ispell-program-name "aspell.exe"))
 ```
@@ -361,23 +365,7 @@ the terminal emulator, I've mostly given up on the GUI key in favor of other
 chords, especially the `C-c` ones.
 
 
-#### A note on TreeSitter {#a-note-on-treesitter}
-
-When compiling tree-sitter dll's with `treesit-install-language-grammar`, I also
-need to launch Emacs via `runemacs.exe` from the MinGW terminal to ensure the C
-and C++ compilers are both visible and usable.
-
-
 ### macOS {#macos}
-
-
-#### Installing Emacs {#installing-emacs}
-
-On macOS, I've had the best luck with [jimeh's nightly builds](https://github.com/jimeh/emacs-builds/releases).  These Emacs.app
-bundles have no external dependencies, signed with a developer certificate, and
-notarized by Apple, so it _just works_.  Even without administrator permissions,
-you can drag the bundle to the "Applications" folder under your user home
-instead, and Emacs still works beautifully.
 
 
 #### Configuration {#configuration}
@@ -389,23 +377,28 @@ won't capture any modifications to `$PATH`, typically handled in a file like
 
 ```emacs-lisp
 (when (eq system-type 'darwin)
-  ;; Uncomment this if we can't install Hack Nerd font
-  ;; (set-face-attribute 'default nil :font "Menlo-14")
-  (set-face-attribute 'default nil :font "Hack Nerd Font Mono-13")
   (setq exec-path-from-shell-arguments '("-l"))
   (exec-path-from-shell-initialize))
 ```
 
 
-### Linux {#linux}
+## Font {#font}
 
-Very little to do here.  Emacs on Linux seems to "just work".  When I have the
-Hack font installed, I sometimes turn it on by manually evaluating this block,
-though.
+Fonts are a tricky business.  They render differently depending on what computer
+I'm using, and I can't always have my favorite fonts installed everywhere.
+Moreover, I can't expect everyone who might want to try out this configuration
+to use the same fonts I do, so they are an optional thing.  If a file
+`~/.emacs.d/font.el` exists, then this section will simply read it and apply
+whatever settings are there.
 
 ```emacs-lisp
-(set-face-attribute 'default nil :font "Hack Nerd Font Mono-11")
+(let ((font-file (expand-file-name "font.el" user-emacs-directory)))
+  (when (file-exists-p font-file)
+    (load-file font-file)))
 ```
+
+Typically I'll have a per-os font configuration in there.  [Check out what I've
+done here!](https://github.com/renzmann/.emacs.d/blob/main/font.el)
 
 
 ## Theme {#theme}
@@ -425,9 +418,9 @@ light of the room I'm in.
   :init
   (setq ef-themes-headings
         '((0 . (1.9))
-          (1 . (1.3))
-          (2 . (1.2))
-          (3 . (1.1))
+          (1 . (1.1))
+          (2 . (1.0))
+          (3 . (1.0))
           (4 . (1.0))
           (5 . (1.0)) ; absence of weight means `bold'
           (6 . (1.0))
@@ -453,15 +446,6 @@ I LOVE these themes from `ef-themes`:
 I've mostly settled on `ef-cherie`, but sometimes switch to the others above.
 
 
-### Gave up on Nord {#gave-up-on-nord}
-
-It's worth mentioning that I've tried [nord-theme](https://www.nordtheme.com/ports/emacs/) a couple times and found that
-the legibility or contrast wasn't quite good enough in some modes.  Though I
-still employ Nord for my terminal config in Alacritty and Kitty, where it looks
-_excellent_.  I also still actively use the [nordfox](https://github.com/EdenEast/nightfox.nvim) theme in Neovim, which sports
-a beautiful TreeSitter integration.
-
-
 ### Messed up colors in TTY mode {#messed-up-colors-in-tty-mode}
 
 In TTY mode, I use [kitty](https://sw.kovidgoyal.net/kitty/).  I have had trouble with dark blue or red themes in
@@ -472,14 +456,39 @@ Kitty for me, I haven't spent too much time looking into it.
 
 ## Emacs' Built-in Settings {#emacs-built-in-settings}
 
-My settings for base Emacs.  Assuming I ran with _no_ plugins (ala `emacs -Q`), I
-would still set most of these by hand at one point or another.
+My settings for base Emacs behavior.  Assuming I ran with _no_ plugins (ala `emacs
+-Q`), I would still set most of these by hand at one point or another.  This
+section is designed for variables that modify Emacs and its editing behavior
+directly.  Configuation for built-in tools, such as Dired, Tramp, and
+Tree-sitter are located under [Tool configuration](#tool-configuration).
+
+
+### Stop stupid bell {#stop-stupid-bell}
+
+This snippet has a special place in my heart, because it was the first two lines
+of elisp I wrote when first learning Emacs.
+
+```emacs-lisp
+;; Stop stupid bell
+(setq ring-bell-function 'ignore)
+```
+
+The bell is really, _really_ annoying.
 
 
 ### Start a server for `emacsclient` {#start-a-server-for-emacsclient}
 
 ```emacs-lisp
 (server-start)
+```
+
+
+### So long and thanks for all the fish {#so-long-and-thanks-for-all-the-fish}
+
+Prevents hanging when visiting files with extremely long lines.
+
+```emacs-lisp
+(global-so-long-mode t)
 ```
 
 
@@ -518,16 +527,6 @@ and a dimmed mode line in non-selected windows.
 ```emacs-lisp
 (setq column-number-mode t
       mode-line-in-non-selected-windows t)
-```
-
-
-### `eldoc` {#eldoc}
-
-I find it very distracting when `eldoc` suddenly pops up and consumes a large part
-of the screen for docstrings in python.
-
-```emacs-lisp
-(setq eldoc-echo-area-use-multiline-p nil)
 ```
 
 
@@ -687,6 +686,32 @@ intend when I'm trying to get a window to display a specific buffer.
   (setq switch-to-buffer-obey-display-actions t))
 ```
 
+From the same article, I'm experimenting with some buffers appearing in a
+specific "side bar" location.  However this can have unintended consequences,
+like the window becoming unselectable or getting reused by magit when I didn't
+want it to.
+
+```emacs-lisp
+;; left, top, right, bottom
+(setq window-sides-slots '(0 0 1 1))
+
+(add-to-list 'display-buffer-alist
+          `(,(rx (| "*compilation*" "*grep*"))
+            display-buffer-in-side-window
+            (side . bottom)
+            (slot . 0)
+            (window-parameters . ((no-delete-other-windows . t)))
+            (window-width . 80)))
+
+(setq compilation-window-height 20)
+
+(add-to-list 'display-buffer-alist
+  '("\\*e?shell\\*" display-buffer-in-direction
+    (direction . bottom)
+    (window . root)
+    (window-height . 0.3)))
+```
+
 
 ### Automatically update buffers when contents change on disk {#automatically-update-buffers-when-contents-change-on-disk}
 
@@ -711,17 +736,12 @@ Add a faint background highlight to the line we're editing.
 ```
 
 
-### Stop stupid bell {#stop-stupid-bell}
-
-This snippet has a special place in my heart, because it was the first two lines
-of elisp I wrote when first learning Emacs.
+### Always turn on flymake in prog mode {#always-turn-on-flymake-in-prog-mode}
 
 ```emacs-lisp
-;; Stop stupid bell
-(setq ring-bell-function 'ignore)
+(add-hook 'prog-mode-hook #'flymake-mode)
+;; (add-hook 'prog-mode-hook #'flyspell-prog-mode)
 ```
-
-The bell is really, _really_ annoying.
 
 
 ### Automatically create matching parens in programming modes {#automatically-create-matching-parens-in-programming-modes}
@@ -729,6 +749,13 @@ The bell is really, _really_ annoying.
 ```emacs-lisp
 (add-hook 'prog-mode-hook (electric-pair-mode t))
 (add-hook 'prog-mode-hook (show-paren-mode t))
+```
+
+
+### Shorten yes/no prompts to y/n {#shorten-yes-no-prompts-to-y-n}
+
+```emacs-lisp
+(setq use-short-answers t)
 ```
 
 
@@ -741,6 +768,15 @@ check for mixed tabs, spaces, and line endings.
 
 ```emacs-lisp
 (add-hook 'before-save-hook 'delete-trailing-whitespace)
+```
+
+
+### Killing buffers with a running process {#killing-buffers-with-a-running-process}
+
+```emacs-lisp
+(setq kill-buffer-query-functions
+  (remq 'process-kill-buffer-query-function
+         kill-buffer-query-functions))
 ```
 
 
@@ -843,14 +879,27 @@ From an [Emacs stackexchange](https://emacs.stackexchange.com/a/44604) answer.
 ```
 
 
-### Prefer `rg` and `fd` over `grep` and `find` {#prefer-rg-and-fd-over-grep-and-find}
+### Prefer `rg` over `grep` {#prefer-rg-over-grep}
 
 ```emacs-lisp
+(require 'grep)
 (when (executable-find "rg")
-  (setq grep-program "rg"))
+  (setq grep-program "rg")
+  (grep-apply-setting
+   'grep-find-command
+   '("rg -n -H --no-heading -e '' $(git rev-parse --show-toplevel || pwd)" . 27)))
+```
 
-(when (executable-find "fd")
-  (setq find-program "fd"))
+
+### Shorter file paths in grep/compilation buffers {#shorter-file-paths-in-grep-compilation-buffers}
+
+This is an older, unmaintained file that throws a few warnings.  Let's clean
+that up sometime.
+
+```emacs-lisp
+(use-package scf-mode
+  :load-path "site-lisp"
+  :hook (grep-mode . (lambda () (scf-mode 1))))
 ```
 
 
@@ -917,20 +966,6 @@ I'll uncomment the second part.
 
 ## Keybindings {#keybindings}
 
-Eventually, some of the custom functions that I bound to convenient keys had a
-logical abstraction, which I extract and put up here for them to use.
-
-```emacs-lisp
-(defun renz/--jump-section (dirname prompt extension)
-  "Jump to a section of my configuration.
-Asks for a file under `DIRNAME' using `PROMPT' in the user Emacs
-config site with matching `EXTENSION' regexp."
-  (find-file
-   (concat dirname
-           (completing-read prompt
-                            (directory-files dirname nil extension)))))
-```
-
 
 ### Expanded/better defaults {#expanded-better-defaults}
 
@@ -972,8 +1007,8 @@ next/previous on easy to reach chords.
 ```emacs-lisp
 (use-package flymake
   :bind (:map flymake-mode-map
-         ("M-n" . flymake-goto-next-error)
-         ("M-p" . flymake-goto-prev-error)))
+         ("C-c n" . flymake-goto-next-error)
+         ("C-c p" . flymake-goto-prev-error)))
 ```
 
 When using `isearch` to jump to things, it's sometimes convenient to re-position
@@ -1022,12 +1057,43 @@ somewhere else.
 ```
 
 
-#### `C-c d` jump to a tag {#c-c-d-jump-to-a-tag}
+#### `C-c c` Calendar {#c-c-c-calendar}
+
+```emacs-lisp
+(global-set-key (kbd "C-c c") #'calendar)
+```
+
+
+#### `C-c d` Navigating to symbols using old-school TAGS {#c-c-d-navigating-to-symbols-using-old-school-tags}
+
+Before the whole language server revolution, we had TAGS files for caching the
+location of symbol definitions.  `etags` comes with Emacs, and combining some
+clever use of `find` with it can render a pretty good symbol search experience.
+To generate the TAGS file, I usually have something similar to this in each
+project's `Makefile`:
+
+```makefile
+TAGS:
+        find . -type d -name ".venv" -prune \
+                -o -type d -name ".ipynb_checkpoints" -prune \
+                -o -type d -name ".node_modules" -prune \
+                -o -type d -name "elpa" -prune \
+                -o -type f -name "*.py" -print \
+                -o -type f -name "*.sql" -print \
+                -o -type f -name "*.el" -print \
+                | etags -
+```
+
+Then, `M-x project-compile RET make TAGS` builds a tags table.  At which point, I
+can use `tags-completion-table` to build a list of symbols I can navigate to with
+completion, with just a little help from `xref-find-definitions`.
 
 ```emacs-lisp
 (defun renz/find-tag ()
   "Use `completing-read' to navigate to a tag."
   (interactive)
+  (require 'etags)
+  (tags-completion-table)
   (xref-find-definitions (completing-read "Find tag: " tags-completion-table)))
 
 (global-set-key (kbd "C-c d") #'renz/find-tag)
@@ -1046,12 +1112,19 @@ somewhere else.
 ```emacs-lisp
 (setq renz/site-lisp-dir (expand-file-name "site-lisp/" user-emacs-directory))
 
+(defun renz/--jump-section (dirname prompt extension)
+  "Jump to a section of my configuration.
+Asks for a file under `DIRNAME' using `PROMPT' in the user Emacs
+config site with matching `EXTENSION' regexp."
+  (find-file
+   (concat dirname
+           (completing-read prompt
+                            (directory-files dirname nil extension)))))
+
 (defun renz/jump-configuration ()
   "Prompt for a .el file in my site-lisp folder, then go there."
   (interactive)
-  (renz/--jump-section renz/site-lisp-dir
-                       "Elisp config files: "
-                       ".*\.el$"))
+  (renz/--jump-section renz/site-lisp-dir "Elisp config files: " ".*\.el$"))
 
 (defun renz/jump-init ()
   "Jump directly to my literate configuration document."
@@ -1128,10 +1201,23 @@ somewhere else.
 ```
 
 
-#### `C-c v` open thing at point in browser {#c-c-v-open-thing-at-point-in-browser}
+#### `C-c v` faster git-commit {#c-c-v-faster-git-commit}
 
 ```emacs-lisp
-(global-set-key (kbd "C-c v") #'browse-url-at-point)
+(defun renz/git-commit ()
+  (interactive)
+  (vc-next-action nil)
+  (log-edit-show-diff)
+  (other-window 1))
+
+(global-set-key (kbd "C-c v") #'renz/git-commit)
+```
+
+
+#### `C-c V` open thing at point in browser {#c-c-v-open-thing-at-point-in-browser}
+
+```emacs-lisp
+(global-set-key (kbd "C-c V") #'browse-url-at-point)
 ```
 
 
@@ -1145,7 +1231,6 @@ somewhere else.
 #### `C-c` Other bindings {#c-c-other-bindings}
 
 ```emacs-lisp
-(global-set-key (kbd "C-c ;") #'comment-line)  ; TTY-friendly
 (global-set-key (kbd "C-c <DEL>") #'backward-kill-sexp)  ;; TTY-frindly
 (global-set-key (kbd "C-c <SPC>") #'mark-sexp)  ;; TTY-friendly
 ```
@@ -1158,6 +1243,13 @@ though there are few of these keys, I tend to forget which is which.  So I wind
 up using things bound to my `C-c` keymaps instead.  The `C-c` kyes from a more
 natural, nested language in my head, so it feels more like I'm "speaking Emacs"
 that way.
+
+
+### Super bindings {#super-bindings}
+
+```emacs-lisp
+(global-set-key (kbd "s-p") #'project-switch-project)
+```
 
 
 ## Text Completion {#text-completion}
@@ -1299,144 +1391,54 @@ I'd much prefer to use the easier and more intuitive `TAB`.
 (setq tab-always-indent 'complete)
 ```
 
-Again, we set `C-n` and `C-p` when completion-in-region is active for selecting
-candidates.
+
+### `corfu` and `vertico` {#corfu-and-vertico}
+
+When I was using `corfu` and `vertico`, I did some hacking on it to optimize for
+`orderless`, as well as some "tab-n-go" style configuration.
 
 ```emacs-lisp
-(unless (version< emacs-version "29.0")
-  (define-key completion-in-region-mode-map (kbd "C-p") #'minibuffer-previous-completion)
-  (define-key completion-in-region-mode-map (kbd "C-n") #'minibuffer-next-completion))
-```
-
-
-## Tramp {#tramp}
-
-Tramp (Transparent Remote Access Multiple Protocol) allows us to access files on
-a remote machine, and edit them locally.  This is great for simple changes or
-quickly testing out some Python on a VM somewhere.  It isn't as snappy as using
-the TTY version or an X-forwarded Emacs from the server directly, so if I _can_
-set up Emacs remotely, I usually do.  When I don't want to or don't have the
-time, Tramp is a godsend.  There are, however, many foibles to guard against,
-particularly with how interacts with version control and `.dir-locals`.  The
-Tramp manual (distributed with Emacs) recommends adjusting these for some speed
-improvements:
-
-```emacs-lisp
-(use-package tramp
-  :defer t
+(use-package corfu
+  :load-path "site-lisp/corfu"
+  :disabled t
+  :demand t
+  :bind
+  (:map corfu-map
+        ;; ("SPC" . corfu-insert-separator)
+        ("TAB" . corfu-next)
+        ([tab] . corfu-next)
+        ("S-TAB" . corfu-previous)
+        ([backtab] . corfu-previous))
+  :custom
+  (corfu-auto t)
+  (corfu-auto-delay 0)
+  (corfu-auto-prefix 0)
+  (completion-styles '(orderless-fast))
   :config
-  (setq vc-handled-backends '(Git)
-        file-name-inhibit-locks t
-        tramp-inline-compress-start-size 1000
-        tramp-copy-size-limit 10000
-        tramp-verbose 1)
-  (add-to-list 'tramp-remote-path 'tramp-own-remote-path))
-```
+  (defun corfu-enable-in-minibuffer ()
+    "Enable Corfu in the minibuffer if `completion-at-point' is bound."
+    (when (where-is-internal #'completion-at-point (list (current-local-map)))
+      (setq-local corfu-auto nil) ;; Enable/disable auto completion
+      (setq-local corfu-echo-delay nil ;; Disable automatic echo and popup
+                  corfu-popupinfo-delay nil)
+      (corfu-mode 1)))
 
-eglot is [actively working](https://github.com/joaotavora/eglot/issues/859) on an issue related to timers causing a "Forbidden
-reentrant call of Tramp" message and freezing.  In the meantime, this setting
-was recommended.
+  (defun orderless-fast-dispatch (word index total)
+    (and (= index 0) (= total 1) (length< word 4)
+         `(orderless-regexp . ,(concat "^" (regexp-quote word)))))
 
-```emacs-lisp
-(setq tramp-use-ssh-controlmaster-options nil)
-```
+  (orderless-define-completion-style orderless-fast
+    (orderless-style-dispatchers '(orderless-fast-dispatch))
+    (orderless-matching-styles '(orderless-literal orderless-regexp)))
 
-For some time I was having a lot of trouble with prohibitive slowness over
-Tramp, and after careful scrutiny of the logs on (I believe) `tramp-verbose 6`, I
-found out that enabling remote dir-locals was causing a huge bottleneck.  On
-every operation it would trace up the filesystem tree back to the root
-directory, scanning for a `.dir-locals` file.  Since some of the drives were
-network-mounted, this caused thousands of network calls per file operation,
-obviously slowing things down a lot.  Because of this, I've opted to simply
-disable `.dir-locals` over Tramp entirely, since I don't really use it much, if at
-all.
+  (add-hook 'minibuffer-setup-hook #'corfu-enable-in-minibuffer)
+  (global-corfu-mode))
 
-```emacs-lisp
-;; (setq enable-remote-dir-locals t)
-```
-
-[Disabling VC](https://www.gnu.org/software/emacs/manual/html_node/tramp/Frequently-Asked-Questions.html) _does_ seem to speed things up a little, but it's not an acceptable
-thing to put in, since I so frequently use VC over tramp.  Fully disabling VC
-would include this snippet:
-
-```emacs-lisp
-(remove-hook 'find-file-hook 'vc-find-file-hook)
-
-(setq vc-ignore-dir-regexp
-      (format "\\(%s\\)\\|\\(%s\\)"
-              vc-ignore-dir-regexp
-              tramp-file-name-regexp))
-```
-
-Additionally, these came up as other potential options [from the doom-emacs
-issues](https://github.com/doomemacs/doomemacs/issues/3909), which I do not currently include.
-
-```emacs-lisp
-(setq tramp-default-method "scp")
-(setq projectile--mode-line "Projectile")
-```
-
-I often need to set these in ~/.ssh/config for TRAMP to speed up
-
-```text
-Host *
-     ControlMaster auto
-     ControlPath ~/.ssh/master-%h:%p
-     ControlPersist 10m
-     ForwardAgent yes
-     ServerAliveInterval 60
-```
-
-
-## TreeSitter {#treesitter}
-
-
-#### About TreeSitter and its Load Paths {#about-treesitter-and-its-load-paths}
-
-Emacs 29 added native [TreeSitter](https://tree-sitter.github.io/tree-sitter/) support.  TreeSitter is a new way of
-incrementally parsing source code that offers superior navigation and syntax
-highlighting.  To fully realize this benefit, however, it requires that we
-install `tree-sitter` grammars independently from Emacs.  Right now, I'm using
-[casouri's modules](https://github.com/casouri/tree-sitter-module), which I build and install under `~/.emacs.d/tree-sitter`, if
-they don't already exist under `/usr/local/lib/` or `~/.local/lib`.  In case of the
-latter, I just add extra paths to `treesit-extra-load-path` explicitly.
-
-```emacs-lisp
-(when (boundp 'treesit-extra-load-path)
-  (add-to-list 'treesit-extra-load-path "/usr/local/lib/")
-  (add-to-list 'treesit-extra-load-path "~/.local/lib/"))
-```
-
-For the full instructions, the commit history of adding the `tree-sitter` modules
-to Emacs included a [full guide](https://git.savannah.gnu.org/cgit/emacs.git/plain/admin/notes/tree-sitter/starter-guide?h=feature/tree-sitter), which can be read in Info under "Parsing Program
-Source".
-
-```text
-C-h i d m elisp RET g Parsing Program Source RET
-```
-
-Enabling TreeSitter is done on a per-language basis to override the default
-major mode with the corresponding TreeSitter version.
-
-
-#### Automatically Using TreeSitter Modes {#automatically-using-treesitter-modes}
-
-We will have to wait until Emacs 30+ for automatic fallback.  Until then, the
-[recommended workaround](https://archive.casouri.cc/note/2023/tree-sitter-in-emacs-29/index.html) is to derive a mode that picks between them.  Instead,
-I'm hoping I can abuse the new `major-mode-remap-alist` instead.
-
-```emacs-lisp
-(use-package treesit-auto
-  :demand t)
-```
-
-
-#### Ooo, aaah, shiny colors {#ooo-aaah-shiny-colors}
-
-I like to program "in Skittles":
-
-```emacs-lisp
-(setq-default treesit-font-lock-level 4)
+(use-package vertico
+  :load-path "site-lisp/vertico"
+  :disabled t
+  :config
+  (vertico-mode))
 ```
 
 
@@ -1451,10 +1453,6 @@ I like to program "in Skittles":
   (setq tab-width 8))
 
 (add-hook 'sh-mode-hook #'renz/sh-indentation)
-
-;; When the interpreter is explicitly set to "bash", use the TreeSitter mode if
-;; we can
-(add-to-list 'interpreter-mode-alist '("r?bash2?" . bash-ts-or-fallback-mode))
 ```
 
 
@@ -1462,7 +1460,6 @@ I like to program "in Skittles":
 
 ```emacs-lisp
 (setq css-indent-offset 2)
-(add-to-list 'auto-mode-alist '("\\.css\\'" . css-ts-or-fallback-mode))
 ```
 
 For validation, grab [css-validator.jar](https://github.com/w3c/css-validator/releases/download/cssval-20220105/css-validator.jar) and execute it with java:
@@ -1475,7 +1472,7 @@ java -jar ~/.local/jars/css-validator.jar file:///home/me/my/site/index.html
 ### Org-mode {#org-mode}
 
 ```emacs-lisp
-(setq renz/org-home "~/org/")
+(setq renz/org-home "~/.emacs.d/org/")
 ```
 
 `org-mode` provides `org-babel-tangle-jump-to-org`, which jumps back to an Org
@@ -1515,11 +1512,16 @@ interfering with the beautification features from `org-modern`.  Preferring the
 latter over the former, I've removed the `org-startup-indented` call.
 
 ```emacs-lisp
+(defun renz/list-files-with-absolute-path (directory)
+  "Return a list of files in DIRECTORY with their absolute paths."
+  (cl-remove-if-not #'file-regular-p (directory-files directory t ".*\.org$")))
+
 (use-package org
   :hook
   ((org-mode . (lambda () (progn
                             (add-hook 'after-save-hook #'org-babel-tangle :append :local)
-                            (add-hook 'org-babel-after-execute-hook #'renz/display-ansi-colors)))))
+                            (add-hook 'org-babel-after-execute-hook #'renz/display-ansi-colors)
+                            (setq indent-tabs-mode nil)))))
 
   :init
   (defun renz/jump-org ()
@@ -1539,7 +1541,7 @@ latter over the former, I've removed the `org-startup-indented` call.
 
   :custom
   (org-image-actual-width nil "Enable resizing of images")
-  (org-agenda-files (list (expand-file-name "work.org" renz/org-home)) "Sources for Org agenda view")
+  (org-agenda-files (renz/list-files-with-absolute-path renz/org-home) "Sources for Org agenda view")
   (org-html-htmlize-output-type nil "See C-h f org-html-htmlize-output-type")
   (org-confirm-babel-evaluate nil "Don't ask for confirmation when executing src blocks")
   (org-edit-src-content-indentation 2 "Indent all src blocks by this much")
@@ -1554,8 +1556,9 @@ latter over the former, I've removed the `org-startup-indented` call.
      (python . t)
      (sql . t)
      (shell . t)
+     (R . t)
      ;; (fortran . t)
-     ;; (julia . t)
+     (julia . t)
      ;; (jupyter . t)
      ;; (scheme . t)
      ;; (haskell . t)
@@ -1567,6 +1570,18 @@ latter over the former, I've removed the `org-startup-indented` call.
      ;; (awk . t)
      ;; (latex . t)
      )))
+```
+
+
+#### Org babel {#org-babel}
+
+For literate programming.  `ob-async` allows us to execute a block without waiting for it to finish.
+
+```emacs-lisp
+(use-package ob-async
+  :after org
+  :config
+  (setq ob-async-no-async-languages-alist '("ipython" "python")))
 ```
 
 
@@ -1650,31 +1665,119 @@ I use a small external dependency for this:
 ### SQL {#sql}
 
 
+#### DDL is SQL {#ddl-is-sql}
+
+```emacs-lisp
+(add-to-list 'auto-mode-alist '("\\.ddl\\'" . sql-mode))
+(add-to-list 'auto-mode-alist '("\\.bql\\'" . sql-mode))
+```
+
+
+#### Indentation {#indentation}
+
+Vanilla Emacs doesn't offer a lot (read: nothing) in terms of making SQL code
+pretty.  I tend to format SQL like this:
+
+```sql
+SELECT
+    whatever,
+    thing
+FROM
+    wherever AS w
+    JOIN the_other AS t ON w.id = t.id
+GROUP BY
+    whatever
+```
+
+The configuration of `sql-indent` below achieves that nicely when using `RET` and
+`TAB` for formatting.
+
+```emacs-lisp
+(defun renz/sql-mode-hook ()
+  (setq tab-width 4))
+
+(defvar renz/sql-indentation-offsets-alist
+  '((syntax-error sqlind-report-sytax-error)
+    (in-string sqlind-report-runaway-string)
+    (comment-continuation sqlind-indent-comment-continuation)
+    (comment-start sqlind-indent-comment-start)
+    (toplevel 0)
+    (in-block +)
+    (in-begin-block +)
+    (block-start 0)
+    (block-end 0)
+    (declare-statement +)
+    (package ++)
+    (package-body 0)
+    (create-statement +)
+    (defun-start +)
+    (labeled-statement-start 0)
+    (statement-continuation +)
+    (nested-statement-open sqlind-use-anchor-indentation +)
+    (nested-statement-continuation sqlind-use-previous-line-indentation)
+    (nested-statement-close sqlind-use-anchor-indentation)
+    (with-clause sqlind-use-anchor-indentation)
+    (with-clause-cte +)
+    (with-clause-cte-cont ++)
+    (case-clause 0)
+    (case-clause-item sqlind-use-anchor-indentation +)
+    (case-clause-item-cont sqlind-right-justify-clause)
+    (select-clause 0)
+    (select-column sqlind-indent-select-column)
+    (select-column-continuation sqlind-indent-select-column +)
+    (select-join-condition ++)
+    (select-table sqlind-indent-select-table)
+    (select-table-continuation sqlind-indent-select-table +)
+    (in-select-clause sqlind-lineup-to-clause-end sqlind-right-justify-logical-operator)
+    (insert-clause 0)
+    (in-insert-clause sqlind-lineup-to-clause-end sqlind-right-justify-logical-operator)
+    (delete-clause 0)
+    (in-delete-clause sqlind-lineup-to-clause-end sqlind-right-justify-logical-operator)
+    (update-clause 0)
+    (in-update-clause sqlind-lineup-to-clause-end sqlind-right-justify-logical-operator)))
+
+(defun renz/sql-indentation-offsets ()
+  (setq sqlind-indentation-offsets-alist
+        renz/sql-indentation-offsets-alist)
+  (setq sqlind-basic-offset 4))
+
+(use-package sql-indent
+  :hook (sqlind-minor-mode . renz/sql-indentation-offsets))
+
+(use-package sql-mode
+  :hook ((sql-mode . renz/sql-mode-hook)
+         (sql-mode . sqlup-mode)
+         (sql-mode . sqlind-minor-mode)))
+```
+
+
 #### Interactive `hive2` mode {#interactive-hive2-mode}
 
 ```emacs-lisp
 (use-package hive2
   :load-path "site-lisp/"
-  :after (sql)
+  :demand t
   :mode ("\\.hql" . sql-mode))
 ```
 
-<!--list-separator-->
 
-- <span class="org-todo todo TODO">TODO</span>  sql-formatter
+#### Interactive `bq shell` {#interactive-bq-shell}
 
-    I've modified [sqlformat](https://github.com/purcell/sqlformat) for use with [sql-formatter](https://www.npmjs.com/package/sql-formatter), but I need to find a way to
-    pass in a JSON of configuration values to the command line interface when we
-    call it.
+The SQL interactive commands are looking for a single executable file, so let's
+set that up somewhere common.
 
-    ```emacs-lisp
-    (use-package sqlformat
-      :after (sql))
-    ```
+```shell
+#!/usr/bin/env sh
+bq shell "$@"
+```
 
-    When I get to it, I think what I'll do instead is rewrite this to simply pipe
-    the current buffer into `sql-formatter`, and use a bit of elisp to determine whether
-    a `.sql-formatter-config.json` exists in the VC root directory.
+Then enable the BQ product.
+
+```emacs-lisp
+(use-package bq
+  :load-path "site-lisp"
+  :demand t)
+```
 
 
 #### BigQuery `sql` Blocks in Org-Babel {#bigquery-sql-blocks-in-org-babel}
@@ -1697,10 +1800,17 @@ with it.
 ```
 
 
+#### BigQuery exception markers {#bigquery-exception-markers}
+
+
 ### Python {#python}
 
+```emacs-lisp
+(add-to-list 'auto-mode-alist '("Pipfile" . toml-ts-mode))
+```
 
-#### Pyright error links in &lowast;compilation&lowast; {#pyright-error-links-in-and-lowast-compilation-and-lowast}
+
+#### Pyright error links in `*compilation*` {#pyright-error-links-in-compilation}
 
 The `M-x compile` feature does not recognize or parse `pyright` error messages out
 of the box, so I add that support myself.  Here's an example error message:
@@ -1737,8 +1847,14 @@ programs exist is a small time saver.
 ```emacs-lisp
 (use-package python
   :config
+  (require 'eglot)
   (setq python-check-command "ruff")
-  (add-hook 'python-mode-hook #'flymake-mode))
+  (add-hook 'python-mode-hook #'flymake-mode)
+  (add-hook 'python-mode-hook #'blacken-mode)
+  (add-hook 'python-ts-mode-hook #'flymake-mode)
+  (add-hook 'python-ts-mode-hook #'blacken-mode)
+  ;; (add-to-list 'eglot-server-programs '((python-mode python-ts-mode) "ruff-lsp"))
+  )
 ```
 
 
@@ -1770,6 +1886,7 @@ make sure that setting the virtualenv root is marked as safe.
 ```emacs-lisp
 (put 'python-check-command 'safe-local-variable #'stringp)
 (put 'python-shell-virtualenv-root 'safe-local-variable #'stringp)
+(put 'pyvenv-default-virtual-env-name 'safe-local-variable #'stringp)
 ```
 
 
@@ -1798,17 +1915,6 @@ server in more than one project at a time, each pointing to its respective
 virtual environment.
 
 
-#### blacken {#blacken}
-
-Formatting a buffer with `black` has never been easier!
-
-```emacs-lisp
-(use-package blacken
-  :bind ("C-c p" . blacken-mode)
-  :after (python))
-```
-
-
 #### Activating Virtual Environments Over Tramp {#activating-virtual-environments-over-tramp}
 
 ```emacs-lisp
@@ -1819,12 +1925,29 @@ Formatting a buffer with `black` has never been easier!
 ```
 
 
-#### Tags - jump to definition the old way {#tags-jump-to-definition-the-old-way}
+#### Pyvenv for virtual environments {#pyvenv-for-virtual-environments}
 
-With `C-x p c` `project-compile`:
+```emacs-lisp
+(use-package pyvenv
+  :init
+  (if (eq system-type 'darwin)
+      (setenv "WORKON_HOME" "~/micromamba/envs/")
+    (setenv "WORKON_HOME" "~/.conda/envs/"))
+  :bind
+  (("C-c p w" . pyvenv-workon))
+  :config
+  (pyvenv-mode))
+```
 
-```text
-find . -name "*.py" -print | etags -
+
+#### <span class="org-todo todo TODO">TODO</span> Executing cell-by-cell {#executing-cell-by-cell}
+
+```emacs-lisp
+(use-package code-cells
+  :hook ((python-mode . code-cells-mode-maybe)
+         (python-ts-mode . code-cells-mode-maybe))
+  :config
+  (add-to-list 'code-cells-eval-region-commands '(python-ts-mode . python-shell-send-region)))
 ```
 
 
@@ -1849,20 +1972,21 @@ I make a lot of spelling mistakes as I type...
 (add-hook 'markdown-mode-hook 'auto-fill-mode)
 ```
 
-`poly-markdown-mode` enables syntax highlighting within code fences for markdown.
+And I like to see language syntax highlighting within code fences.
 
 ```emacs-lisp
-(use-package poly-markdown
-  :after (markdown-mode)
-  :mode ("\\.md" . poly-markdown-mode))
+(setq markdown-fontify-code-blocks-natively t)
 ```
 
 
-### AutoHotkey {#autohotkey}
+### Missing auto-modes {#missing-auto-modes}
+
+These really should already be in `auto-mode-alist`, but aren't for some reason.
 
 ```emacs-lisp
-(use-package ahk-mode
-  :mode "\\.ahk\\'")
+(add-to-list 'auto-mode-alist '("\\.rs\\'" . rust-ts-mode))
+(add-to-list 'auto-mode-alist '("\\.go\\'" . go-ts-mode))
+(add-to-list 'auto-mode-alist '("\\.ts\\'" . typescript-ts-mode))
 ```
 
 
@@ -1876,10 +2000,20 @@ Handy for viewing data quickly.
 ```
 
 
-## Small tool configuration {#small-tool-configuration}
+## Tool configuration {#tool-configuration}
 
-These are tweaks for both third party packages and those bundled with emacs that
-require little configuration and don't warrant a top-level header.
+These are tweaks for self-contained tooling, such as third party packages or
+built-in packages that have a well-defined scope and namespace.
+
+
+### `eldoc` {#eldoc}
+
+I find it very distracting when `eldoc` suddenly pops up and consumes a large part
+of the screen for docstrings in python.
+
+```emacs-lisp
+(setq eldoc-echo-area-use-multiline-p nil)
+```
 
 
 ### `imenu` {#imenu}
@@ -1959,20 +2093,6 @@ Ecosia requires JavaScript, unfortunately.
 ```
 
 
-### change-inner {#change-inner}
-
-Modeled after Vim's `ci`, `ca`, `yi`, and `ya` commands, these let us yank or kill text
-within a "surrounding" delimiter, such as "" or ().
-
-```emacs-lisp
-(use-package change-inner
-  :bind (("C-c c i" . change-inner)
-         ("C-c c o" . change-outer)
-         ("C-c y i" . yank-inner)
-         ("C-c y o" . yank-outer)))
-```
-
-
 ### Esup: startup time profiling {#esup-startup-time-profiling}
 
 [esup](https://github.com/jschaf/esup) is a tool for profiling the startup time of Emacs.  This snippet is a work
@@ -2035,6 +2155,154 @@ language's major mode hook:
 ```
 
 
+### TreeSitter {#treesitter}
+
+
+#### About TreeSitter and its Load Paths {#about-treesitter-and-its-load-paths}
+
+Emacs 29 added native [TreeSitter](https://tree-sitter.github.io/tree-sitter/) support.  TreeSitter is a new way of
+incrementally parsing source code that offers superior navigation and syntax
+highlighting.  To fully realize this benefit, however, it requires that we
+install `tree-sitter` grammars independently from Emacs.  Right now, I'm using
+[casouri's modules](https://github.com/casouri/tree-sitter-module), which I build and install under `~/.emacs.d/tree-sitter`, if
+they don't already exist under `/usr/local/lib/` or `~/.local/lib`.  In case of the
+latter, I just add extra paths to `treesit-extra-load-path` explicitly.
+
+```emacs-lisp
+(when (boundp 'treesit-extra-load-path)
+  (add-to-list 'treesit-extra-load-path "/usr/local/lib/")
+  (add-to-list 'treesit-extra-load-path "~/.local/lib/"))
+```
+
+For the full instructions, the commit history of adding the `tree-sitter` modules
+to Emacs included a [full guide](https://git.savannah.gnu.org/cgit/emacs.git/plain/admin/notes/tree-sitter/starter-guide?h=feature/tree-sitter), which can be read in Info under "Parsing Program
+Source".
+
+```text
+C-h i d m elisp RET g Parsing Program Source RET
+```
+
+Enabling TreeSitter is done on a per-language basis to override the default
+major mode with the corresponding TreeSitter version.
+
+
+#### Automatically Using TreeSitter Modes {#automatically-using-treesitter-modes}
+
+We will have to wait until Emacs 30+ for automatic fallback.  Until then, I'm
+using a workaround that I've posted to GitHub and MELPA as [treesit-auto](https://github.com/renzmann/treesit-auto).
+
+```emacs-lisp
+(use-package treesit-auto
+  :custom
+  (treesit-auto-install 'prompt)
+  :config
+  (global-treesit-auto-mode))
+```
+
+Before it was published to MELPA, I used a git subtree to manage the plugin.
+This is a pretty useful technique, so I keep these two one-liners around in case
+I need to reference or copy them.  To get a copy of something as a subtree, I
+use this:
+
+```shell
+git subtree add -P site-lisp/treesit-auto git@github.com:renzmann/treesit-auto main --squash
+```
+
+Fetching updates is a similar command.
+
+```shell
+git subtree pull -P site-lisp/treesit-auto git@github.com:renzmann/treesit-auto main --squash
+```
+
+
+#### Ooo, aaah, shiny colors {#ooo-aaah-shiny-colors}
+
+I like to program "in Skittles":
+
+```emacs-lisp
+(setq-default treesit-font-lock-level 3)
+```
+
+
+### Tramp {#tramp}
+
+Tramp (Transparent Remote Access Multiple Protocol) allows us to access files on
+a remote machine, and edit them locally.  This is great for simple changes or
+quickly testing out some Python on a VM somewhere.  It isn't as snappy as using
+the TTY version or an X-forwarded Emacs from the server directly, so if I _can_
+set up Emacs remotely, I usually do.  When I don't want to or don't have the
+time, Tramp is a godsend.  There are, however, many foibles to guard against,
+particularly with how interacts with version control and `.dir-locals`.  The
+Tramp manual (distributed with Emacs) recommends adjusting these for some speed
+improvements:
+
+```emacs-lisp
+(use-package tramp
+  :defer t
+  :config
+  (setq vc-handled-backends '(Git)
+        file-name-inhibit-locks t
+        tramp-inline-compress-start-size 1000
+        tramp-copy-size-limit 10000
+        tramp-verbose 1)
+  (add-to-list 'tramp-remote-path 'tramp-own-remote-path))
+```
+
+eglot is [actively working](https://github.com/joaotavora/eglot/issues/859) on an issue related to timers causing a "Forbidden
+reentrant call of Tramp" message and freezing.  In the meantime, this setting
+was recommended.
+
+```emacs-lisp
+(setq tramp-use-ssh-controlmaster-options nil)
+```
+
+For some time I was having a lot of trouble with prohibitive slowness over
+Tramp, and after careful scrutiny of the logs on (I believe) `tramp-verbose 6`, I
+found out that enabling remote dir-locals was causing a huge bottleneck.  On
+every operation it would trace up the filesystem tree back to the root
+directory, scanning for a `.dir-locals` file.  Since some of the drives were
+network-mounted, this caused thousands of network calls per file operation,
+obviously slowing things down a lot.  Because of this, I've opted to simply
+disable `.dir-locals` over Tramp entirely, since I don't really use it much, if at
+all.
+
+```emacs-lisp
+;; (setq enable-remote-dir-locals t)
+```
+
+[Disabling VC](https://www.gnu.org/software/emacs/manual/html_node/tramp/Frequently-Asked-Questions.html) _does_ seem to speed things up a little, but it's not an acceptable
+thing to put in, since I so frequently use VC over tramp.  Fully disabling VC
+would include this snippet:
+
+```emacs-lisp
+(remove-hook 'find-file-hook 'vc-find-file-hook)
+
+(setq vc-ignore-dir-regexp
+      (format "\\(%s\\)\\|\\(%s\\)"
+              vc-ignore-dir-regexp
+              tramp-file-name-regexp))
+```
+
+Additionally, these came up as other potential options [from the doom-emacs
+issues](https://github.com/doomemacs/doomemacs/issues/3909), which I do not currently include.
+
+```emacs-lisp
+(setq tramp-default-method "scp")
+(setq projectile--mode-line "Projectile")
+```
+
+I often need to set these in ~/.ssh/config for TRAMP to speed up
+
+```text
+Host *
+     ControlMaster auto
+     ControlPath ~/.ssh/master-%h:%p
+     ControlPersist 10m
+     ForwardAgent yes
+     ServerAliveInterval 60
+```
+
+
 ## Don't forget about these {#don-t-forget-about-these}
 
 There are several other interesting options that I haven't tried out yet, including:
@@ -2042,8 +2310,6 @@ There are several other interesting options that I haven't tried out yet, includ
 -   [ ] [org-download](https://github.com/abo-abo/org-download)
 -   [ ] [math-delimiters](https://github.com/oantolin/math-delimiters)
 -   [ ] [oantolin/placeholder](https://github.com/oantolin/placeholder)
--   [X] [emacs-eaf/emacs-application-framework](https://github.com/emacs-eaf/emacs-application-framework) &lt;--- big hassle
--   [X] [multiple-cursors](https://github.com/magnars/multiple-cursors.el)
 -   [ ] [notmuch for email](https://notmuchmail.org/notmuch-emacs/)
 
 
