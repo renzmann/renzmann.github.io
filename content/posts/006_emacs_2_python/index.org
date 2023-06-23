@@ -1,4 +1,4 @@
-#+title: Emacs Part 2: Python (Vanilla is a Powerful Flavor)
+#+title: Python in Emacs: Vanilla is a Powerful Flavor
 #+date: 2022-09-04
 #+startup: inlineimages
 
@@ -342,7 +342,7 @@ this:
 
 #+begin_src python
 if __name__ == "__main__":
-    print("{hell█
+    print(f"{hell█
 #+end_src
 
 Where █ is point.  Attempting a =completion-at-point= using =C-M-i=
@@ -355,7 +355,7 @@ hitting =TAB= completes the =hell= into =hello_text=:
 
 #+begin_src python
 if __name__ == "__main__":
-    print("{hello_text█
+    print(f"{hello_text█
 #+end_src
 
 In the case that the completion is ambiguous, a =*completions*= buffer
