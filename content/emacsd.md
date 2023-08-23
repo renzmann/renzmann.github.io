@@ -367,9 +367,6 @@ chords, especially the `C-c` ones.
 
 ### macOS {#macos}
 
-
-#### Configuration {#configuration}
-
 Launching Emacs from the typical application launcher or command-space usually
 won't capture any modifications to `$PATH`, typically handled in a file like
 `~/.profile` or `~/.bashrc`. So, the main configuration included here is from
@@ -384,21 +381,20 @@ won't capture any modifications to `$PATH`, typically handled in a file like
 
 ## Font {#font}
 
-Fonts are a tricky business.  They render differently depending on what computer
-I'm using, and I can't always have my favorite fonts installed everywhere.
-Moreover, I can't expect everyone who might want to try out this configuration
-to use the same fonts I do, so they are an optional thing.  If a file
+Fonts are a tricky business.  I can't always have my favorite fonts installed
+everywhere, and I can't expect everyone who might want to try out this
+configuration to use the same fonts I do.  So I made them optional.  If a file
 `~/.emacs.d/font.el` exists, then this section will simply read it and apply
 whatever settings are there.
 
 ```emacs-lisp
-(let ((font-file (expand-file-name "font.el" user-emacs-directory)))
-  (when (file-exists-p font-file)
-    (load-file font-file)))
+(when-let* ((font-file (expand-file-name "font.el" user-emacs-directory))
+            (exists (file-exists-p font-file)))
+  (load-file font-file))
 ```
 
-Typically I'll have a per-os font configuration in there.  [Check out what I've
-done here!](https://github.com/renzmann/.emacs.d/blob/main/font.el)
+Typically I'll have a per-OS font configuration in there, [typically with some
+variant of Hack Nerd Mono.](https://github.com/renzmann/.emacs.d/blob/main/font.el)
 
 
 ## Theme {#theme}
@@ -415,18 +411,18 @@ light of the room I'm in.
   :demand t
   :bind ("C-c m" . ef-themes-toggle)
 
-  :init
-  (setq ef-themes-headings
-        '((0 . (1.9))
-          (1 . (1.1))
-          (2 . (1.0))
-          (3 . (1.0))
-          (4 . (1.0))
-          (5 . (1.0)) ; absence of weight means `bold'
-          (6 . (1.0))
-          (7 . (1.0))
-          (t . (1.0))))
-  (setq ef-themes-to-toggle '(ef-cherie ef-summer))
+  :custom
+  (ef-themes-headings
+   '((0 . (1.9))
+     (1 . (1.3))
+     (2 . (1.0))
+     (3 . (1.0))
+     (4 . (1.0))
+     (5 . (1.0)) ; absence of weight means `bold'
+     (6 . (1.0))
+     (7 . (1.0))
+     (t . (1.0))))
+  (ef-themes-to-toggle '(ef-cherie ef-kassio))
 
   :config
   (load-theme 'ef-cherie :no-confirm))
@@ -466,7 +462,8 @@ Tree-sitter are located under [Tool configuration](#tool-configuration).
 ### Stop stupid bell {#stop-stupid-bell}
 
 This snippet has a special place in my heart, because it was the first two lines
-of elisp I wrote when first learning Emacs.
+of elisp I wrote when first learning Emacs.  It is the central kernel around
+which my `~/.emacs` and later `~/.emacs.d/init.el` grew.
 
 ```emacs-lisp
 ;; Stop stupid bell
@@ -483,9 +480,7 @@ The bell is really, _really_ annoying.
 ```
 
 
-### So long and thanks for all the fish {#so-long-and-thanks-for-all-the-fish}
-
-Prevents hanging when visiting files with extremely long lines.
+### Don't hang when visiting files with extremely long lines {#don-t-hang-when-visiting-files-with-extremely-long-lines}
 
 ```emacs-lisp
 (global-so-long-mode t)
@@ -495,7 +490,7 @@ Prevents hanging when visiting files with extremely long lines.
 ### Unicode {#unicode}
 
 Sometimes (especially on Windows), Emacs gets confused about what encoding to
-use.  These setting try to prevent that confusion.
+use.  These settings try to prevent that confusion.
 
 ```emacs-lisp
 (prefer-coding-system       'utf-8)
@@ -540,18 +535,46 @@ Found this on a [System Crafters video](https://www.youtube.com/watch?v=51eSeqca
 ```
 
 
-### Colored output in `eshell` {#colored-output-in-eshell}
+### Render ASCII color escape codes {#render-ascii-color-escape-codes}
 
-Copy-pasted from a [stack overflow question](https://emacs.stackexchange.com/questions/9517/colored-git-output-in-eshell).
+For files containing color escape codes, this provides a way to render the
+colors in-buffer.  Provided by a [helpful stackoverflow answer](https://stackoverflow.com/a/3072831/13215205).
 
 ```emacs-lisp
-(add-hook 'eshell-preoutput-filter-functions  'ansi-color-apply)
+(defun renz/display-ansi-colors ()
+  "Render colors in a buffer that contains ASCII color escape codes."
+  (interactive)
+  (require 'ansi-color)
+  (let ((inhibit-read-only t))
+    (ansi-color-apply-on-region (point-min) (point-max))))
 ```
+
+
+#### Colored output in `eshell` and `*compilation*` {#colored-output-in-eshell-and-compilation}
+
+In `*compilation*` mode, we just use the "display colors" function from above.
+Enable colors in the `*compilation*` buffer.
+
+```emacs-lisp
+(add-hook 'compilation-filter-hook #'renz/display-ansi-colors)
+```
+
+For `eshell`, this is copy-pasted from a [stack overflow question](https://emacs.stackexchange.com/questions/9517/colored-git-output-in-eshell).
+
+```emacs-lisp
+(add-hook 'eshell-preoutput-filter-functions  #'ansi-color-apply)
+```
+
+
+#### xterm-color {#xterm-color}
+
+Soon, I'd like to swap out my hacks above for this more robust package:
+<https://github.com/atomontage/xterm-color/tree/master>
 
 
 ### Recent files menu {#recent-files-menu}
 
-This enables "File -&gt; Open Recent" from the menu bar, and `consult-recent-file`.
+This enables "File -&gt; Open Recent" from the menu bar and using `completing-read` over the `recentf-list`.
 
 ```emacs-lisp
 (recentf-mode t)
@@ -583,6 +606,8 @@ currently on.
 (scroll-bar-mode -1)
 ```
 
+By default, though, I prefer it to be off when I start Emacs.
+
 
 ### Window margins and fringe {#window-margins-and-fringe}
 
@@ -591,17 +616,26 @@ space between the edge of the screen and the fringe.  This helps `src` blocks lo
 clean and well delineated for [org-modern](#org-modern).
 
 ```emacs-lisp
-(modify-all-frames-parameters
- '((right-divider-width . 40)
-   (internal-border-width . 40)))
+(defun renz/modify-margins ()
+  "Add some space around each window."
+  (modify-all-frames-parameters
+   '((right-divider-width . 40)
+     (internal-border-width . 40)))
+  (dolist (face '(window-divider
+                  window-divider-first-pixel
+                  window-divider-last-pixel))
+    (face-spec-reset-face face)
+    (set-face-foreground face (face-attribute 'default :background)))
+  (set-face-background 'fringe (face-attribute 'default :background)))
 
-(dolist (face '(window-divider
-                window-divider-first-pixel
-                window-divider-last-pixel))
-  (face-spec-reset-face face)
-  (set-face-foreground face (face-attribute 'default :background)))
+(renz/modify-margins)
+```
 
-(set-face-background 'fringe (face-attribute 'default :background))
+We also need to make sure this runs each time we change the `ef-theme`, otherwise
+the old background color will linger in the margins.
+
+```emacs-lisp
+(add-hook 'ef-themes-post-load-hook 'renz/modify-margins)
 ```
 
 
@@ -627,7 +661,7 @@ these favor spaces over tabs, so I prefer this as the default.
 
 Generally, though, indentation behavior is set by major-mode functions, which
 may or may not use Emacs' built-in indentation functions.  For instance, when
-trying to find the functions behind indentation in shell mode, I cam across
+trying to find the functions behind indentation in shell mode, I came across
 `smie.el`, whose introductory comments include this gem:
 
 > OTOH we had to kill many chickens, read many coffee grounds, and practice
@@ -645,24 +679,6 @@ Even the [GNU manual](https://www.gnu.org/software/emacs/manual/html_node/elisp/
 > function to let it handle more diverse situations tends to become more and more
 > difficult, resulting in the end with a large, complex, unmaintainable
 > indentation function which nobody dares to touch.
-
-```emacs-lisp
-(add-hook 'sh-mode-hook (lambda () (setq indent-tabs-mode t)))
-```
-
-
-### Render ASCII color escape codes {#render-ascii-color-escape-codes}
-
-For files containing color escape codes, this provides a way to render the
-colors in-buffer.
-
-```emacs-lisp
-(defun renz/display-ansi-colors ()
-  "Render colors in a buffer that contains ASCII color escape codes."
-  (interactive)
-  (require 'ansi-color)
-  (ansi-color-apply-on-region (point-min) (point-max)))
-```
 
 
 ### Enable horizontal scrolling with mouse {#enable-horizontal-scrolling-with-mouse}
@@ -684,32 +700,6 @@ intend when I'm trying to get a window to display a specific buffer.
 ```emacs-lisp
 (unless (version< emacs-version "27.1")
   (setq switch-to-buffer-obey-display-actions t))
-```
-
-From the same article, I'm experimenting with some buffers appearing in a
-specific "side bar" location.  However this can have unintended consequences,
-like the window becoming unselectable or getting reused by magit when I didn't
-want it to.
-
-```emacs-lisp
-;; left, top, right, bottom
-(setq window-sides-slots '(0 0 1 1))
-
-(add-to-list 'display-buffer-alist
-          `(,(rx (| "*compilation*" "*grep*"))
-            display-buffer-in-side-window
-            (side . bottom)
-            (slot . 0)
-            (window-parameters . ((no-delete-other-windows . t)))
-            (window-width . 80)))
-
-(setq compilation-window-height 20)
-
-(add-to-list 'display-buffer-alist
-  '("\\*e?shell\\*" display-buffer-in-direction
-    (direction . bottom)
-    (window . root)
-    (window-height . 0.3)))
 ```
 
 
@@ -740,7 +730,13 @@ Add a faint background highlight to the line we're editing.
 
 ```emacs-lisp
 (add-hook 'prog-mode-hook #'flymake-mode)
-;; (add-hook 'prog-mode-hook #'flyspell-prog-mode)
+```
+
+Another, related mode is `flyspell-prog-mode`, which is just checks spelling in
+comments and strings.
+
+```emacs-lisp
+(add-hook 'prog-mode-hook #'flyspell-prog-mode)
 ```
 
 
@@ -773,6 +769,10 @@ check for mixed tabs, spaces, and line endings.
 
 ### Killing buffers with a running process {#killing-buffers-with-a-running-process}
 
+Typically, Emacs will ask you to confirm before killing a buffer that has a
+running process, such as with `run-python`, a `*shell*` buffer, or a `*compilation*`
+buffer.
+
 ```emacs-lisp
 (setq kill-buffer-query-functions
   (remq 'process-kill-buffer-query-function
@@ -782,9 +782,14 @@ check for mixed tabs, spaces, and line endings.
 
 ### Don't wrap lines {#don-t-wrap-lines}
 
+I much prefer having long lines simply spill off to the right of the screen than
+having them wrap around onto the next line, except in the case where I'd like to
+see wrapped line content, like in one of the shell modes.
+
 ```emacs-lisp
 (setq-default truncate-lines t)
 (add-hook 'eshell-mode-hook (lambda () (setq-local truncate-lines nil)))
+(add-hook 'shell-mode-hook (lambda () (setq-local truncate-lines nil)))
 ```
 
 
@@ -800,10 +805,14 @@ well in org-mode without the line numbers so far, since for each of the code
 blocks I can always use `C-c '` to edit in `prog-mode`, where I _do_ get line numbers.
 
 ```emacs-lisp
-(add-hook 'prog-mode-hook (lambda () (setq display-line-numbers 'relative)))
-(add-hook 'yaml-mode-hook (lambda () (setq display-line-numbers 'relative)))
+(defun renz/display-relative-lines ()
+  (setq display-line-numbers 'relative))
+
+(add-hook 'prog-mode-hook #'renz/display-relative-lines)
+(add-hook 'yaml-mode-hook #'renz/display-relative-lines)
+
 (unless (display-graphic-p)
-  (add-hook 'text-mode-hook (lambda () (setq display-line-numbers 'relative))))
+  (add-hook 'text-mode-hook #'renz/display-relative-lines))
 ```
 
 
@@ -828,25 +837,13 @@ the yanked content.
 
 ### Compilation {#compilation}
 
-As new text appears, the default behavior is for it to spill off the bottom
-where we can't see it.  Instead, I prefer the window to scroll along with text
-as it appears
+As new text appears, the default behavior is for it to spill off the bottom,
+unless we manually scroll to the end of the buffer.  Instead, I prefer the
+window to automatically scroll along with text as it appears, stopping at the
+first error that appears.
 
 ```emacs-lisp
-(setq compilation-scroll-output t)
-```
-
-Enable colors in the `*compilation*` buffer.  Provided by a [helpful stackoverflow
-answer](https://stackoverflow.com/a/3072831/13215205).
-
-```emacs-lisp
-(defun renz/colorize-compilation-buffer ()
-  "Enable colors in the *compilation* buffer."
-  (require 'ansi-color)
-  (let ((inhibit-read-only t))
-    (ansi-color-apply-on-region (point-min) (point-max))))
-
-(add-hook 'compilation-filter-hook 'renz/colorize-compilation-buffer)
+(setq compilation-scroll-output 'first-error)
 ```
 
 
@@ -893,9 +890,6 @@ From an [Emacs stackexchange](https://emacs.stackexchange.com/a/44604) answer.
 
 ### Shorter file paths in grep/compilation buffers {#shorter-file-paths-in-grep-compilation-buffers}
 
-This is an older, unmaintained file that throws a few warnings.  Let's clean
-that up sometime.
-
 ```emacs-lisp
 (use-package scf-mode
   :load-path "site-lisp"
@@ -941,15 +935,18 @@ not found" errors popping up during auto-save on Windows.  Once I debug that,
 I'll uncomment the second part.
 
 ```emacs-lisp
-(setq backup-directory-alist
-      '(("." . "~/.emacs.d/backups/"))
-      ;; auto-save-file-name-transforms
-      ;; '(("." ,temporary-file-directory t))
+(setq backup-directory-alist '(("." . "~/.emacs.d/backups/"))
+      ;; auto-save-file-name-transforms '(("." ,temporary-file-directory t))
       )
 ```
 
 
 ### Enable `narrow-to-region` {#enable-narrow-to-region}
+
+`narrow-to-region` restricts editing in this buffer to the current region.  The
+rest of the text becomes temporarily invisible and untouchable but is not
+deleted; if you save the buffer in a file, the invisible text is included in the
+file.  `C-x n w` makes all visible again.
 
 ```emacs-lisp
 (put 'narrow-to-region 'disabled nil)
@@ -958,10 +955,53 @@ I'll uncomment the second part.
 
 ### Enable up/downcase-region {#enable-up-downcase-region}
 
+Allows us to convert entire regions to upper or lower case.
+
 ```emacs-lisp
 (put 'upcase-region 'disabled nil)
 (put 'downcase-region 'disabled nil)
 ```
+
+
+### Mark rings and registers: bigger, faster, stronger {#mark-rings-and-registers-bigger-faster-stronger}
+
+16 is the default number of marks stored on the global and local mark rings
+is 16.  I hop around much more than 16 times as I'm editing, so I expand this a
+bit.
+
+```emacs-lisp
+(setq-default mark-ring-max 32)
+(setq global-mark-ring-max 32)
+```
+
+Another handy shortcut is continually popping marks by repeated `C-<SPC>` after
+the first `C-u C-<SPC>` through the `set-mark-command-repeat-pop` setting.
+
+```emacs-lisp
+(setq set-mark-command-repeat-pop t)
+```
+
+And, because I always forget it, to pop a global mark you use `C-x C-<SPC>`.  The
+local version, `C-u C-<SPC>` will only pop marks from the current buffer.  So the
+`C-x C-<SPC>` version is much closer to how Vim's jump stack works.
+
+A handy "bookmark" system (aside from actual bookmarks) is to set common buffers
+and files to registers pre-emptively.
+
+```emacs-lisp
+(set-register ?S '(buffer . "*scratch*"))
+(set-register ?I `(file . ,(expand-file-name "README.org" user-emacs-directory)))
+(set-register ?B `(file . "~/.bashrc"))
+```
+
+The default keybinding for `jump-to-register` is `C-x r j R`, where `R` is the name of
+the register.  My own personal convention here is to use lower-case letter for
+interactive session bookmarks that will be lost between sessions, and upper-case
+letters for ones I've set permanently here.
+
+Before I was aware of this feature I had created my own `jump-to-X` style
+functions, but this is much better!  You even get a handy pop-up if you wait a
+second after typing `C-x r j` to see all the available registers.
 
 
 ## Keybindings {#keybindings}
@@ -986,9 +1026,7 @@ suspend the frame.
 ```
 
 Hippie-expand [is purported](https://www.masteringemacs.org/article/text-expansion-hippie-expand) to be a better version of `dabbrev`, but I rather like
-the default behavior of `dabbrev`.  I typically have `hippie-expand` on a dedicated
-key, and sometimes re-bind the default `M-/` as well, depending on my current
-workflow.
+the default behavior of `dabbrev`.
 
 ```emacs-lisp
 (global-set-key [remap dabbrev-expand] 'hippie-expand)
@@ -1011,20 +1049,6 @@ next/previous on easy to reach chords.
          ("C-c p" . flymake-goto-prev-error)))
 ```
 
-When using `isearch` to jump to things, it's sometimes convenient to re-position
-point on the opposite side of where the search would normally put it.  E.g. when
-using `C-r`, but we want point to be at the end of the word when we're done.
-Provided by a [stack overflow answer](https://emacs.stackexchange.com/a/52554).
-
-```emacs-lisp
-(define-key isearch-mode-map (kbd "<C-return>")
-  (defun isearch-done-opposite (&optional nopush edit)
-    "End current search in the opposite side of the match."
-    (interactive)
-    (funcall #'isearch-done nopush edit)
-    (when isearch-other-end (goto-char isearch-other-end))))
-```
-
 
 ### Overriding defaults {#overriding-defaults}
 
@@ -1042,11 +1066,10 @@ more frequently.
 Emacs has [some standards](https://www.gnu.org/software/emacs/manual/html_node/emacs/Key-Bindings.html) about where user-configured keys should go; `C-c
 <letter>` is always free for users.  It may seem like overkill how I set a header
 for each possible `C-c` combination, but it's incredibly handy when I want to jump
-directly to one of these headings while in another buffer.  See
-e.g. `renz/jump-init`, which allows me to narrow in on a particular key I'd like
-to bind by leveraging `completing-read`.  If a `C-c <letter>` combination is missing
-as a header, then I'm probably using it in a `:bind` statement with `use-package`
-somewhere else.
+directly to one of these headings while in another buffer.  See e.g. `org-goto`,
+which allows me to narrow in on a particular key I'd like to bind by leveraging
+`completing-read`.  If a `C-c <letter>` combination is missing as a header, then I'm
+probably using it in a `:bind` statement with `use-package` somewhere else.
 
 
 #### `C-c b` build / compile {#c-c-b-build-compile}
@@ -1069,19 +1092,18 @@ somewhere else.
 Before the whole language server revolution, we had TAGS files for caching the
 location of symbol definitions.  `etags` comes with Emacs, and combining some
 clever use of `find` with it can render a pretty good symbol search experience.
-To generate the TAGS file, I usually have something similar to this in each
-project's `Makefile`:
+To generate the TAGS file, I usually have a `TAGS` recipe that looks something
+similar to this in each project's `Makefile`:
 
-```makefile
-TAGS:
-        find . -type d -name ".venv" -prune \
-                -o -type d -name ".ipynb_checkpoints" -prune \
-                -o -type d -name ".node_modules" -prune \
-                -o -type d -name "elpa" -prune \
-                -o -type f -name "*.py" -print \
-                -o -type f -name "*.sql" -print \
-                -o -type f -name "*.el" -print \
-                | etags -
+```shell
+find . -type d -name ".venv" -prune \
+    -o -type d -name ".ipynb_checkpoints" -prune \
+    -o -type d -name ".node_modules" -prune \
+    -o -type d -name "elpa" -prune \
+    -o -type f -name "*.py" -print \
+    -o -type f -name "*.sql" -print \
+    -o -type f -name "*.el" -print \
+    | etags -
 ```
 
 Then, `M-x project-compile RET make TAGS` builds a tags table.  At which point, I
@@ -1104,35 +1126,6 @@ completion, with just a little help from `xref-find-definitions`.
 
 ```emacs-lisp
 (global-set-key (kbd "C-c f") #'ffap)
-```
-
-
-#### `C-c i` jump to a header in my configuration {#c-c-i-jump-to-a-header-in-my-configuration}
-
-```emacs-lisp
-(setq renz/site-lisp-dir (expand-file-name "site-lisp/" user-emacs-directory))
-
-(defun renz/--jump-section (dirname prompt extension)
-  "Jump to a section of my configuration.
-Asks for a file under `DIRNAME' using `PROMPT' in the user Emacs
-config site with matching `EXTENSION' regexp."
-  (find-file
-   (concat dirname
-           (completing-read prompt
-                            (directory-files dirname nil extension)))))
-
-(defun renz/jump-configuration ()
-  "Prompt for a .el file in my site-lisp folder, then go there."
-  (interactive)
-  (renz/--jump-section renz/site-lisp-dir "Elisp config files: " ".*\.el$"))
-
-(defun renz/jump-init ()
-  "Jump directly to my literate configuration document."
-  (interactive)
-  (find-file (expand-file-name "README.org" user-emacs-directory)))
-
-(global-set-key (kbd "C-c i i") #'renz/jump-init)
-(global-set-key (kbd "C-c i l") #'renz/jump-configuration)
 ```
 
 
@@ -1201,6 +1194,13 @@ config site with matching `EXTENSION' regexp."
 ```
 
 
+#### `C-c u` open URL at point in browser {#c-c-u-open-url-at-point-in-browser}
+
+```emacs-lisp
+(global-set-key (kbd "C-c u") #'browse-url-at-point)
+```
+
+
 #### `C-c v` faster git-commit {#c-c-v-faster-git-commit}
 
 ```emacs-lisp
@@ -1211,13 +1211,6 @@ config site with matching `EXTENSION' regexp."
   (other-window 1))
 
 (global-set-key (kbd "C-c v") #'renz/git-commit)
-```
-
-
-#### `C-c V` open thing at point in browser {#c-c-v-open-thing-at-point-in-browser}
-
-```emacs-lisp
-(global-set-key (kbd "C-c V") #'browse-url-at-point)
 ```
 
 
@@ -1254,7 +1247,7 @@ that way.
 
 ## Text Completion {#text-completion}
 
-Emacs offers incredible depth and freedom when configuring methods that
+Emacs offers incredible depth and freedom when configuring methods to
 automatically complete text.  There are actually two things that
 "autocompletion" can refer to in Emacs:
 
@@ -1395,7 +1388,8 @@ I'd much prefer to use the easier and more intuitive `TAB`.
 ### `corfu` and `vertico` {#corfu-and-vertico}
 
 When I was using `corfu` and `vertico`, I did some hacking on it to optimize for
-`orderless`, as well as some "tab-n-go" style configuration.
+`orderless`, as well as some "tab-n-go" style configuration.  This is here as a
+vestige of days past, but good as a reference if I ever wanted to go back.
 
 ```emacs-lisp
 (use-package corfu
@@ -1449,10 +1443,11 @@ When I was using `corfu` and `vertico`, I did some hacking on it to optimize for
 
 ```emacs-lisp
 (defun renz/sh-indentation ()
-  (setq indent-tabs-mode t)
+  ;; (setq indent-tabs-mode t)
   (setq tab-width 8))
 
 (add-hook 'sh-mode-hook #'renz/sh-indentation)
+(add-hook 'bash-ts-mode-hook #'renz/sh-indentation)
 ```
 
 
@@ -1484,7 +1479,7 @@ defined below, does the opposite - given the Org source file and point inside a
 ```emacs-lisp
 (defun renz/org-babel-tangle-jump-to-src ()
   "The opposite of `org-babel-tangle-jump-to-org'.
-Jumps at tangled code from org src block."
+Jumps to an Org src block from tangled code."
   (interactive)
   (if (org-in-src-block-p)
       (let* ((header (car (org-babel-tangle-single-block 1 'only-this-block)))
@@ -1507,7 +1502,7 @@ Jumps at tangled code from org src block."
 ```
 
 Now we configure `org-mode` itself.  For a while I was trying `(setq
-org-startup-indented t)` t get indentation under each header, but this was
+org-startup-indented t)` to get indentation under each header, but this was
 interfering with the beautification features from `org-modern`.  Preferring the
 latter over the former, I've removed the `org-startup-indented` call.
 
@@ -1536,7 +1531,6 @@ latter over the former, I've removed the `org-startup-indented` call.
    ("C-c o b s" . renz/org-babel-tangle-jump-to-src)
    ("C-c o k" . org-babel-remove-result)
    ("C-c o o" . renz/jump-org)
-   ("C-c o w" . renz/org-kill-src-block)
    ("C-c o y" . ox-clip-image-to-clipboard))
 
   :custom
@@ -1753,6 +1747,11 @@ The configuration of `sql-indent` below achieves that nicely when using `RET` an
 
 #### Interactive `hive2` mode {#interactive-hive2-mode}
 
+This "hive2" package came from the days where I was working on an on-prem system
+that used `hive2` as the main command-line interface to Hive.  I don't use this
+much now, but it's a good reference for implementing a plug-in to a new
+interactive SQL CLI.
+
 ```emacs-lisp
 (use-package hive2
   :load-path "site-lisp/"
@@ -1769,6 +1768,15 @@ set that up somewhere common.
 ```shell
 #!/usr/bin/env sh
 bq shell "$@"
+```
+
+Also, we don't want to use "legacy SQL" in our queries, which requires us to
+configure the `bq query` statically in a `~/.bigqueryrc` file, according to the
+Google [issue tracker](https://issuetracker.google.com/issues/35905841).
+
+```:tangle
+[query]
+--use_legacy_sql=false
 ```
 
 Then enable the BQ product.
@@ -1799,8 +1807,14 @@ with it.
 (advice-add 'org-babel-execute:sql :around #'org-babel-execute:bq)
 ```
 
+This also typically requires `#+OPTIONS: ^:nil` at the top of the Org document to
+stop underscores from messing up how column names are displayed.
 
-#### BigQuery exception markers {#bigquery-exception-markers}
+
+#### <span class="org-todo todo TODO">TODO</span> BigQuery exception markers {#bigquery-exception-markers}
+
+When running BigQuery from a `*compilation*` buffer, it would be nice if I could get
+error markers to jump directly to the issue.
 
 
 ### Python {#python}
@@ -1934,7 +1948,9 @@ virtual environment.
       (setenv "WORKON_HOME" "~/micromamba/envs/")
     (setenv "WORKON_HOME" "~/.conda/envs/"))
   :bind
-  (("C-c p w" . pyvenv-workon))
+  (("C-c p w" . pyvenv-workon)
+   ("C-c p d" . pyvenv-deactivate)
+   ("C-c p a" . pyvenv-activate))
   :config
   (pyvenv-mode))
 ```
@@ -1987,6 +2003,7 @@ These really should already be in `auto-mode-alist`, but aren't for some reason.
 (add-to-list 'auto-mode-alist '("\\.rs\\'" . rust-ts-mode))
 (add-to-list 'auto-mode-alist '("\\.go\\'" . go-ts-mode))
 (add-to-list 'auto-mode-alist '("\\.ts\\'" . typescript-ts-mode))
+(add-to-list 'auto-mode-alist '("\\.dockerfile\\'" . dockerfile-ts-mode))
 ```
 
 
@@ -2301,6 +2318,31 @@ Host *
      ForwardAgent yes
      ServerAliveInterval 60
 ```
+
+
+### Shell commands {#shell-commands}
+
+The Async command buffer's default behavior is to print `^M` characters (the
+carriage return) instead of actually clearing text.  This is problematic for
+spinners and progress bars, so I have a little hack to work around that.
+
+```emacs-lisp
+(defun renz/async-shell-command-filter-hook ()
+  "Filter async shell command output via `comint-output-filter'."
+  (when (equal (buffer-name (current-buffer)) "*Async Shell Command*")
+    ;; When `comint-output-filter' is non-nil, the carriage return characters ^M
+    ;; are displayed
+    (setq-local comint-inhibit-carriage-motion nil)
+    (when-let ((proc (get-buffer-process (current-buffer))))
+      ;; Attempting a solution found here:
+      ;; https://gnu.emacs.help.narkive.com/2PEYGWfM/m-chars-in-async-command-output
+      (set-process-filter proc 'comint-output-filter))))
+
+
+(add-hook 'shell-mode-hook #'renz/async-shell-command-filter-hook)
+```
+
+There might be a better way, but this mostly works for now.
 
 
 ## Don't forget about these {#don-t-forget-about-these}
