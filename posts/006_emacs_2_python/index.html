@@ -1,0 +1,449 @@
+<!doctype html><html lang=en dir=ltr class=scroll-smooth data-default-appearance=light data-auto-appearance=true><head><meta charset=utf-8><meta http-equiv=content-language content="en"><meta name=viewport content="width=device-width,initial-scale=1"><meta http-equiv=x-ua-compatible content="ie=edge"><title>Emacs Part 2: Python (Vanilla is a Powerful Flavor) &#183; robbmann</title><meta name=title content="Emacs Part 2: Python (Vanilla is a Powerful Flavor) &#183; robbmann"><meta name=description content="It's Robb, man!"><link rel=canonical href=https://robbmann.io/posts/006_emacs_2_python/><link type=text/css rel=stylesheet href=/css/main.bundle.min.39b7a5b20cc3e1243a974332de8d5e458dd9f15f0f8e06962e8afb4c2b9ce9805c65a0f9359b396ceb5d5f8c16f9ede5d854c208fb561f4fbc5b9a05f4c3cdec.css integrity="sha512-ObelsgzD4SQ6l0My3o1eRY3Z8V8PjgaWLor7TCuc6YBcZaD5NZs5bOtdX4wW+e3l2FTCCPtWH0+8W5oF9MPN7A=="><script type=text/javascript src=/js/appearance.min.badab316c9287a5a42a843e4eb45da65bb3d194a5a0f5fa4a3e516160e67df0b8c65f4f19a8e146436e29d583699e6cb41d6bbe99e05e1dbaa877763bad9f8e2.js integrity="sha512-utqzFskoelpCqEPk60XaZbs9GUpaD1+ko+UWFg5n3wuMZfTxmo4UZDbinVg2mebLQda76Z4F4duqh3djutn44g=="></script>
+<script defer type=text/javascript id=script-bundle src=/js/main.bundle.min.d7d952fbb69589ecf9390cb9ba98d08e09534f1cbe0aa285132ed0a2a14de5185a184c5b0583f11d12204799f5fcaec6326536421d513d01c020494639138ab0.js integrity="sha512-19lS+7aViez5OQy5upjQjglTTxy+CqKFEy7QoqFN5RhaGExbBYPxHRIgR5n1/K7GMmU2Qh1RPQHAIElGOROKsA==" data-copy=Copy data-copied=Copied></script>
+<link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=manifest href=/site.webmanifest><meta property="og:title" content="Emacs Part 2: Python (Vanilla is a Powerful Flavor)"><meta property="og:description" content="Intro There are a lot of great guides on getting set up with Python in Emacs."><meta property="og:type" content="article"><meta property="og:url" content="https://robbmann.io/posts/006_emacs_2_python/"><meta property="article:section" content="posts"><meta property="article:published_time" content="2022-09-04T00:00:00+00:00"><meta property="article:modified_time" content="2022-09-04T00:00:00+00:00"><meta property="og:site_name" content="robbmann"><meta name=twitter:card content="summary"><meta name=twitter:title content="Emacs Part 2: Python (Vanilla is a Powerful Flavor)"><meta name=twitter:description content="Intro There are a lot of great guides on getting set up with Python in Emacs."><script type=application/ld+json>[{"@context":"https://schema.org","@type":"Article","articleSection":"Posts","name":"Emacs Part 2: Python (Vanilla is a Powerful Flavor)","headline":"Emacs Part 2: Python (Vanilla is a Powerful Flavor)","abstract":"Intro There are a lot of great guides on getting set up with Python in Emacs.","inLanguage":"en","url":"https:\/\/robbmann.io\/posts\/006_emacs_2_python\/","author":{"@type":"Person","name":"Robert Enzmann"},"copyrightYear":"2022","dateCreated":"2022-09-04T00:00:00\u002b00:00","datePublished":"2022-09-04T00:00:00\u002b00:00","dateModified":"2022-09-04T00:00:00\u002b00:00","mainEntityOfPage":"true","wordCount":"4189"}]</script><meta name=generator content="Hugo 0.108.0"><meta name=author content="Robert Enzmann"><link href=mailto:robbenzmann@gmail.com rel=me><link href=https://github.com/renzmann rel=me><link href=https://www.linkedin.com/in/renzmann rel=me><link href=https://reddit.com/user/renzmann rel=me></head><body class="flex flex-col h-screen px-6 m-auto text-lg leading-7 bg-neutral text-neutral-900 sm:px-14 md:px-24 lg:px-32 dark:bg-neutral-800 dark:text-neutral max-w-7xl"><div id=the-top class="absolute flex self-center"><a class="px-3 py-1 text-sm -translate-y-8 rounded-b-lg bg-primary-200 dark:bg-neutral-600 focus:translate-y-0" href=#main-content><span class="font-bold ltr:pr-2 rtl:pl-2 text-primary-600 dark:text-primary-400">&darr;</span>Skip to main content</a></div><header class="flex justify-between py-6 font-semibold sm:items-center sm:py-10 text-neutral-900 dark:text-neutral print:hidden"><div><a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" rel=me href=/>robbmann</a></div><nav><ul class="flex flex-col list-none sm:flex-row"><li class="mb-1 ltr:text-right rtl:text-left sm:mb-0 ltr:sm:mr-7 ltr:sm:last:mr-0 rtl:sm:ml-7 rtl:sm:last:ml-0"><a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=/posts/ title=Posts>Posts</a></li><li class="mb-1 ltr:text-right rtl:text-left sm:mb-0 ltr:sm:mr-7 ltr:sm:last:mr-0 rtl:sm:ml-7 rtl:sm:last:ml-0"><a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=/emacsd/ title="My Literate .emacs.d">.emacs.d</a></li><li class="mb-1 ltr:text-right rtl:text-left sm:mb-0 ltr:sm:mr-7 ltr:sm:last:mr-0 rtl:sm:ml-7 rtl:sm:last:ml-0"><a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=https://github.com/renzmann title>GitHub</a></li><li class="ltr:text-right rtl:text-left ltr:sm:mr-7 ltr:sm:last:mr-0 rtl:sm:ml-7 rtl:sm:last:ml-0"><button id=search-button class="text-base hover:text-primary-600 dark:hover:text-primary-400" title="Search (/)">
+<span class="relative inline-block align-text-bottom icon"><svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="search" class="svg-inline--fa fa-search fa-w-16" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M505 442.7 405.3 343c-4.5-4.5-10.6-7-17-7H372c27.6-35.3 44-79.7 44-128C416 93.1 322.9.0 208 0S0 93.1.0 208s93.1 208 208 208c48.3.0 92.7-16.4 128-44v16.3c0 6.4 2.5 12.5 7 17l99.7 99.7c9.4 9.4 24.6 9.4 33.9.0l28.3-28.3c9.4-9.4 9.4-24.6.1-34zM208 336c-70.7.0-128-57.2-128-128 0-70.7 57.2-128 128-128 70.7.0 128 57.2 128 128 0 70.7-57.2 128-128 128z"/></svg></span></button></li></ul></nav></header><main id=main-content class="relative grow"><article><header class=max-w-prose><h1 class="mt-0 text-4xl font-extrabold text-neutral-900 dark:text-neutral">Emacs Part 2: Python (Vanilla is a Powerful Flavor)</h1><div class="mt-8 mb-12 text-base text-neutral-500 dark:text-neutral-400 print:hidden"><div class="flex flex-row flex-wrap items-center"><time datetime="2022-09-04 00:00:00 +0000 UTC">4 September 2022</time><span class="px-2 text-primary-500">&#183;</span><span title="Reading time">20 mins</span></div></div></header><section class="flex flex-col max-w-full mt-0 prose lg:flex-row dark:prose-invert"><div class="min-w-0 min-h-0 max-w-prose"><div id=outline-container-headline-1 class=outline-2><h2 id=headline-1>Intro</h2><div id=outline-text-headline-1 class=outline-text-2><p>There are a lot of great guides on getting set up with Python in
+Emacs. Many of them have titles like "Emacs as a Python IDE" and
+start off by installing <code class=verbatim>pyvenv</code> for virtual environment management,
+<code class=verbatim>eglot</code> or <code class=verbatim>lsp-mode</code> for autocomplete/error checking, and maybe a
+host of other non-python things, like the <code class=verbatim>helm</code> or <code class=verbatim>projectile</code>
+packages.</p><p>This is not that guide.</p><p>This guide is for picky @#$%!s like me who want to exhaust every
+builtin capability before reaching out to external dependencies.
+Dependencies that, in turn, I will also have to learn and manage.
+Once I <em>really</em> understand what <code class=verbatim>pyvenv</code> is solving, then, and <em>only</em>
+then, will I add it to my <code class=verbatim>package-selected-packages</code>.</p><p><img src=nothing_without_lsp.png alt=nothing_without_lsp.png title=nothing_without_lsp.png></p><p>Despite the excellent swath of materials both new and old on how to
+get IDE-like performance for Python out of Emacs, the collected
+materials on just running "vanilla extract" are fairly scant. The
+builtin <code class=verbatim>python.el</code> documentation is thorough and the keybindings
+easily discoverable, but not all documentation is collated into a
+single place. This guide started out as just my working notes as I
+began primarily working in emacs for my Python projects, and has grown
+into a workflow guide using nothing but the builtin capabilities
+of Emacs 28.1+. With that in mind, the examples and walkthroughs
+presented here are designed for <code class=verbatim>emacs -q</code> - i.e. starting emacs
+without any user configuration or your distribution's <code class=verbatim>default.el</code>.</p></div></div><div id=outline-container-headline-2 class=outline-2><h2 id=headline-2>Editing</h2><div id=outline-text-headline-2 class=outline-text-2><p>Let's get our feet wet by bopping around some Python buffers first.
+I'm going to start up a new python file with <code class=verbatim>C-x C-f</code> and naming my
+file <code class=verbatim>editing.py</code>. I'm going to start by just adding a couple
+functions and a print statement, obfuscating the typical "Hello,
+world!" example a bit by introducing some functions and a "main"
+section right away.</p><div class="src src-python"><div class=highlight><pre tabindex=0 class=chroma><code class=language-python data-lang=python><span class=line><span class=cl><span class=c1># These funtions are a little basic and silly right now, but we&#39;ll use</span>
+</span></span><span class=line><span class=cl><span class=c1># them to showcase some Emacs features later on.</span>
+</span></span><span class=line><span class=cl><span class=k>def</span> <span class=nf>hello_text</span><span class=p>():</span>
+</span></span><span class=line><span class=cl>    <span class=s2>&#34;&#34;&#34;Just gives back &#39;Hello&#39;&#34;&#34;&#34;</span>
+</span></span><span class=line><span class=cl>    <span class=k>return</span> <span class=s2>&#34;Hello&#34;</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=k>def</span> <span class=nf>world_text</span><span class=p>():</span>
+</span></span><span class=line><span class=cl>    <span class=s2>&#34;&#34;&#34;Just gives back &#39;world!&#39;&#34;&#34;&#34;</span>
+</span></span><span class=line><span class=cl>    <span class=k>return</span> <span class=s2>&#34;world!&#34;</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=k>if</span> <span class=vm>__name__</span> <span class=o>==</span> <span class=s2>&#34;__main__&#34;</span><span class=p>:</span>
+</span></span><span class=line><span class=cl>    <span class=c1># Emacs 28.1+ has f-string syntax highlighting built in</span>
+</span></span><span class=line><span class=cl>    <span class=nb>print</span><span class=p>(</span><span class=sa>f</span><span class=s2>&#34;</span><span class=si>{</span><span class=n>hello_text</span><span class=p>()</span><span class=si>}</span><span class=s2>, </span><span class=si>{</span><span class=n>world_text</span><span class=p>()</span><span class=si>}</span><span class=s2>!&#34;</span><span class=p>)</span></span></span></code></pre></div></div><p>By visiting this file, Emacs automatically goes into <code class=verbatim>python-mode</code>,
+which turns on a lot of Python-specific functionality. If you're
+impatient like me and want to see everything that's available right
+away, I'd start with <code class=verbatim>C-c C-h</code> from the <code class=verbatim>editing.py</code> buffer to see key
+commands specific to <code class=verbatim>python-mode</code>, and also use <code>C-h a python</code> to
+see <em>every</em> command involving the word "python" in some way. Out of
+the box we also get syntax highlighting, including within f-strings.</p><div id=outline-container-headline-3 class=outline-3><h3 id=headline-3>Useful <code class=verbatim>C-c</code> commands</h3><div id=outline-text-headline-3 class=outline-text-3><p>Emacs typically has commands that are specific to the <em>active</em> major
+mode bound to <code class=verbatim>C-c C-&lt;letter></code>. What each &lt;letter> does will depend
+on the buffer you're currently in and what major mode is active. In
+our case, that's <code class=verbatim>python-mode</code>, which has a lot of handy shortcuts
+already mapped out. For any of the keyboard shortcuts you can always
+use <code class=verbatim>C-h k</code>, or <code class=verbatim>C-h f</code> for the function names (prefixed by <code class=verbatim>M-x</code>
+below) to get the official documentation.</p><div id=outline-container-headline-4 class=outline-4><h4 id=headline-4><code class=verbatim>C-c C-p</code> or <code class=verbatim>M-x run-python</code> to start a python REPL</h4><div id=outline-text-headline-4 class=outline-text-4><p>This boots up what Emacs calls an "inferior Python shell".
+"Inferior" here just means that Python is running as a subprocess of
+Emacs; not that there's some other, "superior" method of running a
+Python process. If you need to control the exact command Emacs runs
+to start the shell, you can use the universal <code class=verbatim>C-u</code> prefix before
+either <code class=verbatim>C-c C-p</code> or <code class=verbatim>M-x run-python</code> to edit the command Emacs runs.
+Based on the <a href=https://robbmann.io/posts/005_emacs_1_packages/>previous article</a>, what I'm frequently doing is holding
+down the Ctrl key with my left little finger, then rapidly typing <code class=verbatim>u</code>,
+<code class=verbatim>c</code>, and <code class=verbatim>p</code> to get <code class=verbatim>C-u C-c C-p</code>, bringing up a minibuffer prompt
+like this:</p><pre class=example>
+Run Python: python3 -i█
+</pre><p>Where <code class=verbatim>█</code> is point (my cursor). I then use <code class=verbatim>C-a</code> to move point back
+to the start and add a <code class=verbatim>poetry run</code>:</p><pre class=example>
+Run Python: poetry run█python3 -i
+</pre><p>Emacs is typically smart enough to figure out what to do even if we
+leave off the <code class=verbatim>-i</code>, but generally it's good to leave it in there.</p></div></div><div id=outline-container-headline-5 class=outline-4><h4 id=headline-5><code class=verbatim>C-c C-z</code> jumps to python REPL if already running</h4><div id=outline-text-headline-5 class=outline-text-4><p>Once the REPL is running, this is a very handy one for swapping back
+and forth between a file I'm actively editing and a running Python
+process</p></div></div><div id=outline-container-headline-6 class=outline-4><h4 id=headline-6><code class=verbatim>C-c C-{c,e,r}</code> for sending chunks to the REPL</h4><div id=outline-text-headline-6 class=outline-text-4><p>A handy complement to <code class=verbatim>C-c C-z</code>, these commands are for taking pieces
+of Python that I'm actively editing and sending them to the Python
+buffer all at once.</p></div></div><div id=outline-container-headline-7 class=outline-4><h4 id=headline-7><code class=verbatim>C-c C-v</code> or <code class=verbatim>M-x python-check</code></h4><div id=outline-text-headline-7 class=outline-text-4><p>More on this later…</p></div></div><div id=outline-container-headline-8 class=outline-4><h4 id=headline-8><code class=verbatim>C-c C-t ...</code> or <code class=verbatim>python-skeleton-...</code></h4><div id=outline-text-headline-8 class=outline-text-4><p>Using <code class=verbatim>C-c C-t d</code> and <code class=verbatim>C-c C-t c</code> it's easy to insert new <code class=verbatim>def</code> and
+<code class=verbatim>class</code> statements (think <code class=verbatim>t</code> for "template", <code class=verbatim>d</code> for "def", and <code class=verbatim>c</code>
+for "class"). Ater invoking one of these, Emacs will guide us through
+the process of filling out each part needed to define a new function
+or class via the minibuffer. Using <code class=verbatim>C-g</code> at any point while editing
+the template wil revert the buffer back to its original state, as if
+you never started filling out the skeleton.</p><div class="src src-python"><div class=highlight><pre tabindex=0 class=chroma><code class=language-python data-lang=python><span class=line><span class=cl><span class=c1># editing.py</span>
+</span></span><span class=line><span class=cl><span class=c1># --snip--</span>
+</span></span><span class=line><span class=cl><span class=c1># Here we use `C-c C-t d` and follow the prompts to design a new</span>
+</span></span><span class=line><span class=cl><span class=c1># function signature.</span>
+</span></span><span class=line><span class=cl><span class=k>def</span> <span class=nf>whatever</span><span class=p>(</span><span class=n>my_string</span><span class=p>:</span> <span class=nb>str</span> <span class=o>=</span> <span class=n>hello_text</span><span class=p>,</span> <span class=n>my_integer</span><span class=p>:</span> <span class=nb>int</span> <span class=o>=</span> <span class=mi>0</span><span class=p>):</span>
+</span></span><span class=line><span class=cl>    <span class=s2>&#34;&#34;&#34;Whatever, man&#34;&#34;&#34;</span>
+</span></span><span class=line><span class=cl>    <span class=k>return</span> <span class=sa>f</span><span class=s2>&#34;</span><span class=si>{</span><span class=n>hello_text</span><span class=si>}</span><span class=s2>, </span><span class=si>{</span><span class=n>my_integer</span><span class=si>}</span><span class=s2>&#34;</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># Next, `C-c C-t c` to make a new class</span>
+</span></span><span class=line><span class=cl><span class=k>class</span> <span class=nc>MyGuy</span><span class=p>:</span>
+</span></span><span class=line><span class=cl>    <span class=s2>&#34;&#34;&#34;My guy is ALWAYS there for me&#34;&#34;&#34;</span>
+</span></span><span class=line><span class=cl>    <span class=k>pass</span>
+</span></span><span class=line><span class=cl><span class=c1># --snip-- &#34;__main__&#34;</span></span></span></code></pre></div></div></div></div></div></div><div id=outline-container-headline-9 class=outline-3><h3 id=headline-9><code class=verbatim>C-c C-j</code> or <code class=verbatim>M-x imenu</code></h3><div id=outline-text-headline-9 class=outline-text-3><p>The nimble, builtin <code class=verbatim>imenu</code> is a way to quickly navigate between major
+symbol definitions in the current buffer - especially those off
+screen. In our <code class=verbatim>editing.py</code> we now have three functions,
+<code class=verbatim>hello_text()</code>, <code class=verbatim>world_text()</code>, and <code class=verbatim>whatever()</code>, and one class
+<code class=verbatim>MyGuy</code>. If we use <code class=verbatim>C-c C-j</code>, a minibuffer menu like this comes up:</p><pre class=example>
+1/5 Index item: █
+*Rescan*
+MyGuy.(class)
+whatever.(def)
+world_text.(def)
+hello_text.(def)
+</pre><p>My minibuffer displays a vertical preview of the options because I've
+set <code class=verbatim>(fido-mode)</code> and <code class=verbatim>(vertical-fido-mode)</code> in my <code class=verbatim>init.el</code>, both of
+which are included in Emcacs 28.1 or later. Then, if I partially type out a result the list will filter down to possible completions:</p><pre class=example>
+1/1 Index item: My█
+MyGuy.(class)
+</pre><p><code class=verbatim>imenu</code> is very, very handy across Emacs, not just for Python, so it's
+worth trying in a variety of major modes.</p></div></div></div></div><div id=outline-container-headline-10 class=outline-2><h2 id=headline-10>Running</h2><div id=outline-text-headline-10 class=outline-text-2><p>Now its time to actually start executing some code. Before getting to
+all the complexity of virtual environments, we'll start simply by just
+invoking the system Python for our script. Once that feels
+comfortable, we'll throw in all the <code class=verbatim>venv</code> goodies.</p><div id=outline-container-headline-11 class=outline-3><h3 id=headline-11>As a script with <code class=verbatim>M-x compile</code></h3><div id=outline-text-headline-11 class=outline-text-3><p>This mode has built-in error parsing, so it's the best way to run a
+script for real if we want to quickly navigate any traceback messages
+that come up. Conversely, the <code class=verbatim>M-&</code> async shell command does <em>not</em>
+have error parsing, so it's not the right tool for launching processes
+we have to debug. Same goes for booting up a shell and running Python
+from there. Taking our script from the previous section, if we run
+<code class=verbatim>M-x compile</code> and give it an argument of <code class=verbatim>python3 editing.py</code>, up pops
+the <code class=verbatim>*compilation*</code> buffer, with the starting time, output of our
+program, and finish time.</p><pre class=example>
+-*- mode: compilation; default-directory: &#34;~/repos/renzmann.github.io/content/posts/006_emacs_2_python/&#34; -*-
+Compilation started at Sun Aug 14 13:50:39
+
+python3 editing.py
+Hello, world!
+
+Compilation finished at Sun Aug 14 13:50:39
+</pre><p>Now, let's try a different script, with an error in it:</p><div class="src src-python"><div class=highlight><pre tabindex=0 class=chroma><code class=language-python data-lang=python><span class=line><span class=cl><span class=c1># hello_error.py</span>
+</span></span><span class=line><span class=cl><span class=nb>print</span><span class=p>(</span><span class=s2>&#34;Not an error yet!&#34;</span><span class=p>)</span>
+</span></span><span class=line><span class=cl><span class=n>fdafdsafdsafdsa</span>
+</span></span><span class=line><span class=cl><span class=nb>print</span><span class=p>(</span><span class=s2>&#34;Shouldn&#39;t make it here...&#34;</span><span class=p>)</span></span></span></code></pre></div></div><p>Now, <code class=verbatim>M-x compile</code> will error out:</p><pre class=example>
+-*- mode: compilation; default-directory: &#34;~/repos/renzmann.github.io/content/posts/006_emacs_2_python/&#34; -*-
+Compilation started at Sun Aug 14 13:53:26
+
+python3 hello_error.py
+Not an error yet!
+Traceback (most recent call last):
+  File &#34;/home/robb/repos/renzmann.github.io/content/posts/006_emacs_2_python/hello_error.py&#34;, line 4, in &lt;module&gt;
+    fdafdsafdsafdsa
+NameError: name &#39;fdafdsafdsafdsa&#39; is not defined
+
+Compilation exited abnormally with code 1 at Sun Aug 14 13:53:26
+</pre><p>Emacs will parse the error message, so that after "compiling", we can
+use <code class=verbatim>M-g M-n</code> and <code class=verbatim>M-g M-p</code> to move between error messages, or just
+click the link provided by the <code class=verbatim>*compilation*</code> buffer directly.</p><p>If just parsing Python tracebacks doesn't excite you, <code class=verbatim>mypy</code> is also
+supported out of the box. Assuming <code class=verbatim>mypy</code> is already installed, <code class=verbatim>M-x
+compile</code> with <code class=verbatim>mypy hello_error.py</code> as the command results in this:</p><pre class=example>
+-*- mode: compilation; default-directory: &#34;~/repos/renzmann.github.io/content/posts/006_emacs_2_python/&#34; -*-
+Compilation started at Sun Aug 14 14:02:03
+
+.venv/bin/mypy hello_error.py
+hello_error.py:4: error: Name &#34;fdafdsafdsafdsa&#34; is not defined
+Found 1 error in 1 file (checked 1 source file)
+
+Compilation exited abnormally with code 1 at Sun Aug 14 14:02:04
+</pre><p>The <code class=verbatim>hello_error.py:4: error: ...</code> message will be a functional link, just as
+before. <code class=verbatim>mypy</code> is much more suitable for general error-checking though, so as
+scripts (and bugs) grow, the <code class=verbatim>M-x compile</code> command can keep up:</p><div class="src src-python"><div class=highlight><pre tabindex=0 class=chroma><code class=language-python data-lang=python><span class=line><span class=cl><span class=c1># errors.py</span>
+</span></span><span class=line><span class=cl><span class=kn>import</span> <span class=nn>typing</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=kn>import</span> <span class=nn>requests</span>
+</span></span><span class=line><span class=cl><span class=kn>import</span> <span class=nn>aaaaaaa</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=n>foo</span>
+</span></span><span class=line><span class=cl><span class=nb>print</span><span class=p>(</span><span class=n>typing</span><span class=o>.</span><span class=n>fdafdsafdsafdsafdsafdsafdsa</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=k>def</span> <span class=nf>whatever</span><span class=p>(</span><span class=n>x</span><span class=p>:</span> <span class=nb>str</span><span class=p>)</span> <span class=o>-&gt;</span> <span class=nb>str</span><span class=p>:</span>
+</span></span><span class=line><span class=cl>    <span class=s2>&#34;&#34;&#34;Here&#39;s a docstring!&#34;&#34;&#34;</span>
+</span></span><span class=line><span class=cl>    <span class=k>return</span> <span class=n>x</span> <span class=o>+</span> <span class=mi>1</span></span></span></code></pre></div></div><pre class=example>
+M-x compile RET mypy errors.py
+</pre><pre class=example>
+-*- mode: compilation; default-directory: &#34;~/repos/renzmann.github.io/content/posts/006_emacs_2_python/&#34; -*-
+Compilation started at Sun Aug 14 14:06:55
+
+.venv/bin/mypy errors.py
+errors.py:6: error: Cannot find implementation or library stub for module named &#34;aaaaaaa&#34;
+errors.py:6: note: See https://mypy.readthedocs.io/en/stable/running_mypy.html#missing-imports
+errors.py:8: error: Name &#34;foo&#34; is not defined
+errors.py:9: error: Module has no attribute &#34;fdafdsafdsafdsafdsafdsafdsa&#34;
+errors.py:14: error: Unsupported operand types for + (&#34;str&#34; and &#34;int&#34;)
+Found 4 errors in 1 file (checked 1 source file)
+
+Compilation exited abnormally with code 1 at Sun Aug 14 14:06:55
+</pre><p>Now, we can use <code class=verbatim>M-g M-n</code> and <code class=verbatim>M-g M-p</code> to quickly navigate between
+the errors in our code, even after navigating away from the original
+<code class=verbatim>errors.py</code> buffer - Emacs will remember what's going on in the
+<code class=verbatim>*compilation*</code> buffer so we can hop all around the code base while
+addressing errors one at a time.</p></div></div><div id=outline-container-headline-12 class=outline-3><h3 id=headline-12>Interactively with the Python shell</h3><div id=outline-text-headline-12 class=outline-text-3><p><code class=verbatim>python-mode</code> centers heavily around the use of an active, running
+Python session for some of its features, as we'll see in the next
+section. Its documentation recommends regular use of <code class=verbatim>C-c C-c</code>, which
+sends the entire buffer to the active inferior Python process. That
+means actually <em>executing</em> Python code, which may feel a bit dangerous
+for those of us who grew up with static analysis tools. So the first
+thing we need to make sure we don't accidentally kick off our whole
+script is ensure that the main part of our program is properly
+ensconced.</p><div class="src src-python"><div class=highlight><pre tabindex=0 class=chroma><code class=language-python data-lang=python><span class=line><span class=cl><span class=c1># editing.py</span>
+</span></span><span class=line><span class=cl><span class=c1># --snip--</span>
+</span></span><span class=line><span class=cl><span class=k>if</span> <span class=vm>__name__</span> <span class=o>==</span> <span class=s2>&#34;__main__&#34;</span><span class=p>:</span>
+</span></span><span class=line><span class=cl>    <span class=nb>print</span><span class=p>(</span><span class=sa>f</span><span class=s2>&#34;</span><span class=si>{</span><span class=n>hello_text</span><span class=p>()</span><span class=si>}</span><span class=s2>, </span><span class=si>{</span><span class=n>world_text</span><span class=p>()</span><span class=si>}</span><span class=s2>!&#34;</span><span class=p>)</span></span></span></code></pre></div></div></div></div></div></div><div id=outline-container-headline-13 class=outline-2><h2 id=headline-13>Code Completion</h2><div id=outline-text-headline-13 class=outline-text-2><p>Emacs uses the currently running <code>*Python*</code> process for looking up
+symbols to complete. As such, <code class=verbatim>python.el</code> recommends using <code class=verbatim>C-c C-c</code>
+to send the entire buffer's contents to the Python shell periodically.
+<code>if __name__ == "__main__"</code> blocks do <em>not</em> execute when using <code class=verbatim>C-c
+C-c</code>. To send all code in the current buffer, including the
+<code class=verbatim>__main__</code> block, instead we must use <code class=verbatim>C-u C-c C-c</code>.</p><p>Another awkward default in Emacs is that what we typically know of as
+"tab-complete" is bound to <code class=verbatim>M-TAB</code>, or the equivalent <code class=verbatim>C-M-i</code> (<code>C-i</code>
+and <code>TAB</code> are the same thing). On most Windows and Linux desktops,
+Alt+Tab changes the active window, and <code>C-M-i</code> is much too cumbersome
+to be a reasonable completion shortcut. I prefer just being able to
+hit <code class=verbatim>TAB</code> to invoke <code class=verbatim>completion-at-point</code>, so I use this snippet in my
+<code class=verbatim>init.el</code>:</p><div class="src src-elisp"><div class=highlight><pre tabindex=0 class=chroma><code class=language-elisp data-lang=elisp><span class=line><span class=cl><span class=c1>;; init.el</span>
+</span></span><span class=line><span class=cl><span class=c1>;; Use TAB in place of C-M-i for completion-at-point</span>
+</span></span><span class=line><span class=cl><span class=p>(</span><span class=nb>setq</span> <span class=nv>tab-always-indent</span> <span class=ss>&#39;complete</span><span class=p>)</span></span></span></code></pre></div></div><p>Now to demonstrate this new completion power. In our python file
+<code class=verbatim>editing.py</code>, I know we have a function called <code class=verbatim>hello_text()</code>. Within
+the main block, I might have been typing something that looked like
+this:</p><div class="src src-python"><div class=highlight><pre tabindex=0 class=chroma><code class=language-python data-lang=python><span class=line><span class=cl><span class=k>if</span> <span class=vm>__name__</span> <span class=o>==</span> <span class=s2>&#34;__main__&#34;</span><span class=p>:</span>
+</span></span><span class=line><span class=cl>    <span class=nb>print</span><span class=p>(</span><span class=s2>&#34;{hell█</span></span></span></code></pre></div></div><p>Where █ is point. Attempting a <code class=verbatim>completion-at-point</code> using <code class=verbatim>C-M-i</code>
+(or just <code class=verbatim>TAB</code> as I have re-bound it above) will yield … nothing.
+Maybe the indentation cycles, or it says "No match", or just - no
+response. What we require is a <em>running</em> inferior Python process,
+which will look up completion symbols. After booting up Python with
+<code class=verbatim>C-c C-p</code> and sending all the current buffer contents with <code class=verbatim>C-c C-c</code>,
+hitting <code class=verbatim>TAB</code> completes the <code class=verbatim>hell</code> into <code class=verbatim>hello_text</code>:</p><div class="src src-python"><div class=highlight><pre tabindex=0 class=chroma><code class=language-python data-lang=python><span class=line><span class=cl><span class=k>if</span> <span class=vm>__name__</span> <span class=o>==</span> <span class=s2>&#34;__main__&#34;</span><span class=p>:</span>
+</span></span><span class=line><span class=cl>    <span class=nb>print</span><span class=p>(</span><span class=s2>&#34;{hello_text█</span></span></span></code></pre></div></div><p>In the case that the completion is ambiguous, a <code class=verbatim>*completions*</code> buffer
+will pop up, prompting for input on how to continue. Another nice
+thing about this completion method is that it respects your
+<code class=verbatim>completion-styles</code> setting. Personally, I keep mine globally set to
+include the <code class=verbatim>flex</code> style, which closely mimics fuzzy matching styles
+like you get in VSCode, JetBrains, or <code>fzf</code>:</p><div class="src src-elisp"><div class=highlight><pre tabindex=0 class=chroma><code class=language-elisp data-lang=elisp><span class=line><span class=cl><span class=c1>;; init.el</span>
+</span></span><span class=line><span class=cl><span class=p>(</span><span class=nb>setq</span> <span class=nv>completion-styles</span> <span class=o>&#39;</span><span class=p>(</span><span class=nv>flex</span> <span class=nv>basic</span> <span class=nv>partial-completion</span> <span class=nv>emacs22</span><span class=p>))</span></span></span></code></pre></div></div><p>This allows me to type something like <code class=verbatim>hltx</code>, hit <code class=verbatim>TAB</code> and it
+completes to <code class=verbatim>hello_text</code>.</p></div></div><div id=outline-container-headline-14 class=outline-2><h2 id=headline-14>Debugging</h2><div id=outline-text-headline-14 class=outline-text-2><p>If by running our Python code we encounter the <code class=verbatim>breakpoint()</code> builtin,
+Emacs will automatically break into pdb/ipdb (depending on your
+<code>PYTHONBREAKPOINT</code> environment variable), jump to the breakpoint in
+the code, and put an arrow at the next line to execute.</p><figure><img src=./running_pdb.png alt=./running_pdb.png title=./running_pdb.png width=800px><figcaption>Running the Python debugger by using `C-c C-c`</figcaption></figure><div id=outline-container-headline-15 class=outline-3><h3 id=headline-15><code class=verbatim>M-x pdb</code></h3><div id=outline-text-headline-15 class=outline-text-3><p>Simply populates the command to run with <code class=verbatim>python -m pdb</code>. Can be
+configured with the variable <code class=verbatim>gud-pdb-command-name</code></p></div></div></div></div><div id=outline-container-headline-16 class=outline-2><h2 id=headline-16>The <code class=verbatim>poetry</code> + <code class=verbatim>pyright</code> stack</h2><div id=outline-text-headline-16 class=outline-text-2><p>The stack I use most frequently (for now) consists of:</p><ol><li><code class=verbatim>python3.10</code> as the Python runtime</li><li><code class=verbatim>poetry</code> for dependency and environment management<sup class=footnote-reference><a id=footnote-reference-1 href=#footnote-1>1</a></sup></li><li><code class=verbatim>pyright</code> for error checking<sup class=footnote-reference><a id=footnote-reference-2 href=#footnote-2>2</a></sup></li><li><code class=verbatim>emacs</code> for everything else</li></ol><p>Each component should, in theory, be easy to replace. That is, if I
+want <code class=verbatim>conda</code> as a package manager and <code class=verbatim>flake8</code> or <code class=verbatim>mypy</code> for
+linting/type checking, it should be easy to do a drop-in replacement
+for them.</p><p>For those who haven't heard the good news of <code class=verbatim>poetry</code>, it takes care
+of a <em>lot</em> of headaches that every pythonista regularly deals with.
+It manages your virtual environment (creation and update),
+<code class=verbatim>pyproject.toml</code> specification, and a <code class=verbatim>poetry.lock</code> file that serves
+as a replacement for <code class=verbatim>requirements.txt</code>, housing exact dependency
+version numbers for project collaborators to install. All of these
+are automatically kept in sync, so you never have the case like with
+<code class=verbatim>conda</code> where someone does a <code class=verbatim>conda</code> or <code class=verbatim>pip</code> install into their
+environment but never bothers to update the <code class=verbatim>setup.py</code>,
+<code class=verbatim>environment.yml</code>, <code class=verbatim>requirements.txt</code> or whatever.</p><p>Earlier we mentioned that running our Python scripts via the <code class=verbatim>M-&</code>
+async shell command interface wasn't a great use case for it.
+However, using it to set up a poetry environment is a fantastic
+example of when it is appropriate.</p><pre class=example>
+Async shell command: poetry init -n --python=^3.10
+</pre><p>Assuming the poetry command ran without error, it plopped down the
+<code class=verbatim>pyproject.toml</code> in the same directory as <code class=verbatim>errors.py</code>. In a similar
+vein, we can add project dependencies using <code class=verbatim>M-&</code></p><pre class=example>
+Async shell command: poetry add pyright requests
+</pre><p>The <code class=verbatim>*Async Shell Command*</code> buffer will update as poetry runs and
+installs the required dependencies. Following this, we should have
+the <code class=verbatim>pyright</code> CLI installed to the virtual environment poetry set up
+for us. As a sanity check, I'll start up either <code class=verbatim>M-x shell</code> or <code class=verbatim>M-x
+eshell</code> (whichever happens to be behaving better that day) to just get
+a simple cross-platform shell running where I can try it out:</p><pre class=example>
+~/tmp $ # using the same `errors.py` as in the earlier sectons
+~/tmp $ poetry run pyright errors.py
+No configuration file found.
+pyproject.toml file found at /home/robb/repos/renzmann.github.io/content/posts/006_emacs_2_python.
+Loading pyproject.toml file at /home/robb/repos/renzmann.github.io/content/posts/006_emacs_2_python/pyproject.toml
+Pyproject file &#34;/home/robb/repos/renzmann.github.io/content/posts/006_emacs_2_python/pyproject.toml&#34; is missing &#34;[tool.pyright]&#34; section.
+stubPath /home/robb/repos/renzmann.github.io/content/posts/006_emacs_2_python/typings is not a valid directory.
+Assuming Python platform Linux
+Searching for source files
+Found 1 source file
+/home/robb/repos/renzmann.github.io/content/posts/006_emacs_2_python/errors.py
+  /home/robb/repos/renzmann.github.io/content/posts/006_emacs_2_python/errors.py:5:8 - error: Import &#34;aaaaaaa&#34; could not be resolved (reportMissingImports)
+  /home/robb/repos/renzmann.github.io/content/posts/006_emacs_2_python/errors.py:7:1 - error: &#34;foo&#34; is not defined (reportUndefinedVariable)
+  /home/robb/repos/renzmann.github.io/content/posts/006_emacs_2_python/errors.py:7:1 - warning: Expression value is unused (reportUnusedExpression)
+  /home/robb/repos/renzmann.github.io/content/posts/006_emacs_2_python/errors.py:8:14 - error: &#34;fdafdsafdsafdsafdsafdsafdsa&#34; is not a known member of module (reportGeneralTypeIssues)
+  /home/robb/repos/renzmann.github.io/content/posts/006_emacs_2_python/errors.py:13:12 - error: Operator &#34;+&#34; not supported for types &#34;str&#34; and &#34;Literal[1]&#34;
+    Operator &#34;+&#34; not supported for types &#34;str&#34; and &#34;Literal[1]&#34; when expected type is &#34;str&#34; (reportGeneralTypeIssues)
+  /home/robb/repos/renzmann.github.io/content/posts/006_emacs_2_python/errors.py:4:8 - warning: Import &#34;requests&#34; could not be resolved from source (reportMissingModuleSource)
+4 errors, 2 warnings, 0 informations
+Completed in 1.033sec
+</pre><p>Emacs actually has a couple ways of running error-checking tools like
+this. The typical one is <code class=verbatim>M-x compile</code>, which we saw earlier, but
+there's also <code class=verbatim>C-c C-v</code> for <code class=verbatim>M-x python-check</code>. The latter will
+automatically check for tools like <code class=verbatim>pyflakes</code> or <code class=verbatim>flake8</code>, but can be
+configured with the <code class=verbatim>python-check-command</code> variable to pre-populate
+the command to run. Like <code class=verbatim>M-x compile</code>, <code class=verbatim>M-x python-check</code> will use a
+buffer that looks identical to <code class=verbatim>*compilation*</code> in every way except
+name: it will be called the <code class=verbatim>*Python check: &lt;command you ran>*</code>
+buffer.</p><p>For me, that means I typically have something like</p><div class="src src-elisp"><div class=highlight><pre tabindex=0 class=chroma><code class=language-elisp data-lang=elisp><span class=line><span class=cl><span class=p>(</span><span class=nb>setq</span> <span class=nv>python-check-command</span> <span class=s>&#34;poetry run pyright&#34;</span><span class=p>)</span></span></span></code></pre></div></div><p>and then <code class=verbatim>C-c C-v</code> from a python buffer will prompt like this while
+<code class=verbatim>errors.py</code> is my active buffer</p><pre class=example>
+Check command: poetry run pyright errors.py
+</pre><div id=outline-container-headline-17 class=outline-3><h3 id=headline-17>Adding error parsing to the pyright compile output</h3><div id=outline-text-headline-17 class=outline-text-3><p>Unlike the <code class=verbatim>mypy</code> output, the error messages from <code class=verbatim>pyright</code> aren't
+links, and we can't hop between messages using <code class=verbatim>M-g M-n</code> and <code class=verbatim>M-g M-p</code>
+like before. In order to gain this functionality, we need to add a
+regex that can parse <code class=verbatim>pyright</code> messages. There are two objects of
+interest to accomplish this:</p><ul><li>compilation-error-regexp-alist</li><li>compilation-error-regexp-alist-alist</li></ul><p>Here's the formal description from <code class=verbatim>C-h v compilation-error-regexp-alist</code>:</p><pre class=example>
+Alist that specifies how to match errors in compiler output.
+On GNU and Unix, any string is a valid filename, so these
+matchers must make some common sense assumptions, which catch
+normal cases.  A shorter list will be lighter on resource usage.
+
+Instead of an alist element, you can use a symbol, which is
+looked up in ‘compilation-error-regexp-alist-alist’.
+</pre><p>In not so many words, this says we should modify the <code class=verbatim>*-alist-alist</code>
+version, and simply add a symbol to the <code class=verbatim>*-alist</code> variable. Examining
+the current value via <code class=verbatim>C-h v compliation-error-regexp-alist-alist</code>,
+it's easy to see that we're after an expression a bit like this,</p><div class="src src-elisp"><div class=highlight><pre tabindex=0 class=chroma><code class=language-elisp data-lang=elisp><span class=line><span class=cl><span class=p>(</span><span class=nv>add-to-list</span> <span class=ss>&#39;compilation-error-regexp-alist-alist</span>
+</span></span><span class=line><span class=cl>             <span class=o>&#39;</span><span class=p>(</span><span class=nv>pyright</span> <span class=s>&#34;regexp that parses pyright errors&#34;</span> <span class=mi>1</span> <span class=mi>2</span> <span class=mi>3</span><span class=p>))</span></span></span></code></pre></div></div><p>eventually replacing the string in the middle with an actual Emacs
+regexp. Thankfully, Emacs has the <code class=verbatim>M-x re-builder</code> built in for doing
+exactly that! Since <code class=verbatim>*Python check: poetry run pyright errors.py*</code> is
+a buffer like any other, we can hop over to it, and run <code class=verbatim>M-x
+re-builder</code> to piece together a regex that extracts file name, line
+number, and column number from each message.</p><figure><img src=./re-builder.png alt=./re-builder.png title=./re-builder.png width=800px><figcaption>Building the regex that parses pyright errors interactively</figcaption></figure><p>Clearly, there are some errors in the regexp so far, but as we edit
+the text in the <code>*RE-Builder*</code> buffer, the highlighting in the
+<code>*compilation*</code> buffer will update live to show us what would be
+captured by the regexp we've entered. After fiddling with the
+contents in the bottom buffer to get the highlighting correct, we've
+got this regular expression:</p><pre class=example>
+&#34;^[[:blank:]]+\\(.+\\):\\([0-9]+\\):\\([0-9]+\\).*$&#34;
+</pre><p>Now we just need to add this into the
+<code class=verbatim>compilation-error-regexp-alist-alist</code> in our <code class=verbatim>init.el</code>:</p><div class="src src-elisp"><div class=highlight><pre tabindex=0 class=chroma><code class=language-elisp data-lang=elisp><span class=line><span class=cl><span class=c1>;; init.el</span>
+</span></span><span class=line><span class=cl><span class=p>(</span><span class=nb>require</span> <span class=ss>&#39;compile</span><span class=p>)</span>
+</span></span><span class=line><span class=cl><span class=p>(</span><span class=nv>add-to-list</span> <span class=ss>&#39;compilation-error-regexp-alist-alist</span>
+</span></span><span class=line><span class=cl>             <span class=o>&#39;</span><span class=p>(</span><span class=nv>pyright</span> <span class=s>&#34;^[[:blank:]]+\\(.+\\):\\([0-9]+\\):\\([0-9]+\\).*$&#34;</span> <span class=mi>1</span> <span class=mi>2</span> <span class=mi>3</span><span class=p>))</span>
+</span></span><span class=line><span class=cl><span class=p>(</span><span class=nv>add-to-list</span> <span class=ss>&#39;compilation-error-regexp-alist</span> <span class=ss>&#39;pyright</span><span class=p>)</span></span></span></code></pre></div></div><p>After restarting emacs with the modified alist, we get error prasing from pyright output:</p><figure><img src=./pyright_error_parsing.png alt=./pyright_error_parsing.png title=./pyright_error_parsing.png width=800px><figcaption>Functional links in the <code>*compilation*</code> buffer after running pyright</figcaption></figure></div></div></div></div><div id=outline-container-headline-18 class=outline-2><h2 id=headline-18>Virtual Environments</h2><div id=outline-text-headline-18 class=outline-text-2><p>Since I use <code class=verbatim>poetry</code> so frequently, and I can prefix all of the Emacs
+or shell commands with <code class=verbatim>poetry run</code>, it's pretty rare that I have to
+invoke specific virtual environments. That said, this guide would
+have a pretty large hole in it if we didn't mention the vanilla
+virtual environment experience.</p><p>Most folks tend to run a slightly different virtual environment
+workflow from one another. What I'm showing off below is the one I
+think fits most easily with the flavor of vanilla already presented in
+this article, with some added knowledge about how <code class=verbatim>.dir-locals.el</code>
+works (coming up shortly).</p><div id=outline-container-headline-19 class=outline-3><h3 id=headline-19>Create a virtual environment</h3><div id=outline-text-headline-19 class=outline-text-3><p>Keeping a <code class=verbatim>.venv</code> folder at the top level of a project is one valid
+way to organize things, but (vanilla) Emacs isn't going to make it
+easy for us to use it that way. Instead, I'd recommend keeping all
+virtual environments in a central place. For me, that looks like
+this:</p><pre class=example>
+M-! python3 -m venv ~/.cache/venvs/website
+</pre><p>This builds a virtualenv named <code class=verbatim>website</code> for python utilities that
+help buld my blog under the <code class=verbatim>~/.cache</code> directory on Unix. To use this
+virtualenv explicitly for shell utilities, I can always run commands
+like this</p><pre class=example>
+M-! ~/.cache/venvs/website/bin/python -m pip install mypy
+M-! ~/.cache/venv/website/bin/mypy errors.py
+</pre><p>Of course, adding the prefix <code class=verbatim>~/.cache/venvs/website/bin</code> every time
+is a bit cumbersome, especially for frequent commands like <code class=verbatim>M-x
+python-check</code>.</p></div></div><div id=outline-container-headline-20 class=outline-3><h3 id=headline-20><code class=verbatim>.dir-locals.el</code> for setting virtual environment</h3><div id=outline-text-headline-20 class=outline-text-3><p>One quick way to reduce some typing is to add entries in a project
+file called <code class=verbatim>.dir-locals.el</code>. This is a special <em>data</em> file that
+Emacs will read, if it exists, and apply to all new buffers within the
+project. For our needs, we want to apply a couple changes to
+<code class=verbatim>python-mode</code> specifically to use the virtual environment instead of
+system python. The two easy ones are the <code class=verbatim>python-check-command</code> and
+<code class=verbatim>python-shell-virtualenv-root</code>:</p><div class="src src-elisp"><div class=highlight><pre tabindex=0 class=chroma><code class=language-elisp data-lang=elisp><span class=line><span class=cl><span class=c1>;; .dir-locals.el</span>
+</span></span><span class=line><span class=cl><span class=p>((</span><span class=nv>python-mode</span> <span class=o>.</span> <span class=p>((</span><span class=nv>python-check-command</span> <span class=o>.</span> <span class=s>&#34;%HOME%\\.cache\\venvs\\website\\Scripts\\python.exe -m mypy&#34;</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>                 <span class=p>(</span><span class=nv>python-shell-virtualenv-root</span> <span class=o>.</span> <span class=s>&#34;~/.cache/venvs/website&#34;</span><span class=p>))))</span></span></span></code></pre></div></div><p>I've included a quirk of working on Microsoft Windows here - the
+<code class=verbatim>python-check-command</code> needs to run through your shell, which is
+<code>cmd.exe</code> by default, and hence requires Windows-style paths. The
+<code class=verbatim>python-shell-virtualenv-root</code>, however, is evaulated by Emacs, and
+can use tilde-expansion and Unix-style paths. Changing default shell
+commands to run through <code>pwsh</code> on Windows would likely alleviate this
+issue, but it's worth calling out for <code>cmd.exe</code> users.</p><p>It's also worth mentioning here that <code class=verbatim>M-x add-dir-local-variable</code>
+provides an easy interactive interface to editing the <code class=verbatim>.dir-locals.el</code>
+file.</p><p>The <code class=verbatim>python-shell-virtualenv-root</code> part only affects running Python as
+a shell within Emacs, it does <em>not</em> affect things like PATH, async
+commands, or <code class=verbatim>M-x compile</code>. To demonstrate this, once we've set up
+<code class=verbatim>.dir-locals.el</code> as above, and we either revert a Python buffer with
+<code class=verbatim>C-x x g</code> or open a new Python buffer in the same project, a popup
+like this appears:</p><pre class=example>
+The local variables list in c:/Users/robbe/repos/renzmann.github.io/content/posts/006_emacs_2_python/
+contains values that may not be safe (*).
+
+Do you want to apply it?  You can type
+y  -- to apply the local variables list.
+n  -- to ignore the local variables list.
+!  -- to apply the local variables list, and permanently mark these
+      values (*) as safe (in the future, they will be set automatically.)
+i  -- to ignore the local variables list, and permanently mark these
+      values (*) as ignored
+
+  * python-check-command : &#34;%HOME%\\.cache\\venvs\\website\\Scripts\\python.exe -m mypy&#34;
+  * python-shell-virtualenv-root : &#34;~/.cache/venvs/website&#34;
+</pre><p>Responding with <code>y</code> will set the <code class=verbatim>python-check-command</code> and
+<code class=verbatim>python-shell-virtualenv-root</code> for just the current session, while <code>!</code>
+will add both of these values to the <code>custom</code> section in either
+<code class=verbatim>init.el</code> or wherever you've set your <code>custom-file</code>. This is another
+reason for using a common, central spot for virtual environments,
+since across workstations I can use the same path relative to my
+<code>$HOME</code> directory. After confirming, and using <code class=verbatim>C-c C-p</code>, we can
+check which Python executable we're using in the <code>*Python*</code> buffer now:</p><div class="src src-text"><div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text><span class=line><span class=cl>Python 3.10.6 (tags/v3.10.6:9c7b4bd, Aug  1 2022, 21:53:49) [MSC v.1932 64 bit (AMD64)] on win32
+</span></span><span class=line><span class=cl>Type &#34;help&#34;, &#34;copyright&#34;, &#34;credits&#34; or &#34;license&#34; for more information.
+</span></span><span class=line><span class=cl>&gt;&gt;&gt; import sys; sys.executable
+</span></span><span class=line><span class=cl>&#39;c:\\Users\\robbe\\.cache\\venvs\\website\\Scripts\\python.exe&#39;</span></span></code></pre></div></div><p>Keep in mind, the values provided in <code class=verbatim>.dir-locals.el</code> are evaluated on
+a per-buffer basis, so attempting to set a relative path like
+<code>(python-shell-virtualenv-root . ".venv/website")</code> will only work when
+executing <code>run-python</code> in the same directory as <code class=verbatim>.dir-locals.el</code> <em>and</em>
+<code class=verbatim>.venv/</code>.</p><p>The various compile and shell commands will <em>not</em> respect the
+virtualenv we've set via <code class=verbatim>.dir-locals.el</code>. On *nix, <code>M-x compile RET
+which python3</code> will still bring back some variant of
+<code>/usr/bin/python3</code>, as will <code>M-& which python</code> or <code>M-! which python</code>.
+In a follow-up article we might explore how it <em>is</em> possible to take
+care of all this via <code class=verbatim>.dir-locals.el</code> and the special <code>exec</code> variable,
+but it's not very elegant.</p></div></div><div id=outline-container-headline-21 class=outline-3><h3 id=headline-21>All things considered: <code class=verbatim>pyvenv</code></h3><div id=outline-text-headline-21 class=outline-text-3><p><a href=https://github.com/jorgenschaefer/pyvenv><code class=verbatim>pyvenv</code></a> is a very lightweight package, clocking in at around 540
+source lines of code, designed specifically around the challenge of
+ensuring the correct python virtual environment is at the front of
+PATH when running (async) shell commands, <code class=verbatim>M-x eshell</code>, <code class=verbatim>M-x shell</code>,
+<code class=verbatim>M-x term</code>, <code class=verbatim>M-x python-check</code>, <code class=verbatim>M-x compile</code>, and more. When
+written, it was based around <code class=verbatim>virtualenv</code> and <code class=verbatim>virtualenvwrapper.sh</code>,
+and some of the language it uses will reflect that. Although
+<code class=verbatim>virtualenv</code> has mostly fallen out of favor, the core functionality of
+<code class=verbatim>pyvenv</code> is still very relevant. Especially if you choose to adopt a
+central store of virtual environments, as above, you can set that as a
+<code class=verbatim>WORKON_HOME</code> variable ("workon" is terminology held over from
+<code class=verbatim>virtualenvwrapper.sh</code>) to a directory that all your virtual
+environments sit under, so that it's easy to select one with the
+<code class=verbatim>pyvenv-workon</code> function. When using <code class=verbatim>poetry</code>, that usually looks
+like this:</p><div class="src src-elisp"><div class=highlight><pre tabindex=0 class=chroma><code class=language-elisp data-lang=elisp><span class=line><span class=cl><span class=p>(</span><span class=nb>if</span> <span class=p>(</span><span class=nf>eq</span> <span class=nv>system-type</span> <span class=ss>&#39;windows-nt</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>    <span class=c1>;; Default virtualenv cache directory for poetry on Microsoft Windows</span>
+</span></span><span class=line><span class=cl>    <span class=p>(</span><span class=nv>setenv</span> <span class=s>&#34;WORKON_HOME&#34;</span> <span class=s>&#34;$LOCALAPPDATA/pypoetry/Cache/virtualenvs&#34;</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>  <span class=c1>;; Default virtualenv cache directory for poetry on *nix</span>
+</span></span><span class=line><span class=cl>  <span class=p>(</span><span class=nv>setenv</span> <span class=s>&#34;WORKON_HOME&#34;</span> <span class=s>&#34;~/.cache/pypoetry/virtualenvs&#34;</span><span class=p>))</span>
+</span></span><span class=line><span class=cl><span class=p>(</span><span class=nv>pyvenv-mode</span><span class=p>)</span></span></span></code></pre></div></div><p>Setting <code>WORKON_HOME</code> to <code class=verbatim>~/.cache/venvs</code> as in the previous examples
+is another valid option. Doing it this way also plays nice with
+<code>.dir-locals.el</code>, since <code>pyvenv</code> exposes a way to set a project-level
+venv with a single variable:</p><div class="src src-elisp"><div class=highlight><pre tabindex=0 class=chroma><code class=language-elisp data-lang=elisp><span class=line><span class=cl><span class=c1>;; .dir-locals.el</span>
+</span></span><span class=line><span class=cl><span class=p>((</span><span class=nv>python-mode</span> <span class=o>.</span> <span class=p>((</span><span class=nv>pyvenv-workon</span> <span class=o>.</span> <span class=s>&#34;website&#34;</span><span class=p>))))</span></span></span></code></pre></div></div><p>Also of use for folks who frequently swap between different projects
+is <code>(pyvenv-tracking-mode)</code>, which will automatically change the
+active python virtual environment when you navigate to a different
+buffer.</p><p>And, of course, if the whole "workon" and virtualenvs grouped together
+under <code class=verbatim>~/.cache/venvs</code> isn't to taste, there's always <code class=verbatim>M-x
+pyvenv-activate</code>, which lets you choose a virtual environement
+anywhere on your system. So, all-in-all, I'll probably stick with
+<code class=verbatim>pyvenv</code> in my configuration, because setting all the different
+utility PATHs without it is just such a pain.</p></div></div></div></div><div id=outline-container-headline-22 class=outline-2><h2 id=headline-22>Next: Notebooking</h2><div id=outline-text-headline-22 class=outline-text-2><p>Belive it or not, we've only scratched the surface. <code class=verbatim>org-mode</code>
+and <code class=verbatim>org-babel</code> together provide a fully-functional
+"notebooking" (technically "literate programming") experience out of
+the box with recent versions of Emacs. The next article will focus
+exclusively on Python and data science in Org as a near-complete
+Jupyter replacement.</p></div></div><div id=outline-container-headline-23 class=outline-2><h2 id=headline-23>Footnotes</h2></div><div class=footnotes><hr class=footnotes-separatator><div class=footnote-definitions><div class=footnote-definition><sup id=footnote-1><a href=#footnote-reference-1>1</a></sup><div class=footnote-body><p><a href=https://python-poetry.org/docs/#installation>https://python-poetry.org/docs/#installation</a></p></div></div><div class=footnote-definition><sup id=footnote-2><a href=#footnote-reference-2>2</a></sup><div class=footnote-body><p><a href=https://github.com/microsoft/pyright#command-line>https://github.com/microsoft/pyright#command-line</a></p></div></div></div></div></div></section><footer class="pt-8 max-w-prose print:hidden"><div class=flex><img class="w-24 h-24 !mt-0 !mb-0 ltr:mr-4 rtl:ml-4 rounded-full" width=96 height=96 alt=Author src=/img/robb_python_grey_huf4e52b91f6345de53e62f8c2a64f08ae_471021_192x192_fill_box_smart1_3.png><div class=place-self-center><div class="text-[0.6rem] leading-3 text-neutral-500 dark:text-neutral-400 uppercase">Author</div><div class="font-semibold leading-6 text-neutral-800 dark:text-neutral-300">Robert Enzmann</div><div class="text-sm text-neutral-700 dark:text-neutral-400">I handle <code>make</code>s and snakes</div><div class="text-2xl sm:text-lg"><div class="flex flex-wrap text-neutral-400 dark:text-neutral-500"><a class="px-1 hover:text-primary-700 dark:hover:text-primary-400" href=mailto:robbenzmann@gmail.com target=_blank aria-label=Email rel="me noopener noreferrer"><span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M207.8 20.73c-93.45 18.32-168.7 93.66-187 187.1-27.64 140.9 68.65 266.2 199.1 285.1 19.01 2.888 36.17-12.26 36.17-31.49l1e-4-.6631c0-15.74-11.44-28.88-26.84-31.24-84.35-12.98-149.2-86.13-149.2-174.2.0-102.9 88.61-185.5 193.4-175.4 91.54 8.869 158.6 91.25 158.6 183.2v16.16c0 22.09-17.94 40.05-40 40.05s-40.01-17.96-40.01-40.05v-120.1c0-8.847-7.161-16.02-16.01-16.02l-31.98.0036c-7.299.0-13.2 4.992-15.12 11.68-24.85-12.15-54.24-16.38-86.06-5.106-38.75 13.73-68.12 48.91-73.72 89.64-9.483 69.01 43.81 128 110.9 128 26.44.0 50.43-9.544 69.59-24.88 24 31.3 65.23 48.69 109.4 37.49C465.2 369.3 496 324.1 495.1 277.2V256.3c0-149.2-133.9-265.632-287.3-235.57zM239.1 304.3c-26.47.0-48-21.56-48-48.05s21.53-48.05 48-48.05 48 21.56 48 48.05-20.6 48.05-48 48.05z"/></svg></span></a><a class="px-1 hover:text-primary-700 dark:hover:text-primary-400" href=https://github.com/renzmann target=_blank aria-label=Github rel="me noopener noreferrer"><span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><path fill="currentcolor" d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6.0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6.0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3.0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1.0-6.2-.3-40.4-.3-61.4.0.0-70 15-84.7-29.8.0.0-11.4-29.1-27.8-36.6.0.0-22.9-15.7 1.6-15.4.0.0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5.0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9.0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4.0 33.7-.3 75.4-.3 83.6.0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6.0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9.0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg></span></a><a class="px-1 hover:text-primary-700 dark:hover:text-primary-400" href=https://www.linkedin.com/in/renzmann target=_blank aria-label=Linkedin rel="me noopener noreferrer"><span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path fill="currentcolor" d="M416 32H31.9C14.3 32 0 46.5.0 64.3v383.4C0 465.5 14.3 480 31.9 480H416c17.6.0 32-14.5 32-32.3V64.3c0-17.8-14.4-32.3-32-32.3zM135.4 416H69V202.2h66.5V416zm-33.2-243c-21.3.0-38.5-17.3-38.5-38.5S80.9 96 102.2 96c21.2.0 38.5 17.3 38.5 38.5.0 21.3-17.2 38.5-38.5 38.5zm282.1 243h-66.4V312c0-24.8-.5-56.7-34.5-56.7-34.6.0-39.9 27-39.9 54.9V416h-66.4V202.2h63.7v29.2h.9c8.9-16.8 30.6-34.5 62.9-34.5 67.2.0 79.7 44.3 79.7 101.9V416z"/></svg></span></a><a class="px-1 hover:text-primary-700 dark:hover:text-primary-400" href=https://reddit.com/user/renzmann target=_blank aria-label=Reddit rel="me noopener noreferrer"><span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M201.5 305.5c-13.8.0-24.9-11.1-24.9-24.6.0-13.8 11.1-24.9 24.9-24.9 13.6.0 24.6 11.1 24.6 24.9.0 13.6-11.1 24.6-24.6 24.6zM504 256c0 137-111 248-248 248S8 393 8 256 119 8 256 8s248 111 248 248zm-132.3-41.2c-9.4.0-17.7 3.9-23.8 10-22.4-15.5-52.6-25.5-86.1-26.6l17.4-78.3 55.4 12.5c0 13.6 11.1 24.6 24.6 24.6 13.8.0 24.9-11.3 24.9-24.9s-11.1-24.9-24.9-24.9c-9.7.0-18 5.8-22.1 13.8l-61.2-13.6c-3-.8-6.1 1.4-6.9 4.4l-19.1 86.4c-33.2 1.4-63.1 11.3-85.5 26.8-6.1-6.4-14.7-10.2-24.1-10.2-34.9.0-46.3 46.9-14.4 62.8-1.1 5-1.7 10.2-1.7 15.5.0 52.6 59.2 95.2 132 95.2 73.1.0 132.3-42.6 132.3-95.2.0-5.3-.6-10.8-1.9-15.8 31.3-16 19.8-62.5-14.9-62.5zM302.8 331c-18.2 18.2-76.1 17.9-93.6.0-2.2-2.2-6.1-2.2-8.3.0-2.5 2.5-2.5 6.4.0 8.6 22.8 22.8 87.3 22.8 110.2.0 2.5-2.2 2.5-6.1.0-8.6-2.2-2.2-6.1-2.2-8.3.0zm7.7-75c-13.6.0-24.6 11.1-24.6 24.9.0 13.6 11.1 24.6 24.6 24.6 13.8.0 24.9-11.1 24.9-24.6.0-13.8-11-24.9-24.9-24.9z"/></svg></span></a></div></div></div></div><div class=pt-8><hr class="border-dotted border-neutral-300 dark:border-neutral-600"><div class="flex justify-between pt-3"><span><a class="flex group" href=/posts/007_emacs_3_discovering/><span class="mr-3 ltr:inline rtl:hidden text-neutral-700 dark:text-neutral group-hover:text-primary-600 dark:group-hover:text-primary-400">&larr;</span>
+<span class="ml-3 ltr:hidden rtl:inline text-neutral-700 dark:text-neutral group-hover:text-primary-600 dark:group-hover:text-primary-400">&rarr;</span>
+<span class="flex flex-col"><span class="mt-[0.1rem] leading-6 group-hover:underline group-hover:decoration-primary-500">Discovering Useful Functions in Emacs</span>
+<span class="mt-[0.1rem] text-xs text-neutral-500 dark:text-neutral-400"><time datetime="2022-08-22 00:00:00 +0000 UTC">22 August 2022</time></span></span></a></span>
+<span><a class="flex text-right group" href=/posts/emacs-29-completions/><span class="flex flex-col"><span class="mt-[0.1rem] leading-6 group-hover:underline group-hover:decoration-primary-500">The *Completions* Buffer Gets a Big Upgrade in Emacs 29</span>
+<span class="mt-[0.1rem] text-xs text-neutral-500 dark:text-neutral-400"><time datetime="2023-01-06 00:00:00 -0500 -0500">6 January 2023</time></span></span>
+<span class="ml-3 ltr:inline rtl:hidden text-neutral-700 dark:text-neutral group-hover:text-primary-600 dark:group-hover:text-primary-400">&rarr;</span>
+<span class="mr-3 ltr:hidden rtl:inline text-neutral-700 dark:text-neutral group-hover:text-primary-600 dark:group-hover:text-primary-400">&larr;</span></a></span></div></div></footer></article><div class="absolute top-[110vh] ltr:right-0 rtl:left-0 w-12 pointer-events-none bottom-[-5.5rem]"><a href=#the-top class="w-12 h-12 sticky pointer-events-auto top-[calc(100vh-5rem)] bg-neutral/50 dark:bg-neutral-800/50 backdrop-blur rounded-full text-xl flex items-center justify-center text-neutral-700 dark:text-neutral hover:text-primary-600 dark:hover:text-primary-400" aria-label="Scroll to top" title="Scroll to top">&uarr;</a></div></main><div id=search-wrapper class="fixed inset-0 z-50 flex flex-col p-4 sm:p-6 md:p-[10vh] lg:p-[12vh] w-screen h-screen cursor-default bg-neutral-500/50 backdrop-blur-sm dark:bg-neutral-900/50 invisible" data-url=https://robbmann.io><div id=search-modal class="flex flex-col w-full max-w-3xl min-h-0 mx-auto border rounded-md shadow-lg border-neutral-200 top-20 bg-neutral dark:bg-neutral-800 dark:border-neutral-700"><header class="relative z-10 flex items-center justify-between flex-none px-2"><form class="flex items-center flex-auto min-w-0"><div class="flex items-center justify-center w-8 h-8 text-neutral-400"><span class="relative inline-block align-text-bottom icon"><svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="search" class="svg-inline--fa fa-search fa-w-16" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M505 442.7 405.3 343c-4.5-4.5-10.6-7-17-7H372c27.6-35.3 44-79.7 44-128C416 93.1 322.9.0 208 0S0 93.1.0 208s93.1 208 208 208c48.3.0 92.7-16.4 128-44v16.3c0 6.4 2.5 12.5 7 17l99.7 99.7c9.4 9.4 24.6 9.4 33.9.0l28.3-28.3c9.4-9.4 9.4-24.6.1-34zM208 336c-70.7.0-128-57.2-128-128 0-70.7 57.2-128 128-128 70.7.0 128 57.2 128 128 0 70.7-57.2 128-128 128z"/></svg></span></div><input type=search id=search-query class="flex flex-auto h-12 mx-1 bg-transparent appearance-none focus:outline-dotted focus:outline-transparent focus:outline-2" placeholder=Search tabindex=0></form><button id=close-search-button class="flex items-center justify-center w-8 h-8 text-neutral-700 dark:text-neutral hover:text-primary-600 dark:hover:text-primary-400" title="Close (Esc)">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><path fill="currentcolor" d="M310.6 361.4c12.5 12.5 12.5 32.75.0 45.25C304.4 412.9 296.2 416 288 416s-16.38-3.125-22.62-9.375L160 301.3 54.63 406.6C48.38 412.9 40.19 416 32 416S15.63 412.9 9.375 406.6c-12.5-12.5-12.5-32.75.0-45.25l105.4-105.4L9.375 150.6c-12.5-12.5-12.5-32.75.0-45.25s32.75-12.5 45.25.0L160 210.8l105.4-105.4c12.5-12.5 32.75-12.5 45.25.0s12.5 32.75.0 45.25l-105.4 105.4L310.6 361.4z"/></svg></span></button></header><section class="flex-auto px-2 overflow-auto"><ul id=search-results></ul></section></div></div><footer class="py-10 print:hidden"><div class="flex justify-between"><div><p class="text-sm text-neutral-500 dark:text-neutral-400">&copy;
+2023
+Robert Enzmann</p><p class="text-xs text-neutral-500 dark:text-neutral-400">Powered by <a class="hover:underline hover:decoration-primary-400 hover:text-primary-500" href=https://gohugo.io/ target=_blank rel="noopener noreferrer">Hugo</a> & <a class="hover:underline hover:decoration-primary-400 hover:text-primary-500" href=https://git.io/hugo-congo target=_blank rel="noopener noreferrer">Congo</a></p></div><div class="text-sm cursor-pointer text-neutral-700 dark:text-neutral hover:text-primary-600 dark:hover:text-primary-400 ltr:mr-14 rtl:ml-14"><button id=appearance-switcher class="w-12 h-12" type=button title="Switch to dark appearance">
+<span class="inline dark:hidden"><span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M32 256C32 132.2 132.3 32 255.8 32c11.36.0 29.7 1.668 40.9 3.746 9.616 1.777 11.75 14.63 3.279 19.44C245 86.5 211.2 144.6 211.2 207.8c0 109.7 99.71 193 208.3 172.3 9.561-1.805 16.28 9.324 10.11 16.95C387.9 448.6 324.8 480 255.8 480 132.1 480 32 379.6 32 256z"/></svg></span></span><span class="hidden dark:inline"><span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M256 159.1c-53.02.0-95.1 42.98-95.1 95.1s41.2 96.9 95.1 96.9 95.1-42.98 95.1-95.1S309 159.1 256 159.1zM509.3 347l-63.2-91.9 63.15-91.01c6.332-9.125 1.104-21.74-9.826-23.72l-109-19.7-19.7-109c-1.975-10.93-14.59-16.16-23.72-9.824L256 65.89 164.1 2.736c-9.125-6.332-21.74-1.107-23.72 9.824L121.6 121.6 12.56 141.3C1.633 143.2-3.596 155.9 2.736 164.1L65.89 256 2.74 347.01c-6.332 9.125-1.105 21.74 9.824 23.72l109 19.7 19.7 109c1.975 10.93 14.59 16.16 23.72 9.824L256 446.1l91.01 63.15c9.127 6.334 21.75 1.107 23.72-9.822l19.7-109 109-19.7C510.4 368.8 515.6 356.1 509.3 347zM256 383.1c-70.69.0-127.1-57.31-127.1-127.1.0-70.69 57.31-127.1 127.1-127.1S383.1 186.2 383.1 256c0 70.7-56.4 127.1-127.1 127.1z"/></svg></span></span></button></div></div></footer></body></html>
