@@ -3,6 +3,7 @@
   --prose-color: #ffffff;
   --prose-font: ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,segoe ui,Roboto,helvetica neue,Arial,noto sans,sans-serif,apple color emoji,segoe ui emoji,segoe ui symbol,noto color emoji;
   --code-font: "Lucida Console", "Courier New", monospace;
+  --link-color: #a78bfa;
 }
 
 *, *::before, *::after {
@@ -15,6 +16,16 @@ body {
   font-family: var(--prose-font);
   color: var(--prose-color);
   font-weight: 400;
+}
+
+a {
+  color: var(--link-color);
+  font-weight: bold;
+}
+
+a:hover {
+  /* We'll want a background and color inversion on hover */
+  /* Animate the backgrond, fade in and out */
 }
 
 .content {
