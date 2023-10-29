@@ -1,0 +1,61 @@
+#+TITLE: Python in Emacs: Vanilla Still Reigns Supreme
+
+* Running interpreter
+** Customizing interpreter program
++ =python-interpreter=
++ =python-shell-virtualenv-root=
++ =python-shell-interpreter=
++ =python-shell-interpreter-args=
++ =python-shell-exec-path=
+
+** Running the shell dedicated to the project, rather than buffer
+One quick way: =C-u C-x p x=, which is =project-execute-extended-command=,
+followed by inserting the venv path at the beginning.  Then use this shell for
+everything.
+
+* Completion
+** Setup of *Completions*
+See my previous article or .emacs.d.
+
+** Install =pyreadline3= on Windows
+
+** Abbrevs to save typing
+*** Enabling =abbrev-mode= and automatic expansion with =python-skeleton-autoinsert=
+*** ifnamemain to get main block
+*** =write-abbrev-file= is something to try out
+*** =dabbrev-expand= vs =dabbrev-completion=
+Use =dabbrev-expand= for recent words, and =dabbrev-completion= for symbol
+completion after starting project shell.
+
+* Relative imports in the shell with =python-shell-package-enable=
+
+* LSP and =eglot=
+
+* Keyboard motions
+
+* Templating and skeletons
+
+* Checking code
+** =python-check= and =python-check-command=
+** Import fixing with =isort= is built-in
+*** =python-sort-imports=
+*** =python-add-import=
+*** =python-remove-import=
+*** =python-fix-imports= is built-in but requires =pyflakes=
+
+* Navigation and grepping
+** FFAP works with a module at point if inferior shell is running
+** =imenu=
+*** =python-imenu-create-flat-index=
+*** =python-imenu-format-item-label-function=
+*** =python-imenu-format-parent-item-label-function=
+*** =python-imenu-format-parent-item-jump-label-function=
+
+* Useful keybindings
+Make a small function for detecting and inserting .venv path.
+
+* Debugging with =pdb=
+
+* Tramp just works
+** =enable-remote-dir-locals=
+** =python-shell-with-environment=
