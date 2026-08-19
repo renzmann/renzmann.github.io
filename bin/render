@@ -1,0 +1,114 @@
+#!/usr/bin/awk -f
+function trim(s) {
+    sub(/^[[:space:]]+/, "", s)
+    sub(/[[:space:]]+$/, "", s)
+    return s
+}
+
+function slurp(path,    line, out) {
+  out = ""
+  while ((getline line < path) > 0) out = out line "\n"
+  close(path)
+  return out
+}
+
+function expand_includes(s,    out, line, m, before, after, incfile, incpath, replacement) {
+  # Expand {{> something}} directives line-by-line
+  out = ""
+  n = split(s, lines, "\n")
+  for (i = 1; i <= n; i++) {
+    line = lines[i]
+
+    # Match: {{> file.html}} with optional whitespace
+    if (match(line, /\{\{[[:space:]]*>[[:space:]]*[^}[:space:]]+[[:space:]]*\}\}/)) {
+      before = substr(line, 1, RSTART - 1)
+      after  = substr(line, RSTART + RLENGTH)
+
+      incfile = substr(line, RSTART, RLENGTH)
+      sub(/^\{\{[[:space:]]*>[[:space:]]*/, "", incfile)
+      sub(/[[:space:]]*\}\}$/, "", incfile)
+
+      incpath = SRCROOT "/partials/" incfile
+      replacement = slurp(incpath)
+
+      out = out before replacement after "\n"
+    } else {
+      out = out line "\n"
+    }
+  }
+  return out
+}
+
+function substitute_vars(s, vars,    out, k) {
+  out = s
+
+  # content first
+  gsub(/\{\{[[:space:]]*content[[:space:]]*\}\}/, vars["content"], out)
+
+  # other keys
+  for (k in vars) {
+    if (k == "content") continue
+    # Replace {{key}} with value (allow whitespace around key)
+    gsub("\\{\\{[[:space:]]*" k "[[:space:]]*\\}\\}", vars[k], out)
+  }
+
+  # Any unreplaced {{...}} are left as-is
+  return out
+}
+
+BEGIN {
+  if (SRCROOT == "") SRCROOT = "src"
+  page = ARGV[1]
+  if (page == "") {
+    print "usage: render [-v SRCROOT=src] src/pages/file.html" > "/dev/stderr"
+    exit 2
+  }
+}
+
+END {
+  in_fm = 1
+  body = ""
+
+  while ((getline line < page) > 0) {
+    if (in_fm) {
+      if (line ~ /^---[[:space:]]*$/) { in_fm = 0; continue }
+
+      # Ignore blank/comment lines in front matter
+      if (line ~ /^[[:space:]]*$/) continue
+      if (line ~ /^[[:space:]]*#/) continue
+
+      # Parse "key: value"
+      if (match(line, /^[[:space:]]*[^:]+:[[:space:]]*/)) {
+        key = line
+        sub(/:.*/, "", key)
+        key = trim(key)
+
+        val = line
+        sub(/^[[:space:]]*[^:]+:[[:space:]]*/, "", val)
+        val = trim(val)
+
+        vars[key] = val
+      }
+    } else {
+      body = body line "\n"
+    }
+  }
+  close(page)
+
+  vars["content"] = body
+
+  if (!("layout" in vars) || vars["layout"] == "") {
+    print "error: missing required front matter key 'layout' in " page > "/dev/stderr"
+    exit 1
+  }
+
+  layout_path = SRCROOT "/layouts/" vars["layout"] ".html"
+  layout = slurp(layout_path)
+
+  # Expand includes in layout first (partials can themselves contain {{title}} etc.)
+  layout = expand_includes(layout)
+
+  out = substitute_vars(layout, vars)
+
+  printf "%s", out
+}
