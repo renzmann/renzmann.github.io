@@ -4,53 +4,94 @@ date: 2022-11-19
 description: How eglot + pyright + tramp cooperate to give a working remote Python LSP setup.
 ---
 <h3 id="motivation">Motivation</h3>
-<p>My most reliable setup for developing Python projects on remote hosts with LSP support
-so far has been with <a href="https://github.com/joaotavora/eglot">eglot</a> and <a href="https://github.com/microsoft/pyright">pyright</a>. I’ve also tried <a href="https://emacs-lsp.github.io/lsp-mode/">lsp-mode</a> with <code>pyright</code>, and
-both of <code>lsp-mode</code> and <code>eglot</code> with the <a href="https://github.com/python-lsp/python-lsp-server">python-lsp-server</a>, however I’ve landed on <code>eglot</code> +
-<code>pyright</code> for a few reasons:</p>
+<p>
+  My most reliable setup for developing Python projects on remote hosts with LSP
+  support so far has been with
+  <a href="https://github.com/joaotavora/eglot">eglot</a> and
+  <a href="https://github.com/microsoft/pyright">pyright</a>. I’ve also tried
+  <a href="https://emacs-lsp.github.io/lsp-mode/">lsp-mode</a> with
+  <code>pyright</code>, and both of <code>lsp-mode</code> and
+  <code>eglot</code> with the
+  <a href="https://github.com/python-lsp/python-lsp-server">python-lsp-server</a
+  >, however I’ve landed on <code>eglot</code> + <code>pyright</code> for a few
+  reasons:
+</p>
 <ol type="1">
-<li><code>eglot</code> requires zero configuration to work over Tramp, unlike <code>lsp-mode</code>.</li>
-<li>Fewest number of Tramp hangs. This <em>could</em> just be a symptom of my particular setup,
-though.</li>
-<li><code>eglot</code> will have built-in support in future Emacs versions. This may or may not be
-worth a damn to other Emacs users.</li>
-<li><code>pyright</code> has been strictly faster at error checking and diagnostic updates as
-compared to <code>python-language-server</code> in the machines I’m using.</li>
+  <li>
+    <code>eglot</code> requires zero configuration to work over Tramp, unlike
+    <code>lsp-mode</code>.
+  </li>
+  <li>
+    Fewest number of Tramp hangs. This <em>could</em> just be a symptom of my
+    particular setup, though.
+  </li>
+  <li>
+    <code>eglot</code> will have built-in support in future Emacs versions. This
+    may or may not be worth a damn to other Emacs users.
+  </li>
+  <li>
+    <code>pyright</code> has been strictly faster at error checking and
+    diagnostic updates as compared to <code>python-language-server</code> in the
+    machines I’m using.
+  </li>
 </ol>
-<p>One hiccup remained though: <code>pyright</code> is typically a system or user installation, not
-something you install per virtual environment. Getting <code>pyright</code> to see the virtual
-environment of my choosing , and correctly report which dependencies are installed was a
-bit of a hassle, but I think my favorite solution so far has been to configure the virtual
-environment through the <code>pyrightconfig.json</code> file at the root of my project, and just have
-this file ignored by git. Typically, <code>pyrightconfig.json</code> looks like this:</p>
+<p>
+  One hiccup remained though: <code>pyright</code> is typically a system or user
+  installation, not something you install per virtual environment. Getting
+  <code>pyright</code> to see the virtual environment of my choosing , and
+  correctly report which dependencies are installed was a bit of a hassle, but I
+  think my favorite solution so far has been to configure the virtual
+  environment through the <code>pyrightconfig.json</code> file at the root of my
+  project, and just have this file ignored by git. Typically,
+  <code>pyrightconfig.json</code> looks like this:
+</p>
 <pre><code class="language-javascript">{
     &quot;venvPath&quot;: &quot;/absolute/path/to/dir/&quot;,
     &quot;venv&quot;: &quot;.venv&quot;
 }</code></pre>
-<p>I’m pretty happy with the other default configurations for <code>pyright</code>, so I leave those be,
-and just configure the virtual environment path this way. What was annoying me, though,
-is that I’d need to write out this absolute path for each machine I clone a project into,
-since relative paths and shortcuts using <code>~</code> aren’t supported. Much better if we can just
-have Emacs do it for us.</p>
-<p>In the spirit of other Emacs/Python tools like <code>pythonic</code> and <code>pyvenv</code> for activating virtual
-environments, I wanted something that would just prompt for a directory using
-<code>completing-read</code>, and then populate the contents of <code>pyrightconfig.json</code> automatically based
-on my selection.</p>
-<h3 id="getting-functions-that-write-pyrightconfig-dot-json">Getting Functions That Write <code>pyrightconfig.json</code></h3>
-<p><strong>Edit 2022-11-20:</strong> Thanks to Mickey Petersen of <a href="https://www.masteringemacs.org/">mastering emacs</a> for pointing out that
-<code>json-encode</code> exists. I originally had my own function <code>pyrightconfig--json-contents</code> here,
-but I’ve modified the function below to use this built-in version instead.</p>
+<p>
+  I’m pretty happy with the other default configurations for
+  <code>pyright</code>, so I leave those be, and just configure the virtual
+  environment path this way. What was annoying me, though, is that I’d need to
+  write out this absolute path for each machine I clone a project into, since
+  relative paths and shortcuts using <code>~</code> aren’t supported. Much
+  better if we can just have Emacs do it for us.
+</p>
+<p>
+  In the spirit of other Emacs/Python tools like <code>pythonic</code> and
+  <code>pyvenv</code> for activating virtual environments, I wanted something
+  that would just prompt for a directory using <code>completing-read</code>, and
+  then populate the contents of <code>pyrightconfig.json</code> automatically
+  based on my selection.
+</p>
+<h3 id="getting-functions-that-write-pyrightconfig-dot-json">
+  Getting Functions That Write <code>pyrightconfig.json</code>
+</h3>
+<p>
+  <strong>Edit 2022-11-20:</strong> Thanks to Mickey Petersen of
+  <a href="https://www.masteringemacs.org/">mastering emacs</a> for pointing out
+  that <code>json-encode</code> exists. I originally had my own function
+  <code>pyrightconfig--json-contents</code> here, but I’ve modified the function
+  below to use this built-in version instead.
+</p>
 <p>We really just need to do three things:</p>
 <ol type="1">
-<li>Prompt for a directory that houses a Python virtual environment</li>
-<li>Break the result into an absolute parent path + base name, cleaning any Tramp prefix in
-the process</li>
-<li>Write the contents of <code>pyrightconfig--json-contents</code> using the previous result to a file
-in the version control root.</li>
+  <li>Prompt for a directory that houses a Python virtual environment</li>
+  <li>
+    Break the result into an absolute parent path + base name, cleaning any
+    Tramp prefix in the process
+  </li>
+  <li>
+    Write the contents of <code>pyrightconfig--json-contents</code> using the
+    previous result to a file in the version control root.
+  </li>
 </ol>
-<p>It’s worth mentioning that we <em>must</em> put this file in the VC root, otherwise <code>eglot</code> just
-won’t pick it up. For my purposes, the VC system will always be git, so I’m going to make
-an assumption here and use <code>vc-git-root</code> instead of something more generic.</p>
+<p>
+  It’s worth mentioning that we <em>must</em> put this file in the VC root,
+  otherwise <code>eglot</code> just won’t pick it up. For my purposes, the VC
+  system will always be git, so I’m going to make an assumption here and use
+  <code>vc-git-root</code> instead of something more generic.
+</p>
 <pre><code class="language-lisp">(defun pyrightconfig-write (virtualenv)
   (interactive &quot;DEnv: &quot;)
 
@@ -82,20 +123,35 @@ an assumption here and use <code>vc-git-root</code> instead of something more ge
     ;; the JSON payload, then flushes that content to final `pyrightconfig.json&#39;
     ;; location
     (with-temp-file out-file (insert out-contents))))</code></pre>
-<p>Here’s a quick demo where I interactively choose a virtual environment directory, write
-the <code>pyrightconfig.json</code>, launch <code>eglot</code>, and use <code>M-.</code> to leverage the LSP’s jump-to-definition
-of a library, then show that the library we jumped to is indeed inside the virtual
-environment.</p>
-<p><img src="/static/img/pyrightconfig-demo.gif" alt=""></p>
+<p>
+  Here’s a quick demo where I interactively choose a virtual environment
+  directory, write the <code>pyrightconfig.json</code>, launch
+  <code>eglot</code>, and use <code>M-.</code> to leverage the LSP’s
+  jump-to-definition of a library, then show that the library we jumped to is
+  indeed inside the virtual environment.
+</p>
+<p><img src="/static/img/pyrightconfig-demo.gif" alt="" /></p>
 <h3 id="follow-ups">Follow-ups</h3>
-<p>Feel free to <a href="https://github.com/renzmann/.emacs.d/blob/30480545b04ac05448af32bd796d8cb8edda531f/site-lisp/pyrightconfig.el">take this package</a> and modify it to suit your needs. Over time I
-might make some modifications to it:</p>
+<p>
+  Feel free to
+  <a
+    href="https://github.com/renzmann/.emacs.d/blob/30480545b04ac05448af32bd796d8cb8edda531f/site-lisp/pyrightconfig.el"
+    >take this package</a
+  >
+  and modify it to suit your needs. Over time I might make some modifications to
+  it:
+</p>
 <ol type="1">
-<li>Maybe integrate with the variety of <code>activate</code> functions? So activating or setting a
-venv root for use with <code>run-python</code> automatically sets this.</li>
-<li>Support other VC roots than just git</li>
-<li>I’d love to get to VSCode-like intelligence about common venv locations and
-just prompt for those automatically through <code>completing-read</code>, instead of going
-through the pathing processing myself. Maybe that would become a function
-like <code>pyrightconfig-suggest</code>.</li>
+  <li>
+    Maybe integrate with the variety of <code>activate</code> functions? So
+    activating or setting a venv root for use with
+    <code>run-python</code> automatically sets this.
+  </li>
+  <li>Support other VC roots than just git</li>
+  <li>
+    I’d love to get to VSCode-like intelligence about common venv locations and
+    just prompt for those automatically through <code>completing-read</code>,
+    instead of going through the pathing processing myself. Maybe that would
+    become a function like <code>pyrightconfig-suggest</code>.
+  </li>
 </ol>

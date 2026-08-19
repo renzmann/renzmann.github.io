@@ -5,37 +5,48 @@ description: Doing serious Python work in stock Emacs, without pyvenv, eglot, or
 redirect_from: /posts/006_emacs_2_python/
 ---
 <h2 id="intro">Intro</h2>
-<p>There are a lot of great guides on getting set up with Python in
-Emacs. Many of them have titles like "Emacs as a Python IDE" and
-start off by installing <code class="verbatim">pyvenv</code> for virtual environment management,
-<code class="verbatim">eglot</code> or <code class="verbatim">lsp-mode</code> for autocomplete/error checking, and maybe a
-host of other non-python things, like the <code class="verbatim">helm</code> or <code class="verbatim">projectile</code>
-packages.</p>
+<p>
+  There are a lot of great guides on getting set up with Python in Emacs. Many
+  of them have titles like "Emacs as a Python IDE" and start off by installing
+  <code class="verbatim">pyvenv</code> for virtual environment management,
+  <code class="verbatim">eglot</code> or
+  <code class="verbatim">lsp-mode</code> for autocomplete/error checking, and
+  maybe a host of other non-python things, like the
+  <code class="verbatim">helm</code> or
+  <code class="verbatim">projectile</code> packages.
+</p>
 <p>This is not that guide.</p>
-<p>This guide is for picky @#$%!s like me who want to exhaust every
-builtin capability before reaching out to external dependencies.
-Dependencies that, in turn, I will also have to learn and manage.
-Once I <em>really</em> understand what <code class="verbatim">pyvenv</code> is solving, then, and <em>only</em>
-then, will I add it to my <code class="verbatim">package-selected-packages</code>.</p>
+<p>
+  This guide is for picky @#$%!s like me who want to exhaust every builtin
+  capability before reaching out to external dependencies. Dependencies that, in
+  turn, I will also have to learn and manage. Once I <em>really</em> understand
+  what <code class="verbatim">pyvenv</code> is solving, then, and
+  <em>only</em> then, will I add it to my
+  <code class="verbatim">package-selected-packages</code>.
+</p>
 <p><img src="nothing_without_lsp.png" /></p>
-<p>Despite the excellent swath of materials both new and old on how to
-get IDE-like performance for Python out of Emacs, the collected
-materials on just running "vanilla extract" are fairly scant. The
-builtin <code class="verbatim">python.el</code> documentation is thorough and the keybindings
-easily discoverable, but not all documentation is collated into a
-single place. This guide started out as just my working notes as I
-began primarily working in emacs for my Python projects, and has grown
-into a workflow guide using nothing but the builtin capabilities
-of Emacs 28.1+. With that in mind, the examples and walkthroughs
-presented here are designed for <code class="verbatim">emacs -q</code> - i.e. starting emacs
-without any user configuration or your distribution's <code class="verbatim">default.el</code>.</p>
+<p>
+  Despite the excellent swath of materials both new and old on how to get
+  IDE-like performance for Python out of Emacs, the collected materials on just
+  running "vanilla extract" are fairly scant. The builtin
+  <code class="verbatim">python.el</code> documentation is thorough and the
+  keybindings easily discoverable, but not all documentation is collated into a
+  single place. This guide started out as just my working notes as I began
+  primarily working in emacs for my Python projects, and has grown into a
+  workflow guide using nothing but the builtin capabilities of Emacs 28.1+. With
+  that in mind, the examples and walkthroughs presented here are designed for
+  <code class="verbatim">emacs -q</code> - i.e. starting emacs without any user
+  configuration or your distribution's <code class="verbatim">default.el</code>.
+</p>
 <h2 id="editing">Editing</h2>
-<p>Let's get our feet wet by bopping around some Python buffers first.
-I'm going to start up a new python file with <code class="verbatim">C-x C-f</code> and naming my
-file <code class="verbatim">editing.py</code>. I'm going to start by just adding a couple
-functions and a print statement, obfuscating the typical "Hello,
-world!" example a bit by introducing some functions and a "main"
-section right away.</p>
+<p>
+  Let's get our feet wet by bopping around some Python buffers first. I'm going
+  to start up a new python file with <code class="verbatim">C-x C-f</code> and
+  naming my file <code class="verbatim">editing.py</code>. I'm going to start by
+  just adding a couple functions and a print statement, obfuscating the typical
+  "Hello, world!" example a bit by introducing some functions and a "main"
+  section right away.
+</p>
 <pre><code class="language-python"># These funtions are a little basic and silly right now, but we&#39;ll use
 # them to showcase some Emacs features later on.
 def hello_text():
@@ -52,58 +63,103 @@ if __name__ == &quot;__main__&quot;:
     # Emacs 28.1+ has f-string syntax highlighting built in
     print(f&quot;{hello_text()}, {world_text()}!&quot;)
 </code></pre>
-<p>By visiting this file, Emacs automatically goes into <code class="verbatim">python-mode</code>,
-which turns on a lot of Python-specific functionality. If you're
-impatient like me and want to see everything that's available right
-away, I'd start with <code class="verbatim">C-c C-h</code> from the <code class="verbatim">editing.py</code> buffer to see key
-commands specific to <code class="verbatim">python-mode</code>, and also use <code>C-h a python</code> to
-see <em>every</em> command involving the word "python" in some way. Out of
-the box we also get syntax highlighting, including within f-strings.</p>
-<h3 id="useful-c-c-commands">Useful <code class="verbatim">C-c</code> commands</h3>
-<p>Emacs typically has commands that are specific to the <em>active</em> major
-mode bound to <code class="verbatim">C-c C-&lt;letter&gt;</code>. What each &lt;letter&gt; does will depend
-on the buffer you're currently in and what major mode is active. In
-our case, that's <code class="verbatim">python-mode</code>, which has a lot of handy shortcuts
-already mapped out. For any of the keyboard shortcuts you can always
-use <code class="verbatim">C-h k</code>, or <code class="verbatim">C-h f</code> for the function names (prefixed by <code class="verbatim">M-x</code>
-below) to get the official documentation.</p>
-<h4 id="c-c-c-p-or-m-x-run-python-to-start-a-python-repl"><code class="verbatim">C-c C-p</code> or <code class="verbatim">M-x run-python</code> to start a python REPL</h4>
-<p>This boots up what Emacs calls an "inferior Python shell".
-"Inferior" here just means that Python is running as a subprocess of
-Emacs; not that there's some other, "superior" method of running a
-Python process. If you need to control the exact command Emacs runs
-to start the shell, you can use the universal <code class="verbatim">C-u</code> prefix before
-either <code class="verbatim">C-c C-p</code> or <code class="verbatim">M-x run-python</code> to edit the command Emacs runs.
-Based on the <a href="/posts/2022-08-07-emacs-packages/">previous article</a>, what I'm frequently doing is holding
-down the Ctrl key with my left little finger, then rapidly typing <code class="verbatim">u</code>,
-<code class="verbatim">c</code>, and <code class="verbatim">p</code> to get <code class="verbatim">C-u C-c C-p</code>, bringing up a minibuffer prompt
-like this:</p>
+<p>
+  By visiting this file, Emacs automatically goes into
+  <code class="verbatim">python-mode</code>, which turns on a lot of
+  Python-specific functionality. If you're impatient like me and want to see
+  everything that's available right away, I'd start with
+  <code class="verbatim">C-c C-h</code> from the
+  <code class="verbatim">editing.py</code> buffer to see key commands specific
+  to <code class="verbatim">python-mode</code>, and also use
+  <code>C-h a python</code> to see <em>every</em> command involving the word
+  "python" in some way. Out of the box we also get syntax highlighting,
+  including within f-strings.
+</p>
+<h3 id="useful-c-c-commands">
+  Useful <code class="verbatim">C-c</code> commands
+</h3>
+<p>
+  Emacs typically has commands that are specific to the <em>active</em> major
+  mode bound to <code class="verbatim">C-c C-&lt;letter&gt;</code>. What each
+  &lt;letter&gt; does will depend on the buffer you're currently in and what
+  major mode is active. In our case, that's
+  <code class="verbatim">python-mode</code>, which has a lot of handy shortcuts
+  already mapped out. For any of the keyboard shortcuts you can always use
+  <code class="verbatim">C-h k</code>, or
+  <code class="verbatim">C-h f</code> for the function names (prefixed by
+  <code class="verbatim">M-x</code> below) to get the official documentation.
+</p>
+<h4 id="c-c-c-p-or-m-x-run-python-to-start-a-python-repl">
+  <code class="verbatim">C-c C-p</code> or
+  <code class="verbatim">M-x run-python</code> to start a python REPL
+</h4>
+<p>
+  This boots up what Emacs calls an "inferior Python shell". "Inferior" here
+  just means that Python is running as a subprocess of Emacs; not that there's
+  some other, "superior" method of running a Python process. If you need to
+  control the exact command Emacs runs to start the shell, you can use the
+  universal <code class="verbatim">C-u</code> prefix before either
+  <code class="verbatim">C-c C-p</code> or
+  <code class="verbatim">M-x run-python</code> to edit the command Emacs runs.
+  Based on the <a href="/posts/2022-08-07-emacs-packages/">previous article</a>,
+  what I'm frequently doing is holding down the Ctrl key with my left little
+  finger, then rapidly typing <code class="verbatim">u</code>,
+  <code class="verbatim">c</code>, and <code class="verbatim">p</code> to get
+  <code class="verbatim">C-u C-c C-p</code>, bringing up a minibuffer prompt
+  like this:
+</p>
 <pre><code>Run Python: python3 -i█
 </code></pre>
-<p>Where <code class="verbatim">█</code> is point (my cursor). I then use <code class="verbatim">C-a</code> to move point back
-to the start and add a <code class="verbatim">poetry run</code>:</p>
+<p>
+  Where <code class="verbatim">█</code> is point (my cursor). I then use
+  <code class="verbatim">C-a</code> to move point back to the start and add a
+  <code class="verbatim">poetry run</code>:
+</p>
 <pre><code>Run Python: poetry run█python3 -i
 </code></pre>
-<p>Emacs is typically smart enough to figure out what to do even if we
-leave off the <code class="verbatim">-i</code>, but generally it's good to leave it in there.</p>
-<h4 id="c-c-c-z-jumps-to-python-repl-if-already-running"><code class="verbatim">C-c C-z</code> jumps to python REPL if already running</h4>
-<p>Once the REPL is running, this is a very handy one for swapping back
-and forth between a file I'm actively editing and a running Python
-process</p>
-<h4 id="c-c-c-cer-for-sending-chunks-to-the-repl"><code class="verbatim">C-c C-{c,e,r}</code> for sending chunks to the REPL</h4>
-<p>A handy complement to <code class="verbatim">C-c C-z</code>, these commands are for taking pieces
-of Python that I'm actively editing and sending them to the Python
-buffer all at once.</p>
-<h4 id="c-c-c-v-or-m-x-python-check"><code class="verbatim">C-c C-v</code> or <code class="verbatim">M-x python-check</code></h4>
+<p>
+  Emacs is typically smart enough to figure out what to do even if we leave off
+  the <code class="verbatim">-i</code>, but generally it's good to leave it in
+  there.
+</p>
+<h4 id="c-c-c-z-jumps-to-python-repl-if-already-running">
+  <code class="verbatim">C-c C-z</code> jumps to python REPL if already running
+</h4>
+<p>
+  Once the REPL is running, this is a very handy one for swapping back and forth
+  between a file I'm actively editing and a running Python process
+</p>
+<h4 id="c-c-c-cer-for-sending-chunks-to-the-repl">
+  <code class="verbatim">C-c C-{c,e,r}</code> for sending chunks to the REPL
+</h4>
+<p>
+  A handy complement to <code class="verbatim">C-c C-z</code>, these commands
+  are for taking pieces of Python that I'm actively editing and sending them to
+  the Python buffer all at once.
+</p>
+<h4 id="c-c-c-v-or-m-x-python-check">
+  <code class="verbatim">C-c C-v</code> or
+  <code class="verbatim">M-x python-check</code>
+</h4>
 <p>More on this later…</p>
-<h4 id="c-c-c-t-...-or-python-skeleton-..."><code class="verbatim">C-c C-t ...</code> or <code class="verbatim">python-skeleton-...</code></h4>
-<p>Using <code class="verbatim">C-c C-t d</code> and <code class="verbatim">C-c C-t c</code> it's easy to insert new <code class="verbatim">def</code> and
-<code class="verbatim">class</code> statements (think <code class="verbatim">t</code> for "template", <code class="verbatim">d</code> for "def", and <code class="verbatim">c</code>
-for "class"). Ater invoking one of these, Emacs will guide us through
-the process of filling out each part needed to define a new function
-or class via the minibuffer. Using <code class="verbatim">C-g</code> at any point while editing
-the template wil revert the buffer back to its original state, as if
-you never started filling out the skeleton.</p>
+<h4 id="c-c-c-t-...-or-python-skeleton-...">
+  <code class="verbatim">C-c C-t ...</code> or
+  <code class="verbatim">python-skeleton-...</code>
+</h4>
+<p>
+  Using <code class="verbatim">C-c C-t d</code> and
+  <code class="verbatim">C-c C-t c</code> it's easy to insert new
+  <code class="verbatim">def</code> and
+  <code class="verbatim">class</code> statements (think
+  <code class="verbatim">t</code> for "template",
+  <code class="verbatim">d</code> for "def", and
+  <code class="verbatim">c</code> for "class"). Ater invoking one of these,
+  Emacs will guide us through the process of filling out each part needed to
+  define a new function or class via the minibuffer. Using
+  <code class="verbatim">C-g</code> at any point while editing the template wil
+  revert the buffer back to its original state, as if you never started filling
+  out the skeleton.
+</p>
 <pre><code class="language-python"># editing.py
 # --snip--
 # Here we use `C-c C-t d` and follow the prompts to design a new
@@ -118,12 +174,20 @@ class MyGuy:
     pass
 # --snip-- &quot;__main__&quot;
 </code></pre>
-<h3 id="c-c-c-j-or-m-x-imenu"><code class="verbatim">C-c C-j</code> or <code class="verbatim">M-x imenu</code></h3>
-<p>The nimble, builtin <code class="verbatim">imenu</code> is a way to quickly navigate between major
-symbol definitions in the current buffer - especially those off
-screen. In our <code class="verbatim">editing.py</code> we now have three functions,
-<code class="verbatim">hello_text()</code>, <code class="verbatim">world_text()</code>, and <code class="verbatim">whatever()</code>, and one class
-<code class="verbatim">MyGuy</code>. If we use <code class="verbatim">C-c C-j</code>, a minibuffer menu like this comes up:</p>
+<h3 id="c-c-c-j-or-m-x-imenu">
+  <code class="verbatim">C-c C-j</code> or
+  <code class="verbatim">M-x imenu</code>
+</h3>
+<p>
+  The nimble, builtin <code class="verbatim">imenu</code> is a way to quickly
+  navigate between major symbol definitions in the current buffer - especially
+  those off screen. In our <code class="verbatim">editing.py</code> we now have
+  three functions, <code class="verbatim">hello_text()</code>,
+  <code class="verbatim">world_text()</code>, and
+  <code class="verbatim">whatever()</code>, and one class
+  <code class="verbatim">MyGuy</code>. If we use
+  <code class="verbatim">C-c C-j</code>, a minibuffer menu like this comes up:
+</p>
 <pre><code>1/5 Index item: █
 *Rescan*
 MyGuy.(class)
@@ -131,29 +195,44 @@ whatever.(def)
 world_text.(def)
 hello_text.(def)
 </code></pre>
-<p>My minibuffer displays a vertical preview of the options because I've
-set <code class="verbatim">(fido-mode)</code> and <code class="verbatim">(vertical-fido-mode)</code> in my <code class="verbatim">init.el</code>, both of
-which are included in Emcacs 28.1 or later. Then, if I partially type out a result the list will filter down to possible completions:</p>
+<p>
+  My minibuffer displays a vertical preview of the options because I've set
+  <code class="verbatim">(fido-mode)</code> and
+  <code class="verbatim">(vertical-fido-mode)</code> in my
+  <code class="verbatim">init.el</code>, both of which are included in Emcacs
+  28.1 or later. Then, if I partially type out a result the list will filter
+  down to possible completions:
+</p>
 <pre><code>1/1 Index item: My█
 MyGuy.(class)
 </code></pre>
-<p><code class="verbatim">imenu</code> is very, very handy across Emacs, not just for Python, so it's
-worth trying in a variety of major modes.</p>
+<p>
+  <code class="verbatim">imenu</code> is very, very handy across Emacs, not just
+  for Python, so it's worth trying in a variety of major modes.
+</p>
 <h2 id="running">Running</h2>
-<p>Now its time to actually start executing some code. Before getting to
-all the complexity of virtual environments, we'll start simply by just
-invoking the system Python for our script. Once that feels
-comfortable, we'll throw in all the <code class="verbatim">venv</code> goodies.</p>
-<h3 id="as-a-script-with-m-x-compile">As a script with <code class="verbatim">M-x compile</code></h3>
-<p>This mode has built-in error parsing, so it's the best way to run a
-script for real if we want to quickly navigate any traceback messages
-that come up. Conversely, the <code class="verbatim">M-&amp;</code> async shell command does <em>not</em>
-have error parsing, so it's not the right tool for launching processes
-we have to debug. Same goes for booting up a shell and running Python
-from there. Taking our script from the previous section, if we run
-<code class="verbatim">M-x compile</code> and give it an argument of <code class="verbatim">python3 editing.py</code>, up pops
-the <code class="verbatim">*compilation*</code> buffer, with the starting time, output of our
-program, and finish time.</p>
+<p>
+  Now its time to actually start executing some code. Before getting to all the
+  complexity of virtual environments, we'll start simply by just invoking the
+  system Python for our script. Once that feels comfortable, we'll throw in all
+  the <code class="verbatim">venv</code> goodies.
+</p>
+<h3 id="as-a-script-with-m-x-compile">
+  As a script with <code class="verbatim">M-x compile</code>
+</h3>
+<p>
+  This mode has built-in error parsing, so it's the best way to run a script for
+  real if we want to quickly navigate any traceback messages that come up.
+  Conversely, the <code class="verbatim">M-&amp;</code> async shell command does
+  <em>not</em>
+  have error parsing, so it's not the right tool for launching processes we have
+  to debug. Same goes for booting up a shell and running Python from there.
+  Taking our script from the previous section, if we run
+  <code class="verbatim">M-x compile</code> and give it an argument of
+  <code class="verbatim">python3 editing.py</code>, up pops the
+  <code class="verbatim">*compilation*</code> buffer, with the starting time,
+  output of our program, and finish time.
+</p>
 <pre><code>-*- mode: compilation; default-directory: &quot;~/repos/renzmann.github.io/content/posts/006_emacs_2_python/&quot; -*-
 Compilation started at Sun Aug 14 13:50:39
 
@@ -181,11 +260,21 @@ NameError: name &#39;fdafdsafdsafdsa&#39; is not defined
 
 Compilation exited abnormally with code 1 at Sun Aug 14 13:53:26
 </code></pre>
-<p>Emacs will parse the error message, so that after "compiling", we can
-use <code class="verbatim">M-g M-n</code> and <code class="verbatim">M-g M-p</code> to move between error messages, or just
-click the link provided by the <code class="verbatim">*compilation*</code> buffer directly.</p>
-<p>If just parsing Python tracebacks doesn't excite you, <code class="verbatim">mypy</code> is also
-supported out of the box. Assuming <code class="verbatim">mypy</code> is already installed, <code class="verbatim">M-x compile</code> with <code class="verbatim">mypy hello_error.py</code> as the command results in this:</p>
+<p>
+  Emacs will parse the error message, so that after "compiling", we can use
+  <code class="verbatim">M-g M-n</code> and
+  <code class="verbatim">M-g M-p</code> to move between error messages, or just
+  click the link provided by the
+  <code class="verbatim">*compilation*</code> buffer directly.
+</p>
+<p>
+  If just parsing Python tracebacks doesn't excite you,
+  <code class="verbatim">mypy</code> is also supported out of the box. Assuming
+  <code class="verbatim">mypy</code> is already installed,
+  <code class="verbatim">M-x compile</code> with
+  <code class="verbatim">mypy hello_error.py</code> as the command results in
+  this:
+</p>
 <pre><code>-*- mode: compilation; default-directory: &quot;~/repos/renzmann.github.io/content/posts/006_emacs_2_python/&quot; -*-
 Compilation started at Sun Aug 14 14:02:03
 
@@ -195,9 +284,12 @@ Found 1 error in 1 file (checked 1 source file)
 
 Compilation exited abnormally with code 1 at Sun Aug 14 14:02:04
 </code></pre>
-<p>The <code class="verbatim">hello_error.py:4: error: ...</code> message will be a functional link, just as
-before. <code class="verbatim">mypy</code> is much more suitable for general error-checking though, so as
-scripts (and bugs) grow, the <code class="verbatim">M-x compile</code> command can keep up:</p>
+<p>
+  The <code class="verbatim">hello_error.py:4: error: ...</code> message will be
+  a functional link, just as before. <code class="verbatim">mypy</code> is much
+  more suitable for general error-checking though, so as scripts (and bugs)
+  grow, the <code class="verbatim">M-x compile</code> command can keep up:
+</p>
 <pre><code class="language-python"># errors.py
 import typing
 
@@ -227,121 +319,194 @@ Found 4 errors in 1 file (checked 1 source file)
 
 Compilation exited abnormally with code 1 at Sun Aug 14 14:06:55
 </code></pre>
-<p>Now, we can use <code class="verbatim">M-g M-n</code> and <code class="verbatim">M-g M-p</code> to quickly navigate between
-the errors in our code, even after navigating away from the original
-<code class="verbatim">errors.py</code> buffer - Emacs will remember what's going on in the
-<code class="verbatim">*compilation*</code> buffer so we can hop all around the code base while
-addressing errors one at a time.</p>
-<h3 id="interactively-with-the-python-shell">Interactively with the Python shell</h3>
-<p><code class="verbatim">python-mode</code> centers heavily around the use of an active, running
-Python session for some of its features, as we'll see in the next
-section. Its documentation recommends regular use of <code class="verbatim">C-c C-c</code>, which
-sends the entire buffer to the active inferior Python process. That
-means actually <em>executing</em> Python code, which may feel a bit dangerous
-for those of us who grew up with static analysis tools. So the first
-thing we need to make sure we don't accidentally kick off our whole
-script is ensure that the main part of our program is properly
-ensconced.</p>
+<p>
+  Now, we can use <code class="verbatim">M-g M-n</code> and
+  <code class="verbatim">M-g M-p</code> to quickly navigate between the errors
+  in our code, even after navigating away from the original
+  <code class="verbatim">errors.py</code> buffer - Emacs will remember what's
+  going on in the <code class="verbatim">*compilation*</code> buffer so we can
+  hop all around the code base while addressing errors one at a time.
+</p>
+<h3 id="interactively-with-the-python-shell">
+  Interactively with the Python shell
+</h3>
+<p>
+  <code class="verbatim">python-mode</code> centers heavily around the use of an
+  active, running Python session for some of its features, as we'll see in the
+  next section. Its documentation recommends regular use of
+  <code class="verbatim">C-c C-c</code>, which sends the entire buffer to the
+  active inferior Python process. That means actually <em>executing</em> Python
+  code, which may feel a bit dangerous for those of us who grew up with static
+  analysis tools. So the first thing we need to make sure we don't accidentally
+  kick off our whole script is ensure that the main part of our program is
+  properly ensconced.
+</p>
 <pre><code class="language-python"># editing.py
 # --snip--
 if __name__ == &quot;__main__&quot;:
     print(f&quot;{hello_text()}, {world_text()}!&quot;)
 </code></pre>
 <h2 id="code-completion">Code Completion</h2>
-<p>Emacs uses the currently running <code>*Python*</code> process for looking up
-symbols to complete. As such, <code class="verbatim">python.el</code> recommends using <code class="verbatim">C-c C-c</code>
-to send the entire buffer's contents to the Python shell periodically.
-<code>if __name__ == "__main__"</code> blocks do <em>not</em> execute when using <code class="verbatim">C-c C-c</code>. To send all code in the current buffer, including the
-<code class="verbatim">__main__</code> block, instead we must use <code class="verbatim">C-u C-c C-c</code>.</p>
-<p>Another awkward default in Emacs is that what we typically know of as
-"tab-complete" is bound to <code class="verbatim">M-TAB</code>, or the equivalent <code class="verbatim">C-M-i</code> (<code>C-i</code>
-and <code>TAB</code> are the same thing). On most Windows and Linux desktops,
-Alt+Tab changes the active window, and <code>C-M-i</code> is much too cumbersome
-to be a reasonable completion shortcut. I prefer just being able to
-hit <code class="verbatim">TAB</code> to invoke <code class="verbatim">completion-at-point</code>, so I use this snippet in my
-<code class="verbatim">init.el</code>:</p>
+<p>
+  Emacs uses the currently running <code>*Python*</code> process for looking up
+  symbols to complete. As such,
+  <code class="verbatim">python.el</code> recommends using
+  <code class="verbatim">C-c C-c</code>
+  to send the entire buffer's contents to the Python shell periodically.
+  <code>if __name__ == "__main__"</code> blocks do <em>not</em> execute when
+  using <code class="verbatim">C-c C-c</code>. To send all code in the current
+  buffer, including the <code class="verbatim">__main__</code> block, instead we
+  must use <code class="verbatim">C-u C-c C-c</code>.
+</p>
+<p>
+  Another awkward default in Emacs is that what we typically know of as
+  "tab-complete" is bound to <code class="verbatim">M-TAB</code>, or the
+  equivalent <code class="verbatim">C-M-i</code> (<code>C-i</code> and
+  <code>TAB</code> are the same thing). On most Windows and Linux desktops,
+  Alt+Tab changes the active window, and <code>C-M-i</code> is much too
+  cumbersome to be a reasonable completion shortcut. I prefer just being able to
+  hit <code class="verbatim">TAB</code> to invoke
+  <code class="verbatim">completion-at-point</code>, so I use this snippet in my
+  <code class="verbatim">init.el</code>:
+</p>
 <pre><code class="language-lisp">;; init.el
 ;; Use TAB in place of C-M-i for completion-at-point
 (setq tab-always-indent &#39;complete)
 </code></pre>
-<p>Now to demonstrate this new completion power. In our python file
-<code class="verbatim">editing.py</code>, I know we have a function called <code class="verbatim">hello_text()</code>. Within
-the main block, I might have been typing something that looked like
-this:</p>
+<p>
+  Now to demonstrate this new completion power. In our python file
+  <code class="verbatim">editing.py</code>, I know we have a function called
+  <code class="verbatim">hello_text()</code>. Within the main block, I might
+  have been typing something that looked like this:
+</p>
 <pre><code class="language-python">if __name__ == &quot;__main__&quot;:
     print(f&quot;{hell█
 </code></pre>
-<p>Where █ is point. Attempting a <code class="verbatim">completion-at-point</code> using <code class="verbatim">C-M-i</code>
-(or just <code class="verbatim">TAB</code> as I have re-bound it above) will yield … nothing.
-Maybe the indentation cycles, or it says "No match", or just - no
-response. What we require is a <em>running</em> inferior Python process,
-which will look up completion symbols. After booting up Python with
-<code class="verbatim">C-c C-p</code> and sending all the current buffer contents with <code class="verbatim">C-c C-c</code>,
-hitting <code class="verbatim">TAB</code> completes the <code class="verbatim">hell</code> into <code class="verbatim">hello_text</code>:</p>
+<p>
+  Where █ is point. Attempting a
+  <code class="verbatim">completion-at-point</code> using
+  <code class="verbatim">C-M-i</code> (or just
+  <code class="verbatim">TAB</code> as I have re-bound it above) will yield …
+  nothing. Maybe the indentation cycles, or it says "No match", or just - no
+  response. What we require is a <em>running</em> inferior Python process, which
+  will look up completion symbols. After booting up Python with
+  <code class="verbatim">C-c C-p</code> and sending all the current buffer
+  contents with <code class="verbatim">C-c C-c</code>, hitting
+  <code class="verbatim">TAB</code> completes the
+  <code class="verbatim">hell</code> into
+  <code class="verbatim">hello_text</code>:
+</p>
 <pre><code class="language-python">if __name__ == &quot;__main__&quot;:
     print(f&quot;{hello_text█
 </code></pre>
-<p>In the case that the completion is ambiguous, a <code class="verbatim">*completions*</code> buffer
-will pop up, prompting for input on how to continue. Another nice
-thing about this completion method is that it respects your
-<code class="verbatim">completion-styles</code> setting. Personally, I keep mine globally set to
-include the <code class="verbatim">flex</code> style, which closely mimics fuzzy matching styles
-like you get in VSCode, JetBrains, or <code>fzf</code>:</p>
+<p>
+  In the case that the completion is ambiguous, a
+  <code class="verbatim">*completions*</code> buffer will pop up, prompting for
+  input on how to continue. Another nice thing about this completion method is
+  that it respects your <code class="verbatim">completion-styles</code> setting.
+  Personally, I keep mine globally set to include the
+  <code class="verbatim">flex</code> style, which closely mimics fuzzy matching
+  styles like you get in VSCode, JetBrains, or <code>fzf</code>:
+</p>
 <pre><code class="language-lisp">;; init.el
 (setq completion-styles &#39;(flex basic partial-completion emacs22))
 </code></pre>
-<p>This allows me to type something like <code class="verbatim">hltx</code>, hit <code class="verbatim">TAB</code> and it
-completes to <code class="verbatim">hello_text</code>.</p>
+<p>
+  This allows me to type something like <code class="verbatim">hltx</code>, hit
+  <code class="verbatim">TAB</code> and it completes to
+  <code class="verbatim">hello_text</code>.
+</p>
 <h2 id="debugging">Debugging</h2>
-<p>If by running our Python code we encounter the <code class="verbatim">breakpoint()</code> builtin,
-Emacs will automatically break into pdb/ipdb (depending on your
-<code>PYTHONBREAKPOINT</code> environment variable), jump to the breakpoint in
-the code, and put an arrow at the next line to execute.</p>
+<p>
+  If by running our Python code we encounter the
+  <code class="verbatim">breakpoint()</code> builtin, Emacs will automatically
+  break into pdb/ipdb (depending on your
+  <code>PYTHONBREAKPOINT</code> environment variable), jump to the breakpoint in
+  the code, and put an arrow at the next line to execute.
+</p>
 <figure width="800px">
-<img src="./running_pdb.png" />
-<figcaption>Running the Python debugger by using `C-c C-c`</figcaption>
+  <img src="./running_pdb.png" />
+  <figcaption>Running the Python debugger by using `C-c C-c`</figcaption>
 </figure>
 <h3 id="m-x-pdb"><code class="verbatim">M-x pdb</code></h3>
-<p>Simply populates the command to run with <code class="verbatim">python -m pdb</code>. Can be
-configured with the variable <code class="verbatim">gud-pdb-command-name</code></p>
-<h2 id="the-poetry-pyright-stack">The <code class="verbatim">poetry</code> + <code class="verbatim">pyright</code> stack</h2>
+<p>
+  Simply populates the command to run with
+  <code class="verbatim">python -m pdb</code>. Can be configured with the
+  variable <code class="verbatim">gud-pdb-command-name</code>
+</p>
+<h2 id="the-poetry-pyright-stack">
+  The <code class="verbatim">poetry</code> +
+  <code class="verbatim">pyright</code> stack
+</h2>
 <p>The stack I use most frequently (for now) consists of:</p>
 <ol>
-<li><code class="verbatim">python3.10</code> as the Python runtime</li>
-<li><code class="verbatim">poetry</code> for dependency and environment management<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a></li>
-<li><code class="verbatim">pyright</code> for error checking<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a></li>
-<li><code class="verbatim">emacs</code> for everything else</li>
+  <li><code class="verbatim">python3.10</code> as the Python runtime</li>
+  <li>
+    <code class="verbatim">poetry</code> for dependency and environment
+    management<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"
+      ><sup>1</sup></a
+    >
+  </li>
+  <li>
+    <code class="verbatim">pyright</code> for error checking<a
+      href="#fn2"
+      class="footnote-ref"
+      id="fnref2"
+      role="doc-noteref"
+      ><sup>2</sup></a
+    >
+  </li>
+  <li><code class="verbatim">emacs</code> for everything else</li>
 </ol>
-<p>Each component should, in theory, be easy to replace. That is, if I
-want <code class="verbatim">conda</code> as a package manager and <code class="verbatim">flake8</code> or <code class="verbatim">mypy</code> for
-linting/type checking, it should be easy to do a drop-in replacement
-for them.</p>
-<p>For those who haven't heard the good news of <code class="verbatim">poetry</code>, it takes care
-of a <em>lot</em> of headaches that every pythonista regularly deals with.
-It manages your virtual environment (creation and update),
-<code class="verbatim">pyproject.toml</code> specification, and a <code class="verbatim">poetry.lock</code> file that serves
-as a replacement for <code class="verbatim">requirements.txt</code>, housing exact dependency
-version numbers for project collaborators to install. All of these
-are automatically kept in sync, so you never have the case like with
-<code class="verbatim">conda</code> where someone does a <code class="verbatim">conda</code> or <code class="verbatim">pip</code> install into their
-environment but never bothers to update the <code class="verbatim">setup.py</code>,
-<code class="verbatim">environment.yml</code>, <code class="verbatim">requirements.txt</code> or whatever.</p>
-<p>Earlier we mentioned that running our Python scripts via the <code class="verbatim">M-&amp;</code>
-async shell command interface wasn't a great use case for it.
-However, using it to set up a poetry environment is a fantastic
-example of when it is appropriate.</p>
+<p>
+  Each component should, in theory, be easy to replace. That is, if I want
+  <code class="verbatim">conda</code> as a package manager and
+  <code class="verbatim">flake8</code> or <code class="verbatim">mypy</code> for
+  linting/type checking, it should be easy to do a drop-in replacement for them.
+</p>
+<p>
+  For those who haven't heard the good news of
+  <code class="verbatim">poetry</code>, it takes care of a <em>lot</em> of
+  headaches that every pythonista regularly deals with. It manages your virtual
+  environment (creation and update),
+  <code class="verbatim">pyproject.toml</code> specification, and a
+  <code class="verbatim">poetry.lock</code> file that serves as a replacement
+  for <code class="verbatim">requirements.txt</code>, housing exact dependency
+  version numbers for project collaborators to install. All of these are
+  automatically kept in sync, so you never have the case like with
+  <code class="verbatim">conda</code> where someone does a
+  <code class="verbatim">conda</code> or
+  <code class="verbatim">pip</code> install into their environment but never
+  bothers to update the <code class="verbatim">setup.py</code>,
+  <code class="verbatim">environment.yml</code>,
+  <code class="verbatim">requirements.txt</code> or whatever.
+</p>
+<p>
+  Earlier we mentioned that running our Python scripts via the
+  <code class="verbatim">M-&amp;</code> async shell command interface wasn't a
+  great use case for it. However, using it to set up a poetry environment is a
+  fantastic example of when it is appropriate.
+</p>
 <pre><code>Async shell command: poetry init -n --python=^3.10
 </code></pre>
-<p>Assuming the poetry command ran without error, it plopped down the
-<code class="verbatim">pyproject.toml</code> in the same directory as <code class="verbatim">errors.py</code>. In a similar
-vein, we can add project dependencies using <code class="verbatim">M-&amp;</code></p>
+<p>
+  Assuming the poetry command ran without error, it plopped down the
+  <code class="verbatim">pyproject.toml</code> in the same directory as
+  <code class="verbatim">errors.py</code>. In a similar vein, we can add project
+  dependencies using <code class="verbatim">M-&amp;</code>
+</p>
 <pre><code>Async shell command: poetry add pyright requests
 </code></pre>
-<p>The <code class="verbatim">*Async Shell Command*</code> buffer will update as poetry runs and
-installs the required dependencies. Following this, we should have
-the <code class="verbatim">pyright</code> CLI installed to the virtual environment poetry set up
-for us. As a sanity check, I'll start up either <code class="verbatim">M-x shell</code> or <code class="verbatim">M-x eshell</code> (whichever happens to be behaving better that day) to just get
-a simple cross-platform shell running where I can try it out:</p>
+<p>
+  The <code class="verbatim">*Async Shell Command*</code> buffer will update as
+  poetry runs and installs the required dependencies. Following this, we should
+  have the <code class="verbatim">pyright</code> CLI installed to the virtual
+  environment poetry set up for us. As a sanity check, I'll start up either
+  <code class="verbatim">M-x shell</code> or
+  <code class="verbatim">M-x eshell</code> (whichever happens to be behaving
+  better that day) to just get a simple cross-platform shell running where I can
+  try it out:
+</p>
 <pre><code>~/tmp $ # using the same `errors.py` as in the earlier sectons
 ~/tmp $ poetry run pyright errors.py
 No configuration file found.
@@ -363,33 +528,50 @@ Found 1 source file
 4 errors, 2 warnings, 0 informations
 Completed in 1.033sec
 </code></pre>
-<p>Emacs actually has a couple ways of running error-checking tools like
-this. The typical one is <code class="verbatim">M-x compile</code>, which we saw earlier, but
-there's also <code class="verbatim">C-c C-v</code> for <code class="verbatim">M-x python-check</code>. The latter will
-automatically check for tools like <code class="verbatim">pyflakes</code> or <code class="verbatim">flake8</code>, but can be
-configured with the <code class="verbatim">python-check-command</code> variable to pre-populate
-the command to run. Like <code class="verbatim">M-x compile</code>, <code class="verbatim">M-x python-check</code> will use a
-buffer that looks identical to <code class="verbatim">*compilation*</code> in every way except
-name: it will be called the <code class="verbatim">*Python check: &lt;command you ran&gt;*</code>
-buffer.</p>
+<p>
+  Emacs actually has a couple ways of running error-checking tools like this.
+  The typical one is <code class="verbatim">M-x compile</code>, which we saw
+  earlier, but there's also <code class="verbatim">C-c C-v</code> for
+  <code class="verbatim">M-x python-check</code>. The latter will automatically
+  check for tools like <code class="verbatim">pyflakes</code> or
+  <code class="verbatim">flake8</code>, but can be configured with the
+  <code class="verbatim">python-check-command</code> variable to pre-populate
+  the command to run. Like <code class="verbatim">M-x compile</code>,
+  <code class="verbatim">M-x python-check</code> will use a buffer that looks
+  identical to <code class="verbatim">*compilation*</code> in every way except
+  name: it will be called the
+  <code class="verbatim">*Python check: &lt;command you ran&gt;*</code> buffer.
+</p>
 <p>For me, that means I typically have something like</p>
 <pre><code class="language-lisp">(setq python-check-command &quot;poetry run pyright&quot;)
 </code></pre>
-<p>and then <code class="verbatim">C-c C-v</code> from a python buffer will prompt like this while
-<code class="verbatim">errors.py</code> is my active buffer</p>
+<p>
+  and then <code class="verbatim">C-c C-v</code> from a python buffer will
+  prompt like this while <code class="verbatim">errors.py</code> is my active
+  buffer
+</p>
 <pre><code>Check command: poetry run pyright errors.py
 </code></pre>
-<h3 id="adding-error-parsing-to-the-pyright-compile-output">Adding error parsing to the pyright compile output</h3>
-<p>Unlike the <code class="verbatim">mypy</code> output, the error messages from <code class="verbatim">pyright</code> aren't
-links, and we can't hop between messages using <code class="verbatim">M-g M-n</code> and <code class="verbatim">M-g M-p</code>
-like before. In order to gain this functionality, we need to add a
-regex that can parse <code class="verbatim">pyright</code> messages. There are two objects of
-interest to accomplish this:</p>
+<h3 id="adding-error-parsing-to-the-pyright-compile-output">
+  Adding error parsing to the pyright compile output
+</h3>
+<p>
+  Unlike the <code class="verbatim">mypy</code> output, the error messages from
+  <code class="verbatim">pyright</code> aren't links, and we can't hop between
+  messages using <code class="verbatim">M-g M-n</code> and
+  <code class="verbatim">M-g M-p</code> like before. In order to gain this
+  functionality, we need to add a regex that can parse
+  <code class="verbatim">pyright</code> messages. There are two objects of
+  interest to accomplish this:
+</p>
 <ul>
-<li>compilation-error-regexp-alist</li>
-<li>compilation-error-regexp-alist-alist</li>
+  <li>compilation-error-regexp-alist</li>
+  <li>compilation-error-regexp-alist-alist</li>
 </ul>
-<p>Here's the formal description from <code class="verbatim">C-h v compilation-error-regexp-alist</code>:</p>
+<p>
+  Here's the formal description from
+  <code class="verbatim">C-h v compilation-error-regexp-alist</code>:
+</p>
 <pre><code>Alist that specifies how to match errors in compiler output.
 On GNU and Unix, any string is a valid filename, so these
 matchers must make some common sense assumptions, which catch
@@ -398,99 +580,147 @@ normal cases.  A shorter list will be lighter on resource usage.
 Instead of an alist element, you can use a symbol, which is
 looked up in ‘compilation-error-regexp-alist-alist’.
 </code></pre>
-<p>In not so many words, this says we should modify the <code class="verbatim">*-alist-alist</code>
-version, and simply add a symbol to the <code class="verbatim">*-alist</code> variable. Examining
-the current value via <code class="verbatim">C-h v compliation-error-regexp-alist-alist</code>,
-it's easy to see that we're after an expression a bit like this,</p>
+<p>
+  In not so many words, this says we should modify the
+  <code class="verbatim">*-alist-alist</code> version, and simply add a symbol
+  to the <code class="verbatim">*-alist</code> variable. Examining the current
+  value via
+  <code class="verbatim">C-h v compliation-error-regexp-alist-alist</code>, it's
+  easy to see that we're after an expression a bit like this,
+</p>
 <pre><code class="language-lisp">(add-to-list &#39;compilation-error-regexp-alist-alist
              &#39;(pyright &quot;regexp that parses pyright errors&quot; 1 2 3))
 </code></pre>
-<p>eventually replacing the string in the middle with an actual Emacs
-regexp. Thankfully, Emacs has the <code class="verbatim">M-x re-builder</code> built in for doing
-exactly that! Since <code class="verbatim">*Python check: poetry run pyright errors.py*</code> is
-a buffer like any other, we can hop over to it, and run <code class="verbatim">M-x re-builder</code> to piece together a regex that extracts file name, line
-number, and column number from each message.</p>
+<p>
+  eventually replacing the string in the middle with an actual Emacs regexp.
+  Thankfully, Emacs has the <code class="verbatim">M-x re-builder</code> built
+  in for doing exactly that! Since
+  <code class="verbatim">*Python check: poetry run pyright errors.py*</code> is
+  a buffer like any other, we can hop over to it, and run
+  <code class="verbatim">M-x re-builder</code> to piece together a regex that
+  extracts file name, line number, and column number from each message.
+</p>
 <figure width="800px">
-<img src="./re-builder.png" />
-<figcaption>Building the regex that parses pyright errors interactively</figcaption>
+  <img src="./re-builder.png" />
+  <figcaption>
+    Building the regex that parses pyright errors interactively
+  </figcaption>
 </figure>
-<p>Clearly, there are some errors in the regexp so far, but as we edit
-the text in the <code>*RE-Builder*</code> buffer, the highlighting in the
-<code>*compilation*</code> buffer will update live to show us what would be
-captured by the regexp we've entered. After fiddling with the
-contents in the bottom buffer to get the highlighting correct, we've
-got this regular expression:</p>
+<p>
+  Clearly, there are some errors in the regexp so far, but as we edit the text
+  in the <code>*RE-Builder*</code> buffer, the highlighting in the
+  <code>*compilation*</code> buffer will update live to show us what would be
+  captured by the regexp we've entered. After fiddling with the contents in the
+  bottom buffer to get the highlighting correct, we've got this regular
+  expression:
+</p>
 <pre><code>&quot;^[[:blank:]]+\\(.+\\):\\([0-9]+\\):\\([0-9]+\\).*$&quot;
 </code></pre>
-<p>Now we just need to add this into the
-<code class="verbatim">compilation-error-regexp-alist-alist</code> in our <code class="verbatim">init.el</code>:</p>
+<p>
+  Now we just need to add this into the
+  <code class="verbatim">compilation-error-regexp-alist-alist</code> in our
+  <code class="verbatim">init.el</code>:
+</p>
 <pre><code class="language-lisp">;; init.el
 (require &#39;compile)
 (add-to-list &#39;compilation-error-regexp-alist-alist
              &#39;(pyright &quot;^[[:blank:]]+\\(.+\\):\\([0-9]+\\):\\([0-9]+\\).*$&quot; 1 2 3))
 (add-to-list &#39;compilation-error-regexp-alist &#39;pyright)
 </code></pre>
-<p>After restarting emacs with the modified alist, we get error prasing from pyright output:</p>
+<p>
+  After restarting emacs with the modified alist, we get error prasing from
+  pyright output:
+</p>
 <figure width="800px">
-<img src="./pyright_error_parsing.png" />
-<figcaption>Functional links in the <code>*compilation*</code> buffer after running pyright</figcaption>
+  <img src="./pyright_error_parsing.png" />
+  <figcaption>
+    Functional links in the <code>*compilation*</code> buffer after running
+    pyright
+  </figcaption>
 </figure>
 <h2 id="virtual-environments">Virtual Environments</h2>
-<p>Since I use <code class="verbatim">poetry</code> so frequently, and I can prefix all of the Emacs
-or shell commands with <code class="verbatim">poetry run</code>, it's pretty rare that I have to
-invoke specific virtual environments. That said, this guide would
-have a pretty large hole in it if we didn't mention the vanilla
-virtual environment experience.</p>
-<p>Most folks tend to run a slightly different virtual environment
-workflow from one another. What I'm showing off below is the one I
-think fits most easily with the flavor of vanilla already presented in
-this article, with some added knowledge about how <code class="verbatim">.dir-locals.el</code>
-works (coming up shortly).</p>
+<p>
+  Since I use <code class="verbatim">poetry</code> so frequently, and I can
+  prefix all of the Emacs or shell commands with
+  <code class="verbatim">poetry run</code>, it's pretty rare that I have to
+  invoke specific virtual environments. That said, this guide would have a
+  pretty large hole in it if we didn't mention the vanilla virtual environment
+  experience.
+</p>
+<p>
+  Most folks tend to run a slightly different virtual environment workflow from
+  one another. What I'm showing off below is the one I think fits most easily
+  with the flavor of vanilla already presented in this article, with some added
+  knowledge about how <code class="verbatim">.dir-locals.el</code> works (coming
+  up shortly).
+</p>
 <h3 id="create-a-virtual-environment">Create a virtual environment</h3>
-<p>Keeping a <code class="verbatim">.venv</code> folder at the top level of a project is one valid
-way to organize things, but (vanilla) Emacs isn't going to make it
-easy for us to use it that way. Instead, I'd recommend keeping all
-virtual environments in a central place. For me, that looks like
-this:</p>
+<p>
+  Keeping a <code class="verbatim">.venv</code> folder at the top level of a
+  project is one valid way to organize things, but (vanilla) Emacs isn't going
+  to make it easy for us to use it that way. Instead, I'd recommend keeping all
+  virtual environments in a central place. For me, that looks like this:
+</p>
 <pre><code>M-! python3 -m venv ~/.cache/venvs/website
 </code></pre>
-<p>This builds a virtualenv named <code class="verbatim">website</code> for python utilities that
-help buld my blog under the <code class="verbatim">~/.cache</code> directory on Unix. To use this
-virtualenv explicitly for shell utilities, I can always run commands
-like this</p>
+<p>
+  This builds a virtualenv named <code class="verbatim">website</code> for
+  python utilities that help buld my blog under the
+  <code class="verbatim">~/.cache</code> directory on Unix. To use this
+  virtualenv explicitly for shell utilities, I can always run commands like this
+</p>
 <pre><code>M-! ~/.cache/venvs/website/bin/python -m pip install mypy
 M-! ~/.cache/venv/website/bin/mypy errors.py
 </code></pre>
-<p>Of course, adding the prefix <code class="verbatim">~/.cache/venvs/website/bin</code> every time
-is a bit cumbersome, especially for frequent commands like <code class="verbatim">M-x python-check</code>.</p>
-<h3 id="dir-locals.el-for-setting-virtual-environment"><code class="verbatim">.dir-locals.el</code> for setting virtual environment</h3>
-<p>One quick way to reduce some typing is to add entries in a project
-file called <code class="verbatim">.dir-locals.el</code>. This is a special <em>data</em> file that
-Emacs will read, if it exists, and apply to all new buffers within the
-project. For our needs, we want to apply a couple changes to
-<code class="verbatim">python-mode</code> specifically to use the virtual environment instead of
-system python. The two easy ones are the <code class="verbatim">python-check-command</code> and
-<code class="verbatim">python-shell-virtualenv-root</code>:</p>
+<p>
+  Of course, adding the prefix
+  <code class="verbatim">~/.cache/venvs/website/bin</code> every time is a bit
+  cumbersome, especially for frequent commands like
+  <code class="verbatim">M-x python-check</code>.
+</p>
+<h3 id="dir-locals.el-for-setting-virtual-environment">
+  <code class="verbatim">.dir-locals.el</code> for setting virtual environment
+</h3>
+<p>
+  One quick way to reduce some typing is to add entries in a project file called
+  <code class="verbatim">.dir-locals.el</code>. This is a special
+  <em>data</em> file that Emacs will read, if it exists, and apply to all new
+  buffers within the project. For our needs, we want to apply a couple changes
+  to <code class="verbatim">python-mode</code> specifically to use the virtual
+  environment instead of system python. The two easy ones are the
+  <code class="verbatim">python-check-command</code> and
+  <code class="verbatim">python-shell-virtualenv-root</code>:
+</p>
 <pre><code class="language-lisp">;; .dir-locals.el
 ((python-mode . ((python-check-command . &quot;%HOME%\\.cache\\venvs\\website\\Scripts\\python.exe -m mypy&quot;)
                  (python-shell-virtualenv-root . &quot;~/.cache/venvs/website&quot;))))
 </code></pre>
-<p>I've included a quirk of working on Microsoft Windows here - the
-<code class="verbatim">python-check-command</code> needs to run through your shell, which is
-<code>cmd.exe</code> by default, and hence requires Windows-style paths. The
-<code class="verbatim">python-shell-virtualenv-root</code>, however, is evaulated by Emacs, and
-can use tilde-expansion and Unix-style paths. Changing default shell
-commands to run through <code>pwsh</code> on Windows would likely alleviate this
-issue, but it's worth calling out for <code>cmd.exe</code> users.</p>
-<p>It's also worth mentioning here that <code class="verbatim">M-x add-dir-local-variable</code>
-provides an easy interactive interface to editing the <code class="verbatim">.dir-locals.el</code>
-file.</p>
-<p>The <code class="verbatim">python-shell-virtualenv-root</code> part only affects running Python as
-a shell within Emacs, it does <em>not</em> affect things like PATH, async
-commands, or <code class="verbatim">M-x compile</code>. To demonstrate this, once we've set up
-<code class="verbatim">.dir-locals.el</code> as above, and we either revert a Python buffer with
-<code class="verbatim">C-x x g</code> or open a new Python buffer in the same project, a popup
-like this appears:</p>
+<p>
+  I've included a quirk of working on Microsoft Windows here - the
+  <code class="verbatim">python-check-command</code> needs to run through your
+  shell, which is <code>cmd.exe</code> by default, and hence requires
+  Windows-style paths. The
+  <code class="verbatim">python-shell-virtualenv-root</code>, however, is
+  evaulated by Emacs, and can use tilde-expansion and Unix-style paths. Changing
+  default shell commands to run through <code>pwsh</code> on Windows would
+  likely alleviate this issue, but it's worth calling out for
+  <code>cmd.exe</code> users.
+</p>
+<p>
+  It's also worth mentioning here that
+  <code class="verbatim">M-x add-dir-local-variable</code> provides an easy
+  interactive interface to editing the
+  <code class="verbatim">.dir-locals.el</code> file.
+</p>
+<p>
+  The <code class="verbatim">python-shell-virtualenv-root</code> part only
+  affects running Python as a shell within Emacs, it does <em>not</em> affect
+  things like PATH, async commands, or
+  <code class="verbatim">M-x compile</code>. To demonstrate this, once we've set
+  up <code class="verbatim">.dir-locals.el</code> as above, and we either revert
+  a Python buffer with <code class="verbatim">C-x x g</code> or open a new
+  Python buffer in the same project, a popup like this appears:
+</p>
 <pre><code>The local variables list in c:/Users/robbe/repos/renzmann.github.io/content/posts/006_emacs_2_python/
 contains values that may not be safe (*).
 
@@ -505,46 +735,71 @@ i  -- to ignore the local variables list, and permanently mark these
   * python-check-command : &quot;%HOME%\\.cache\\venvs\\website\\Scripts\\python.exe -m mypy&quot;
   * python-shell-virtualenv-root : &quot;~/.cache/venvs/website&quot;
 </code></pre>
-<p>Responding with <code>y</code> will set the <code class="verbatim">python-check-command</code> and
-<code class="verbatim">python-shell-virtualenv-root</code> for just the current session, while <code>!</code>
-will add both of these values to the <code>custom</code> section in either
-<code class="verbatim">init.el</code> or wherever you've set your <code>custom-file</code>. This is another
-reason for using a common, central spot for virtual environments,
-since across workstations I can use the same path relative to my
-<code>$HOME</code> directory. After confirming, and using <code class="verbatim">C-c C-p</code>, we can
-check which Python executable we're using in the <code>*Python*</code> buffer now:</p>
+<p>
+  Responding with <code>y</code> will set the
+  <code class="verbatim">python-check-command</code> and
+  <code class="verbatim">python-shell-virtualenv-root</code> for just the
+  current session, while <code>!</code> will add both of these values to the
+  <code>custom</code> section in either <code class="verbatim">init.el</code> or
+  wherever you've set your <code>custom-file</code>. This is another reason for
+  using a common, central spot for virtual environments, since across
+  workstations I can use the same path relative to my
+  <code>$HOME</code> directory. After confirming, and using
+  <code class="verbatim">C-c C-p</code>, we can check which Python executable
+  we're using in the <code>*Python*</code> buffer now:
+</p>
 <pre><code>Python 3.10.6 (tags/v3.10.6:9c7b4bd, Aug  1 2022, 21:53:49) [MSC v.1932 64 bit (AMD64)] on win32
 Type &quot;help&quot;, &quot;copyright&quot;, &quot;credits&quot; or &quot;license&quot; for more information.
 &gt;&gt;&gt; import sys; sys.executable
 &#39;c:\\Users\\robbe\\.cache\\venvs\\website\\Scripts\\python.exe&#39;
 </code></pre>
-<p>Keep in mind, the values provided in <code class="verbatim">.dir-locals.el</code> are evaluated on
-a per-buffer basis, so attempting to set a relative path like
-<code>(python-shell-virtualenv-root . ".venv/website")</code> will only work when
-executing <code>run-python</code> in the same directory as <code class="verbatim">.dir-locals.el</code> <em>and</em>
-<code class="verbatim">.venv/</code>.</p>
-<p>The various compile and shell commands will <em>not</em> respect the
-virtualenv we've set via <code class="verbatim">.dir-locals.el</code>. On *nix, <code>M-x compile RET which python3</code> will still bring back some variant of
-<code>/usr/bin/python3</code>, as will <code>M-&amp; which python</code> or <code>M-! which python</code>.
-In a follow-up article we might explore how it <em>is</em> possible to take
-care of all this via <code class="verbatim">.dir-locals.el</code> and the special <code>exec</code> variable,
-but it's not very elegant.</p>
-<h3 id="all-things-considered-pyvenv">All things considered: <code class="verbatim">pyvenv</code></h3>
-<p><a href="https://github.com/jorgenschaefer/pyvenv"><code class="verbatim">pyvenv</code></a> is a very lightweight package, clocking in at around 540
-source lines of code, designed specifically around the challenge of
-ensuring the correct python virtual environment is at the front of
-PATH when running (async) shell commands, <code class="verbatim">M-x eshell</code>, <code class="verbatim">M-x shell</code>,
-<code class="verbatim">M-x term</code>, <code class="verbatim">M-x python-check</code>, <code class="verbatim">M-x compile</code>, and more. When
-written, it was based around <code class="verbatim">virtualenv</code> and <code class="verbatim">virtualenvwrapper.sh</code>,
-and some of the language it uses will reflect that. Although
-<code class="verbatim">virtualenv</code> has mostly fallen out of favor, the core functionality of
-<code class="verbatim">pyvenv</code> is still very relevant. Especially if you choose to adopt a
-central store of virtual environments, as above, you can set that as a
-<code class="verbatim">WORKON_HOME</code> variable ("workon" is terminology held over from
-<code class="verbatim">virtualenvwrapper.sh</code>) to a directory that all your virtual
-environments sit under, so that it's easy to select one with the
-<code class="verbatim">pyvenv-workon</code> function. When using <code class="verbatim">poetry</code>, that usually looks
-like this:</p>
+<p>
+  Keep in mind, the values provided in
+  <code class="verbatim">.dir-locals.el</code> are evaluated on a per-buffer
+  basis, so attempting to set a relative path like
+  <code>(python-shell-virtualenv-root . ".venv/website")</code> will only work
+  when executing <code>run-python</code> in the same directory as
+  <code class="verbatim">.dir-locals.el</code> <em>and</em>
+  <code class="verbatim">.venv/</code>.
+</p>
+<p>
+  The various compile and shell commands will <em>not</em> respect the
+  virtualenv we've set via <code class="verbatim">.dir-locals.el</code>. On
+  *nix, <code>M-x compile RET which python3</code> will still bring back some
+  variant of <code>/usr/bin/python3</code>, as will
+  <code>M-&amp; which python</code> or <code>M-! which python</code>. In a
+  follow-up article we might explore how it <em>is</em> possible to take care of
+  all this via <code class="verbatim">.dir-locals.el</code> and the special
+  <code>exec</code> variable, but it's not very elegant.
+</p>
+<h3 id="all-things-considered-pyvenv">
+  All things considered: <code class="verbatim">pyvenv</code>
+</h3>
+<p>
+  <a href="https://github.com/jorgenschaefer/pyvenv"
+    ><code class="verbatim">pyvenv</code></a
+  >
+  is a very lightweight package, clocking in at around 540 source lines of code,
+  designed specifically around the challenge of ensuring the correct python
+  virtual environment is at the front of PATH when running (async) shell
+  commands, <code class="verbatim">M-x eshell</code>,
+  <code class="verbatim">M-x shell</code>,
+  <code class="verbatim">M-x term</code>,
+  <code class="verbatim">M-x python-check</code>,
+  <code class="verbatim">M-x compile</code>, and more. When written, it was
+  based around <code class="verbatim">virtualenv</code> and
+  <code class="verbatim">virtualenvwrapper.sh</code>, and some of the language
+  it uses will reflect that. Although
+  <code class="verbatim">virtualenv</code> has mostly fallen out of favor, the
+  core functionality of <code class="verbatim">pyvenv</code> is still very
+  relevant. Especially if you choose to adopt a central store of virtual
+  environments, as above, you can set that as a
+  <code class="verbatim">WORKON_HOME</code> variable ("workon" is terminology
+  held over from <code class="verbatim">virtualenvwrapper.sh</code>) to a
+  directory that all your virtual environments sit under, so that it's easy to
+  select one with the <code class="verbatim">pyvenv-workon</code> function. When
+  using <code class="verbatim">poetry</code>, that usually looks like this:
+</p>
 <pre><code class="language-lisp">(if (eq system-type &#39;windows-nt)
     ;; Default virtualenv cache directory for poetry on Microsoft Windows
     (setenv &quot;WORKON_HOME&quot; &quot;$LOCALAPPDATA/pypoetry/Cache/virtualenvs&quot;)
@@ -552,34 +807,59 @@ like this:</p>
   (setenv &quot;WORKON_HOME&quot; &quot;~/.cache/pypoetry/virtualenvs&quot;))
 (pyvenv-mode)
 </code></pre>
-<p>Setting <code>WORKON_HOME</code> to <code class="verbatim">~/.cache/venvs</code> as in the previous examples
-is another valid option. Doing it this way also plays nice with
-<code>.dir-locals.el</code>, since <code>pyvenv</code> exposes a way to set a project-level
-venv with a single variable:</p>
+<p>
+  Setting <code>WORKON_HOME</code> to
+  <code class="verbatim">~/.cache/venvs</code> as in the previous examples is
+  another valid option. Doing it this way also plays nice with
+  <code>.dir-locals.el</code>, since <code>pyvenv</code> exposes a way to set a
+  project-level venv with a single variable:
+</p>
 <pre><code class="language-lisp">;; .dir-locals.el
 ((python-mode . ((pyvenv-workon . &quot;website&quot;))))
 </code></pre>
-<p>Also of use for folks who frequently swap between different projects
-is <code>(pyvenv-tracking-mode)</code>, which will automatically change the
-active python virtual environment when you navigate to a different
-buffer.</p>
-<p>And, of course, if the whole "workon" and virtualenvs grouped together
-under <code class="verbatim">~/.cache/venvs</code> isn't to taste, there's always <code class="verbatim">M-x pyvenv-activate</code>, which lets you choose a virtual environement
-anywhere on your system. So, all-in-all, I'll probably stick with
-<code class="verbatim">pyvenv</code> in my configuration, because setting all the different
-utility PATHs without it is just such a pain.</p>
+<p>
+  Also of use for folks who frequently swap between different projects is
+  <code>(pyvenv-tracking-mode)</code>, which will automatically change the
+  active python virtual environment when you navigate to a different buffer.
+</p>
+<p>
+  And, of course, if the whole "workon" and virtualenvs grouped together under
+  <code class="verbatim">~/.cache/venvs</code> isn't to taste, there's always
+  <code class="verbatim">M-x pyvenv-activate</code>, which lets you choose a
+  virtual environement anywhere on your system. So, all-in-all, I'll probably
+  stick with <code class="verbatim">pyvenv</code> in my configuration, because
+  setting all the different utility PATHs without it is just such a pain.
+</p>
 <h2 id="next-notebooking">Next: Notebooking</h2>
-<p>Belive it or not, we've only scratched the surface. <code class="verbatim">org-mode</code>
-and <code class="verbatim">org-babel</code> together provide a fully-functional
-"notebooking" (technically "literate programming") experience out of
-the box with recent versions of Emacs. The next article will focus
-exclusively on Python and data science in Org as a near-complete
-Jupyter replacement.</p>
+<p>
+  Belive it or not, we've only scratched the surface.
+  <code class="verbatim">org-mode</code> and
+  <code class="verbatim">org-babel</code> together provide a fully-functional
+  "notebooking" (technically "literate programming") experience out of the box
+  with recent versions of Emacs. The next article will focus exclusively on
+  Python and data science in Org as a near-complete Jupyter replacement.
+</p>
 <h2 id="footnotes">Footnotes</h2>
-<section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes">
-<hr />
-<ol>
-<li id="fn1"><p><a href="https://python-poetry.org/docs/#installation">https://python-poetry.org/docs/#installation</a><a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
-<li id="fn2"><p><a href="https://github.com/microsoft/pyright#command-line">https://github.com/microsoft/pyright#command-line</a><a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
-</ol>
+<section
+  id="footnotes"
+  class="footnotes footnotes-end-of-document"
+  role="doc-endnotes"
+>
+  <hr />
+  <ol>
+    <li id="fn1">
+      <p>
+        <a href="https://python-poetry.org/docs/#installation"
+          >https://python-poetry.org/docs/#installation</a
+        ><a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a>
+      </p>
+    </li>
+    <li id="fn2">
+      <p>
+        <a href="https://github.com/microsoft/pyright#command-line"
+          >https://github.com/microsoft/pyright#command-line</a
+        ><a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a>
+      </p>
+    </li>
+  </ol>
 </section>

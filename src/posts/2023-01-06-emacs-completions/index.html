@@ -3,78 +3,151 @@ title: The Completions Buffer Gets a Big Upgrade in Emacs 29
 date: 2023-01-06
 description: Emacs 29 makes the built-in *Completions* buffer good enough to skip vertico + corfu.
 ---
-<p>There’s been a lot of talk about how <code>eglot</code> and <code>tree-sitter</code> will be distributed
-with Emacs 29, but I’ve seen less buzz around the new functionality coming to
-the vanilla ∗Completions∗ buffer. Now, I’ve been an ardent <a href="https://github.com/minad/vertico">vertico</a> +
-<a href="https://github.com/oantolin/orderless">orderless</a> + <a href="https://github.com/minad/marginalia/">marginalia</a> + <a href="https://github.com/minad/corfu">corfu</a> user since seriously picking up Emacs over the
-summer, and when initially looking for options I found <a href="https://protesilaos.com/emacs/mct">Prot’s MCT</a> pretty
-alluring. I didn’t choose it since he had already decided to <a href="https://protesilaos.com/codelog/2022-04-14-emacs-discontinue-mct/">discontine
-development</a> given upcoming changes in Emacs 29, and as of writing even he
-opted for <a href="https://git.sr.ht/~protesilaos/dotfiles/tree/437a303b90b3354ca1a1d08cb2f793183d1b4c48/item/emacs/.emacs.d/prot-emacs-modules/prot-emacs-completion.el#L141">vertico</a> and <a href="https://git.sr.ht/~protesilaos/dotfiles/tree/437a303b90b3354ca1a1d08cb2f793183d1b4c48/item/emacs/.emacs.d/prot-emacs-modules/prot-emacs-completion.el#L300">corfu</a>.</p>
-<p>There is still that tempting, bitter fruit on the horizon though - maximizing
-everything I can out of the vanilla Emacs experience. Getting to that mythical
-“vanilla extract” that keeps my muscle memory nearly entirely intact between
-<code>emacs -Q</code> and my config (check out “Goals” in my <a href="https://robbmann.io/emacsd/#goals">.emacs.d</a> to see the reasoning
-behind why I would want this).</p>
-<p>Now that <code>treesit.el</code>, <code>use-package</code>, and <code>eglot</code> are all merged into the <code>emacs-29</code>
-branch, I finally decided to give our good old friend the ∗Completions∗ buffer
-another try, so that you don’t have to.</p>
-<p>(Some verbiage below is taken directly from <code>C-h n</code> (<code>view-emacs-news</code>))</p>
-<h3 id="new-visible-and-always-values-for-completion-auto-help">New ‘visible’ and ‘always’ values for ‘completion-auto-help’</h3>
-<p>There are two new values to control the way the “∗Completions∗” buffer behaves
-after pressing a ‘TAB’ if completion is not unique.</p>
-<p>The (old) default value <code>t</code> always hides the completion buffer after some
-completion is made.</p>
+<p>
+  There’s been a lot of talk about how <code>eglot</code> and
+  <code>tree-sitter</code> will be distributed with Emacs 29, but I’ve seen less
+  buzz around the new functionality coming to the vanilla ∗Completions∗ buffer.
+  Now, I’ve been an ardent
+  <a href="https://github.com/minad/vertico">vertico</a> +
+  <a href="https://github.com/oantolin/orderless">orderless</a> +
+  <a href="https://github.com/minad/marginalia/">marginalia</a> +
+  <a href="https://github.com/minad/corfu">corfu</a> user since seriously
+  picking up Emacs over the summer, and when initially looking for options I
+  found <a href="https://protesilaos.com/emacs/mct">Prot’s MCT</a> pretty
+  alluring. I didn’t choose it since he had already decided to
+  <a href="https://protesilaos.com/codelog/2022-04-14-emacs-discontinue-mct/"
+    >discontine development</a
+  >
+  given upcoming changes in Emacs 29, and as of writing even he opted for
+  <a
+    href="https://git.sr.ht/~protesilaos/dotfiles/tree/437a303b90b3354ca1a1d08cb2f793183d1b4c48/item/emacs/.emacs.d/prot-emacs-modules/prot-emacs-completion.el#L141"
+    >vertico</a
+  >
+  and
+  <a
+    href="https://git.sr.ht/~protesilaos/dotfiles/tree/437a303b90b3354ca1a1d08cb2f793183d1b4c48/item/emacs/.emacs.d/prot-emacs-modules/prot-emacs-completion.el#L300"
+    >corfu</a
+  >.
+</p>
+<p>
+  There is still that tempting, bitter fruit on the horizon though - maximizing
+  everything I can out of the vanilla Emacs experience. Getting to that mythical
+  “vanilla extract” that keeps my muscle memory nearly entirely intact between
+  <code>emacs -Q</code> and my config (check out “Goals” in my
+  <a href="https://robbmann.io/emacsd/#goals">.emacs.d</a> to see the reasoning
+  behind why I would want this).
+</p>
+<p>
+  Now that <code>treesit.el</code>, <code>use-package</code>, and
+  <code>eglot</code> are all merged into the <code>emacs-29</code> branch, I
+  finally decided to give our good old friend the ∗Completions∗ buffer another
+  try, so that you don’t have to.
+</p>
+<p>
+  (Some verbiage below is taken directly from
+  <code>C-h n</code> (<code>view-emacs-news</code>))
+</p>
+<h3 id="new-visible-and-always-values-for-completion-auto-help">
+  New ‘visible’ and ‘always’ values for ‘completion-auto-help’
+</h3>
+<p>
+  There are two new values to control the way the “∗Completions∗” buffer behaves
+  after pressing a ‘TAB’ if completion is not unique.
+</p>
+<p>
+  The (old) default value <code>t</code> always hides the completion buffer
+  after some completion is made.
+</p>
 <pre><code class="language-lisp">(setq completion-auto-help t)</code></pre>
-<p><img src="/static/img/auto-help-t.gif" alt=""></p>
-<p>The value ‘always’ updates or shows the ∗Completions∗ buffer after any attempt
-to complete, including the first time we press TAB. Comparing to the one above,
-notice that the buffer pops up as soon as I complete <code>~/.emacs.d/</code>. Before, I had
-to start another completion by typing <code>tra&lt;TAB&gt;</code>. Also, after completing
-<code>transient/</code>, the buffer once again updates with the contents of that directory.</p>
+<p><img src="/static/img/auto-help-t.gif" alt="" /></p>
+<p>
+  The value ‘always’ updates or shows the ∗Completions∗ buffer after any attempt
+  to complete, including the first time we press TAB. Comparing to the one
+  above, notice that the buffer pops up as soon as I complete
+  <code>~/.emacs.d/</code>. Before, I had to start another completion by typing
+  <code>tra&lt;TAB&gt;</code>. Also, after completing <code>transient/</code>,
+  the buffer once again updates with the contents of that directory.
+</p>
 <pre><code class="language-lisp">(setq completion-auto-help &#39;always)</code></pre>
-<p><img src="/static/img/auto-help-always.gif" alt=""></p>
-<p>The value ‘visible’ is like ‘always’, but only updates the completions if they
-are already visible. The main difference in this one is that we don’t get the
-∗Completions∗ buffer on the first TAB for <code>~/.emacs.d/</code>:</p>
+<p><img src="/static/img/auto-help-always.gif" alt="" /></p>
+<p>
+  The value ‘visible’ is like ‘always’, but only updates the completions if they
+  are already visible. The main difference in this one is that we don’t get the
+  ∗Completions∗ buffer on the first TAB for <code>~/.emacs.d/</code>:
+</p>
 <pre><code class="language-lisp">(setq completion-auto-help &#39;visible)</code></pre>
-<p><img src="/static/img/auto-help-visible.gif" alt=""></p>
-<p>If your goal is reduction of visual noise because you already know how a chain
-of <code>TAB</code>‘s are going to complete, then ’visible’ seems like a good option.</p>
-<h3 id="the-and-lowast-completions-and-lowast-buffer-can-now-be-automatically-selected-dot">The ∗Completions∗ buffer can now be automatically selected.</h3>
-<p>This was my biggest gripe with ∗Completions∗ and what made it downright unusable
-for completion-at-point. Here’s what the current behavior looks like with
-completion in a buffer:</p>
+<p><img src="/static/img/auto-help-visible.gif" alt="" /></p>
+<p>
+  If your goal is reduction of visual noise because you already know how a chain
+  of <code>TAB</code>‘s are going to complete, then ’visible’ seems like a good
+  option.
+</p>
+<h3
+  id="the-and-lowast-completions-and-lowast-buffer-can-now-be-automatically-selected-dot"
+>
+  The ∗Completions∗ buffer can now be automatically selected.
+</h3>
+<p>
+  This was my biggest gripe with ∗Completions∗ and what made it downright
+  unusable for completion-at-point. Here’s what the current behavior looks like
+  with completion in a buffer:
+</p>
 <pre><code class="language-lisp">(setq completion-auto-select nil)</code></pre>
-<p><img src="/static/img/auto-select-nil.gif" alt=""></p>
-<p>In the minibuffer, we’ve always had <code>M-v</code> to switch to ∗Completions∗, but there
-was no analogue for completion-in-region. Now, in Emacs 29, we can set
-<code>completion-auto-select</code> to one of <code>t</code> or <code>second-tab</code> to enable automatic selection
-of the “∗Completions∗” buffer</p>
+<p><img src="/static/img/auto-select-nil.gif" alt="" /></p>
+<p>
+  In the minibuffer, we’ve always had <code>M-v</code> to switch to
+  ∗Completions∗, but there was no analogue for completion-in-region. Now, in
+  Emacs 29, we can set <code>completion-auto-select</code> to one of
+  <code>t</code> or <code>second-tab</code> to enable automatic selection of the
+  “∗Completions∗” buffer
+</p>
 <pre><code class="language-lisp">(setq completion-auto-select t)</code></pre>
-<p><img src="/static/img/auto-select-t.gif" alt=""></p>
-<p>If the value is ‘second-tab’, then the first <code>TAB</code> will display “∗Completions∗”,
-and the second one will switch to the “∗Completions∗” buffer.</p>
+<p><img src="/static/img/auto-select-t.gif" alt="" /></p>
+<p>
+  If the value is ‘second-tab’, then the first <code>TAB</code> will display
+  “∗Completions∗”, and the second one will switch to the “∗Completions∗” buffer.
+</p>
 <pre><code class="language-lisp">(setq completion-auto-select &#39;second-tab)</code></pre>
-<p><img src="/static/img/auto-select-second-tab.gif" alt=""></p>
-<p>With ‘second-tab’, I can use the “∗Completions∗” buffer a lot like how I would
-use <code>corfu</code>: type a bit, request completion with TAB, examine the list, and keep
-typing to narrow the candidates, and request completion again. If I see the
-option I like, I just hit TAB a few times to get it.</p>
-<h3 id="new-commands-for-navigating-completions-from-the-minibuffer-dot">New commands for navigating completions from the minibuffer.</h3>
+<p><img src="/static/img/auto-select-second-tab.gif" alt="" /></p>
+<p>
+  With ‘second-tab’, I can use the “∗Completions∗” buffer a lot like how I would
+  use <code>corfu</code>: type a bit, request completion with TAB, examine the
+  list, and keep typing to narrow the candidates, and request completion again.
+  If I see the option I like, I just hit TAB a few times to get it.
+</p>
+<h3 id="new-commands-for-navigating-completions-from-the-minibuffer-dot">
+  New commands for navigating completions from the minibuffer.
+</h3>
 <ul>
-<li><code>M-&lt;up&gt;</code> and <code>M-&lt;down&gt;</code> for <code>minibuffer-next-completion</code> and <code>minibuffer-previous-completion</code></li>
-<li><code>M-RET</code> to choose active candidate</li>
-<li><code>C-u M-RET</code> to insert active candidate without exiting minibuffer</li>
-<li><code>C-x &lt;up&gt;</code> (<code>minibuffer-complete-history</code>) is like <code>minibuffer-complete</code> but
-completes on the history items instead of the default completion table.</li>
-<li><code>C-x &lt;down&gt;</code> (<code>minibuffer-complete-defaults</code>) is like <code>minibuffer-complete</code>, but
-completes on the default items instead of the completion table.</li>
+  <li>
+    <code>M-&lt;up&gt;</code> and <code>M-&lt;down&gt;</code> for
+    <code>minibuffer-next-completion</code> and
+    <code>minibuffer-previous-completion</code>
+  </li>
+  <li><code>M-RET</code> to choose active candidate</li>
+  <li>
+    <code>C-u M-RET</code> to insert active candidate without exiting minibuffer
+  </li>
+  <li>
+    <code>C-x &lt;up&gt;</code> (<code>minibuffer-complete-history</code>) is
+    like <code>minibuffer-complete</code> but completes on the history items
+    instead of the default completion table.
+  </li>
+  <li>
+    <code>C-x &lt;down&gt;</code> (<code>minibuffer-complete-defaults</code>) is
+    like <code>minibuffer-complete</code>, but completes on the default items
+    instead of the completion table.
+  </li>
 </ul>
-<p>The first two also work for <code>completion-at-point</code> (in-buffer completion).</p>
-<p><img src="/static/img/completion-nav-commands.gif" alt=""></p>
-<p>Some may find the arrow keys an unfortunate choice, though, and bind something
-more convenient:</p>
+<p>
+  The first two also work for <code>completion-at-point</code> (in-buffer
+  completion).
+</p>
+<p><img src="/static/img/completion-nav-commands.gif" alt="" /></p>
+<p>
+  Some may find the arrow keys an unfortunate choice, though, and bind something
+  more convenient:
+</p>
 <pre><code class="language-lisp">;; Up/down when completing in the minibuffer
 (define-key minibuffer-local-map (kbd &quot;C-p&quot;) #&#39;minibuffer-previous-completion)
 (define-key minibuffer-local-map (kbd &quot;C-n&quot;) #&#39;minibuffer-next-completion)
@@ -82,17 +155,36 @@ more convenient:</p>
 ;; Up/down when competing in a normal buffer
 (define-key completion-in-region-mode-map (kbd &quot;C-p&quot;) #&#39;minibuffer-previous-completion)
 (define-key completion-in-region-mode-map (kbd &quot;C-n&quot;) #&#39;minibuffer-next-completion)</code></pre>
-<p>My apologies to <a href="https://www.scss.tcd.ie/~sulimanm/posts/default-emacs-completion.html">Mohamed Suliman</a>, since I was also not able to figure out a fix
-for <code>eshell</code> that permits the use of <code>M-&lt;up&gt;</code> and <code>M-&lt;down&gt;</code> with <code>M-RET</code>. The issue
-there, it seems, is that <code>eshell</code> uses its own <code>pcomplete</code> instead of
-<code>completion-at-point</code>, which comes from <code>minibuffer.el</code>. I have, however, had
-success simply using <code>TAB</code> and <code>BACKTAB</code> with <code>RET</code>, by setting <code>completion-auto-select</code>
-to <code>'second-tab</code>, as shown above.</p>
-<h3 id="new-user-option-completions-sort-dot">New user option ‘completions-sort’.</h3>
-<p>Much like how oantolin’s <a href="https://github.com/oantolin/live-completions">live-completions</a> gave us a way to sort candidates in
-∗Completions∗, we now have a built-in method for specifying the sorting
-function. I took inspiration from <a href="https://github.com/protesilaos/mct#101-sort-completion-candidates-on-emacs-29">Prot’s MCT documentation</a> here to put
-candidates I use frequently near the top, followed by the length of their name.</p>
+<p>
+  My apologies to
+  <a
+    href="https://www.scss.tcd.ie/~sulimanm/posts/default-emacs-completion.html"
+    >Mohamed Suliman</a
+  >, since I was also not able to figure out a fix for <code>eshell</code> that
+  permits the use of <code>M-&lt;up&gt;</code> and
+  <code>M-&lt;down&gt;</code> with <code>M-RET</code>. The issue there, it
+  seems, is that <code>eshell</code> uses its own <code>pcomplete</code> instead
+  of <code>completion-at-point</code>, which comes from
+  <code>minibuffer.el</code>. I have, however, had success simply using
+  <code>TAB</code> and <code>BACKTAB</code> with <code>RET</code>, by setting
+  <code>completion-auto-select</code> to <code>'second-tab</code>, as shown
+  above.
+</p>
+<h3 id="new-user-option-completions-sort-dot">
+  New user option ‘completions-sort’.
+</h3>
+<p>
+  Much like how oantolin’s
+  <a href="https://github.com/oantolin/live-completions">live-completions</a>
+  gave us a way to sort candidates in ∗Completions∗, we now have a built-in
+  method for specifying the sorting function. I took inspiration from
+  <a
+    href="https://github.com/protesilaos/mct#101-sort-completion-candidates-on-emacs-29"
+    >Prot’s MCT documentation</a
+  >
+  here to put candidates I use frequently near the top, followed by the length
+  of their name.
+</p>
 <pre><code class="language-lisp">(defun renz/sort-by-alpha-length (elems)
   &quot;Sort ELEMS first alphabetically, then by length.&quot;
   (sort elems (lambda (c1 c2)
@@ -130,75 +222,96 @@ Use `mct-sort-sort-by-alpha-length&#39; if no history is available.&quot;
 (setq completions-sort #&#39;renz/sort-multi-category)</code></pre>
 <h3 id="other-niceties">Other Niceties</h3>
 <ul>
-<li><code>completions-max-height</code> limits the height of the “∗Completions∗” buffer</li>
-<li><code>completions-header-format</code> is a string to control the heading line to show in
-the “∗Completions∗” buffer before the list of completions</li>
+  <li>
+    <code>completions-max-height</code> limits the height of the “∗Completions∗”
+    buffer
+  </li>
+  <li>
+    <code>completions-header-format</code> is a string to control the heading
+    line to show in the “∗Completions∗” buffer before the list of completions
+  </li>
 </ul>
 <h3 id="do-we-stick-with-vanilla-extract">Do We Stick With Vanilla Extract?</h3>
-<p>Now the fun part - let’s tally pros and cons to see if I should abandon
-everything for the Vanilla behavior:</p>
+<p>
+  Now the fun part - let’s tally pros and cons to see if I should abandon
+  everything for the Vanilla behavior:
+</p>
 <table>
-<thead>
-<tr>
-<th>property</th>
-<th>score</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Consistent minibuffer + CAP</td>
-<td>+1</td>
-</tr>
-<tr>
-<td>Vanilla GUI + TTY support</td>
-<td>+1</td>
-</tr>
-<tr>
-<td>No marginalia for sole completion</td>
-<td>-0.5</td>
-</tr>
-<tr>
-<td>Extra key press to cycle/complete</td>
-<td>-0.5</td>
-</tr>
-<tr>
-<td>Candidates not buffered until requested</td>
-<td>-2</td>
-</tr>
-<tr>
-<td>Eyes shift focus to another part of screen for CAP</td>
-<td>-0.5</td>
-</tr>
-<tr>
-<td>Total</td>
-<td>-1.5</td>
-</tr>
-</tbody>
+  <thead>
+    <tr>
+      <th>property</th>
+      <th>score</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Consistent minibuffer + CAP</td>
+      <td>+1</td>
+    </tr>
+    <tr>
+      <td>Vanilla GUI + TTY support</td>
+      <td>+1</td>
+    </tr>
+    <tr>
+      <td>No marginalia for sole completion</td>
+      <td>-0.5</td>
+    </tr>
+    <tr>
+      <td>Extra key press to cycle/complete</td>
+      <td>-0.5</td>
+    </tr>
+    <tr>
+      <td>Candidates not buffered until requested</td>
+      <td>-2</td>
+    </tr>
+    <tr>
+      <td>Eyes shift focus to another part of screen for CAP</td>
+      <td>-0.5</td>
+    </tr>
+    <tr>
+      <td>Total</td>
+      <td>-1.5</td>
+    </tr>
+  </tbody>
 </table>
-<p>In my typical day, I need to have a working TTY <em>and</em> GUI version of Emacs, so
-when something <em>just works</em> for both, that’s a +1 for me. Corfu does have
-<a href="https://codeberg.org/akib/emacs-corfu-terminal">corfu-terminal</a>, but it’s maintained separately. Also, having a consistent
-interface for both the minibuffer and completion-at-point shrinks the
-configuration domain, making it easier to maintain my config over time.</p>
-<p>Unfortunately, in the case that there’s only one completion candidate,
-marginalia isn’t triggered, so I don’t get to see a key binding or flavor text
-alongside the candidate I choose. Vanilla Emacs will remind me about what key
-combination I <em>could</em> have used, which I can check any time with <code>C-h e</code> (the
-∗Messages∗ buffer), and I can use <code>C-h f</code> directly from the minibuffer, so this
-only get -0.5. The fact that I need extra key strikes compared to something
-like Corfu’s Tab-N-Go is an annoyance, but just requires a bit of muscle memory
-change. The real impasse here, though, is that candidates aren’t shown until
-requested. I think Prot summed it up best here:</p>
+<p>
+  In my typical day, I need to have a working TTY <em>and</em> GUI version of
+  Emacs, so when something <em>just works</em> for both, that’s a +1 for me.
+  Corfu does have
+  <a href="https://codeberg.org/akib/emacs-corfu-terminal">corfu-terminal</a>,
+  but it’s maintained separately. Also, having a consistent interface for both
+  the minibuffer and completion-at-point shrinks the configuration domain,
+  making it easier to maintain my config over time.
+</p>
+<p>
+  Unfortunately, in the case that there’s only one completion candidate,
+  marginalia isn’t triggered, so I don’t get to see a key binding or flavor text
+  alongside the candidate I choose. Vanilla Emacs will remind me about what key
+  combination I <em>could</em> have used, which I can check any time with
+  <code>C-h e</code> (the ∗Messages∗ buffer), and I can use
+  <code>C-h f</code> directly from the minibuffer, so this only get -0.5. The
+  fact that I need extra key strikes compared to something like Corfu’s Tab-N-Go
+  is an annoyance, but just requires a bit of muscle memory change. The real
+  impasse here, though, is that candidates aren’t shown until requested. I think
+  Prot summed it up best here:
+</p>
 <blockquote>
-<p>Vertico has official extensions which can make it work exactly like MCT without
-any of MCT’s drawbacks. These extensions can also expand Vertico’s powers such
-as by providing granular control over the exact style of presentation for any
-given completion category (e.g. display Imenu in a separate buffer, show the
-switch-to-buffer list horizontally in the minibuffer, and present find-file in a
-vertical list—whatever the user wants).</p>
+  <p>
+    Vertico has official extensions which can make it work exactly like MCT
+    without any of MCT’s drawbacks. These extensions can also expand Vertico’s
+    powers such as by providing granular control over the exact style of
+    presentation for any given completion category (e.g. display Imenu in a
+    separate buffer, show the switch-to-buffer list horizontally in the
+    minibuffer, and present find-file in a vertical list—whatever the user
+    wants).
+  </p>
 </blockquote>
-<p>So will I stick with just ∗Completions∗? No, probably not. But these changes
-do put the default completion system squarely in the “usable” category, which
-I’m not sure I could have said before Emacs 29. I will give it an
-honest chance to see just how far I can push it, <a href="https://github.com/protesilaos/mct#12-alternatives">much in the spirit of MCT</a>,
-before switching Vertico and Corfu back on.</p>
+<p>
+  So will I stick with just ∗Completions∗? No, probably not. But these changes
+  do put the default completion system squarely in the “usable” category, which
+  I’m not sure I could have said before Emacs 29. I will give it an honest
+  chance to see just how far I can push it,
+  <a href="https://github.com/protesilaos/mct#12-alternatives"
+    >much in the spirit of MCT</a
+  >, before switching Vertico and Corfu back on.
+</p>

@@ -3,60 +3,105 @@ title: Getting Emacs 29 to Automatically Use Tree-sitter Modes
 date: 2023-01-22
 description: A tiny package that auto-falls-back between *-mode and *-ts-mode based on grammar availability.
 ---
-<p>Recently, <a href="https://www.reddit.com/user/casouri/">/u/casouri</a> posted a guide to getting started with the new built-in
-tree-sitter capabilities for Emacs 29. <a href="https://archive.casouri.cc/note/2023/tree-sitter-in-emacs-29/index.html">In that post</a>, they mention that there
-will be no automatic major-mode fallback for Emacs 29. That means I would have
-to use <code>M-x python-ts-mode</code> manually, or change the entry in <code>auto-mode-alist</code> to
-use <code>python-ts-mode</code>, in order to take advantage of the new tree-sitter
-functionality. Of course, that would still leave the problem of when the Python
-tree-sitter grammar isn’t installed, in which case <code>python-ts-mode</code> is going to
-fail.</p>
-<p>To solve this issue, I wrote a very small package that adjusts the new
-<code>major-mode-remap-alist</code> variable based on what grammars are ready on your
-machine. If a language’s tree-sitter grammar is installed, it will use that
-mode. If not, it will use the original major mode. Simple as that!</p>
-<h3 id="for-the-impatient-treesit-auto-dot-el">For the impatient: <code>treesit-auto.el</code></h3>
-<p>The package I wound up with is available on GitHub and MELPA as <a href="https://github.com/renzmann/treesit-auto">treesit-auto.el</a>.
-So long as MELPA is on your <code>package-archives</code> list like this:</p>
+<p>
+  Recently, <a href="https://www.reddit.com/user/casouri/">/u/casouri</a> posted
+  a guide to getting started with the new built-in tree-sitter capabilities for
+  Emacs 29.
+  <a
+    href="https://archive.casouri.cc/note/2023/tree-sitter-in-emacs-29/index.html"
+    >In that post</a
+  >, they mention that there will be no automatic major-mode fallback for Emacs
+  29. That means I would have to use <code>M-x python-ts-mode</code> manually,
+  or change the entry in <code>auto-mode-alist</code> to use
+  <code>python-ts-mode</code>, in order to take advantage of the new tree-sitter
+  functionality. Of course, that would still leave the problem of when the
+  Python tree-sitter grammar isn’t installed, in which case
+  <code>python-ts-mode</code> is going to fail.
+</p>
+<p>
+  To solve this issue, I wrote a very small package that adjusts the new
+  <code>major-mode-remap-alist</code> variable based on what grammars are ready
+  on your machine. If a language’s tree-sitter grammar is installed, it will use
+  that mode. If not, it will use the original major mode. Simple as that!
+</p>
+<h3 id="for-the-impatient-treesit-auto-dot-el">
+  For the impatient: <code>treesit-auto.el</code>
+</h3>
+<p>
+  The package I wound up with is available on GitHub and MELPA as
+  <a href="https://github.com/renzmann/treesit-auto">treesit-auto.el</a>. So
+  long as MELPA is on your <code>package-archives</code> list like this:
+</p>
 <pre><code class="language-lisp">(add-to-list &#39;package-archives &#39;(&quot;melpa&quot; . &quot;https://melpa.org/packages/&quot;) t)</code></pre>
-<p>Then you can use <code>M-x package-refresh-contents</code> followed by <code>M-x package-install RET treesit-auto</code>.</p>
-<p>If you also like having a local copy of the git repository itself, then
-<code>package-vc-install</code> is a better fit:</p>
+<p>
+  Then you can use <code>M-x package-refresh-contents</code> followed by
+  <code>M-x package-install RET treesit-auto</code>.
+</p>
+<p>
+  If you also like having a local copy of the git repository itself, then
+  <code>package-vc-install</code> is a better fit:
+</p>
 <pre><code class="language-text">M-x package-vc-install RET https://github.com/renzmann/treesit-auto.el</code></pre>
 <p>Then, in your configuration file:</p>
 <pre><code class="language-lisp">(use-package treesit-auto
   :demand t
   :config
   (global-treesit-auto-mode))</code></pre>
-<p>See the README on GitHub for all the goodies you can put in the <code>:config</code> block.</p>
-<h3 id="origins-of-treesit-auto-dot-el">Origins of <code>treesit-auto.el</code></h3>
-<p>The recommendation in Yuan’s article was to use <code>define-derived-mode</code> along with
-<code>treesit-ready-p</code>. In the NEWS (<code>C-h n</code>), however, I noticed a new variable
-<code>major-mode-remap-alist</code>, which at a glance appears suitable for a similar cause.
-For my Emacs configuration, I had two things I wanted to accomplish:</p>
+<p>
+  See the README on GitHub for all the goodies you can put in the
+  <code>:config</code> block.
+</p>
+<h3 id="origins-of-treesit-auto-dot-el">
+  Origins of <code>treesit-auto.el</code>
+</h3>
+<p>
+  The recommendation in Yuan’s article was to use
+  <code>define-derived-mode</code> along with <code>treesit-ready-p</code>. In
+  the NEWS (<code>C-h n</code>), however, I noticed a new variable
+  <code>major-mode-remap-alist</code>, which at a glance appears suitable for a
+  similar cause. For my Emacs configuration, I had two things I wanted to
+  accomplish:
+</p>
 <ol type="1">
-<li>Set all of the URLs for <code>treesit-language-source-alist</code> up front, so that I
-need only use <code>treesit-install-language-grammar RET python RET</code>, instead of
-writing out everything interactively</li>
-<li>Use the same list of available grammars to remap between tree-sitter modes
-and their default fallbacks</li>
+  <li>
+    Set all of the URLs for <code>treesit-language-source-alist</code> up front,
+    so that I need only use
+    <code>treesit-install-language-grammar RET python RET</code>, instead of
+    writing out everything interactively
+  </li>
+  <li>
+    Use the same list of available grammars to remap between tree-sitter modes
+    and their default fallbacks
+  </li>
 </ol>
-<p>Initially, I tried Yuan’s suggested approach with <code>define-derived-mode</code>, but I
-didn’t want to repeat code for every major mode I wanted fallback for. Trying
-to expand the major mode names correctly in a loop wound up unwieldy, because
-expanding the names properly for the <code>define-derived-mode</code> macro was too
-challenging for my current skill level with Emacs lisp, and wound up cluttering
-the global namespace more than I liked when auto-completing through <code>M-x</code>.
-Instead, I decided take a two step approach:</p>
+<p>
+  Initially, I tried Yuan’s suggested approach with
+  <code>define-derived-mode</code>, but I didn’t want to repeat code for every
+  major mode I wanted fallback for. Trying to expand the major mode names
+  correctly in a loop wound up unwieldy, because expanding the names properly
+  for the <code>define-derived-mode</code> macro was too challenging for my
+  current skill level with Emacs lisp, and wound up cluttering the global
+  namespace more than I liked when auto-completing through <code>M-x</code>.
+  Instead, I decided take a two step approach:
+</p>
 <ol type="1">
-<li>Set up <code>treesit-language-source-alist</code> with the grammars I’ll probably use</li>
-<li>Loop over the keys in this alist to define the association between a
-tree-sitter mode and its default fallback through <code>major-mode-remap-alist</code></li>
+  <li>
+    Set up <code>treesit-language-source-alist</code> with the grammars I’ll
+    probably use
+  </li>
+  <li>
+    Loop over the keys in this alist to define the association between a
+    tree-sitter mode and its default fallback through
+    <code>major-mode-remap-alist</code>
+  </li>
 </ol>
-<p>This makes the code we need to actually write a little simpler, since an
-association like <code>python-mode</code> to <code>python-ts-mode</code> can be automatic (since they
-share a name), and we can use a customizable alist for specifying the edge
-cases, such as <code>toml-ts-mode</code> falling back to <code>conf-toml-mode</code>.</p>
+<p>
+  This makes the code we need to actually write a little simpler, since an
+  association like <code>python-mode</code> to <code>python-ts-mode</code> can
+  be automatic (since they share a name), and we can use a customizable alist
+  for specifying the edge cases, such as <code>toml-ts-mode</code> falling back
+  to <code>conf-toml-mode</code>.
+</p>
 <p>To start with, I just had this:</p>
 <pre><code class="language-lisp">(setq treesit-language-source-alist
   &#39;((bash &quot;https://github.com/tree-sitter/tree-sitter-bash&quot;)
@@ -82,8 +127,11 @@ cases, such as <code>toml-ts-mode</code> falling back to <code>conf-toml-mode</c
     (tsx . (&quot;https://github.com/tree-sitter/tree-sitter-typescript&quot; &quot;master&quot; &quot;tsx/src&quot;))
     (typescript . (&quot;https://github.com/tree-sitter/tree-sitter-typescript&quot; &quot;master&quot; &quot;typescript/src&quot;))
     (yaml &quot;https://github.com/ikatyang/tree-sitter-yaml&quot;)))</code></pre>
-<p>At this point, I can just use <code>M-x treesit-install-language-grammar RET bash</code> to
-get the Bash grammar, and similarly for other languages.</p>
+<p>
+  At this point, I can just use
+  <code>M-x treesit-install-language-grammar RET bash</code> to get the Bash
+  grammar, and similarly for other languages.
+</p>
 <p>Then, I made an alist of the “weird” cases:</p>
 <pre><code class="language-lisp">(setq treesit-auto-fallback-alist
       &#39;((toml-ts-mode . conf-toml-mode)
@@ -93,14 +141,20 @@ get the Bash grammar, and similarly for other languages.</p>
         ;; See the note in their README: https://github.com/emacs-typescript/typescript.el#a-short-note-on-development-halt
         (typescript-ts-mode . nil)
         (tsx-ts-mode . nil)))</code></pre>
-<p>Setting the CDR to <code>nil</code> explicitly means I didn’t want any type of fallback to be
-attempted whatsoever for a given tree-sitter mode, even if something similarly
-named might be installed.</p>
-<p>Finally, I had a simple loop where I constructed the symbols for the mode and
-the tree-sitter mode via <code>intern</code> and <code>concat</code>, and check whether the tree-sitter
-version is available through <code>treesit-ready-p</code>. If it is, we remap the base mode
-to the tree-sitter one in <code>major-mode-remap-alist</code>. If it <em>isn’t</em> ready, then we do
-the opposite: remap the tree-sitter mode to the base version.</p>
+<p>
+  Setting the CDR to <code>nil</code> explicitly means I didn’t want any type of
+  fallback to be attempted whatsoever for a given tree-sitter mode, even if
+  something similarly named might be installed.
+</p>
+<p>
+  Finally, I had a simple loop where I constructed the symbols for the mode and
+  the tree-sitter mode via <code>intern</code> and <code>concat</code>, and
+  check whether the tree-sitter version is available through
+  <code>treesit-ready-p</code>. If it is, we remap the base mode to the
+  tree-sitter one in <code>major-mode-remap-alist</code>. If it
+  <em>isn’t</em> ready, then we do the opposite: remap the tree-sitter mode to
+  the base version.
+</p>
 <pre><code class="language-lisp">(dolist (language-source treesit-language-source-alist)
   (let* ((name (car language-source))
          (name-ts-mode (intern (concat (symbol-name name) &quot;-ts-mode&quot;)))
@@ -117,5 +171,11 @@ the opposite: remap the tree-sitter mode to the base version.</p>
              (add-to-list &#39;major-mode-remap-alist `(,name-mode . ,name-ts-mode))
            (when name-mode-bound-p
              (add-to-list &#39;major-mode-remap-alist `(,name-ts-mode . ,name-mode)))))))</code></pre>
-<p>Of course, the <a href="https://github.com/renzmann/treesit-auto/blob/d3fc07db6d646bee5631bdd28f6e82d2e0690d6d/treesit-auto.el#L96-L110">actual code</a> has a bit more wrapped around it, but the core idea
-is more or less the same.</p>
+<p>
+  Of course, the
+  <a
+    href="https://github.com/renzmann/treesit-auto/blob/d3fc07db6d646bee5631bdd28f6e82d2e0690d6d/treesit-auto.el#L96-L110"
+    >actual code</a
+  >
+  has a bit more wrapped around it, but the core idea is more or less the same.
+</p>

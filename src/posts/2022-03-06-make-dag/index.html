@@ -3,68 +3,119 @@ title: Building DAGs with Make, SQL, and python
 date: 2022-03-06
 description: Why plain GNU make still beats dbt/airflow/dagster for most day-to-day data DAGs.
 ---
-<p>In data science and engineering we tend to think in “DAGs” (directed acyclic
-graphs), which just means “to make this report, we first have to build this
-other thing, and to build <em>that</em> thing, we have to run these two queries, and so
-on. It decomposes the process of building data and artifacts like
-visualizations or data exports into smaller, individual chunks.</p>
-<p><img src="sample-dag.png" alt="A DAG" caption="An example DAG" width="200"/></p>
-<p>There are a lot of contenders in the market for selling solutions to this exact
-scenario, and each one solves it a little differently. Right now the hot thing
-is <a href="https://docs.getdbt.com/tutorial/setting-up">dbt</a>, but before that we had
-airflow, dagster, prefect, argo, and a host of others that all were built to
-operate DAGs at scale on different platforms. For large, mission-critical data
-pipelines these can provide a lot of value, but the truth is that as data
-scientists, most of us don’t need something this heavy. Most projects I see
-really just need some way of defining the links between “scrapbook output”.
-Maybe it’s a jupyter notebook, or a python script, or some queries that have to
-happen in a particular order based on an updated warehouse feed.</p>
-<p>Moreover, there are some reasons you might not want to try adding an entire
-workflow management ecosystem into your stack. Maybe:</p>
+<p>
+  In data science and engineering we tend to think in “DAGs” (directed acyclic
+  graphs), which just means “to make this report, we first have to build this
+  other thing, and to build <em>that</em> thing, we have to run these two
+  queries, and so on. It decomposes the process of building data and artifacts
+  like visualizations or data exports into smaller, individual chunks.
+</p>
+<p>
+  <img src="sample-dag.png" alt="A DAG" caption="An example DAG" width="200" />
+</p>
+<p>
+  There are a lot of contenders in the market for selling solutions to this
+  exact scenario, and each one solves it a little differently. Right now the hot
+  thing is <a href="https://docs.getdbt.com/tutorial/setting-up">dbt</a>, but
+  before that we had airflow, dagster, prefect, argo, and a host of others that
+  all were built to operate DAGs at scale on different platforms. For large,
+  mission-critical data pipelines these can provide a lot of value, but the
+  truth is that as data scientists, most of us don’t need something this heavy.
+  Most projects I see really just need some way of defining the links between
+  “scrapbook output”. Maybe it’s a jupyter notebook, or a python script, or some
+  queries that have to happen in a particular order based on an updated
+  warehouse feed.
+</p>
+<p>
+  Moreover, there are some reasons you might not want to try adding an entire
+  workflow management ecosystem into your stack. Maybe:
+</p>
 <ul>
-<li>You can’t get permission for a new install</li>
-<li>You don’t want to force another install on your end users or coworkers</li>
-<li>You don’t want more transitive dependencies entering the picture</li>
-<li>You don’t like someone trying to sell their cloud solution on top of the free
-tier offering to you</li>
+  <li>You can’t get permission for a new install</li>
+  <li>
+    You don’t want to force another install on your end users or coworkers
+  </li>
+  <li>You don’t want more transitive dependencies entering the picture</li>
+  <li>
+    You don’t like someone trying to sell their cloud solution on top of the
+    free tier offering to you
+  </li>
 </ul>
-<p><code>make</code> was born from a history of compiling C programs on Unix machines in the
-70’s, but it’s completely agnostic to language choice. It’s job is to translate
-<em>targets</em> and <em>prerequisites</em> into a DAG, and incrementally build only the parts
-it needs to when any of the source files change. Given that, why would I choose
-Make over one of the more modern alternatives?</p>
+<p>
+  <code>make</code> was born from a history of compiling C programs on Unix
+  machines in the 70’s, but it’s completely agnostic to language choice. It’s
+  job is to translate <em>targets</em> and <em>prerequisites</em> into a DAG,
+  and incrementally build only the parts it needs to when any of the source
+  files change. Given that, why would I choose Make over one of the more modern
+  alternatives?
+</p>
 <ul>
-<li>The commands are elegant - I enjoy the language of <code>make report.xlsx</code></li>
-<li>Parallel execution is built in and easy to turn on or off</li>
-<li>It’s installed on damn near everything,<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a> and has proven over the last 50
-years to be a shark, not a dinosaur</li>
-<li>It’s a “small” program. You can get through the <a href="https://www.gnu.org/software/make/manual/html_node/Reading.html#Reading">documentation</a>
-and start creating useful software in a couple hours.</li>
-<li>Like SQL, Make is declarative. We describe the result, and let the program
-optimize the route by which we get there.</li>
+  <li>
+    The commands are elegant - I enjoy the language of
+    <code>make report.xlsx</code>
+  </li>
+  <li>Parallel execution is built in and easy to turn on or off</li>
+  <li>
+    It’s installed on damn near everything,<a
+      href="#fn1"
+      class="footnote-ref"
+      id="fnref1"
+      role="doc-noteref"
+      ><sup>1</sup></a
+    >
+    and has proven over the last 50 years to be a shark, not a dinosaur
+  </li>
+  <li>
+    It’s a “small” program. You can get through the
+    <a
+      href="https://www.gnu.org/software/make/manual/html_node/Reading.html#Reading"
+      >documentation</a
+    >
+    and start creating useful software in a couple hours.
+  </li>
+  <li>
+    Like SQL, Make is declarative. We describe the result, and let the program
+    optimize the route by which we get there.
+  </li>
 </ul>
-<p><br>
-<br></p>
-<h2 id="creating-a-simple-project-with-make-and-python">Creating a simple project with <code>make</code> and python</h2>
-<p>I’m going to use a distilled example of a recent project I built using just a
-Makefile, some python, and a little SQL. By the end of this my hope is to show
-that simple tools can be efficient and reliable, and avoid the overhead of
-learning, installing, configuring, and inevitably debugging something more
-complex.<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a> Ultimately, I wanted to hand this project off in such a way that
-any of my teammates could maintain it if I was unavailable, so it had to be
-short, and stick to the tools I know they will always have installed.</p>
-<p>Our goal is to produce an Excel file for executive consumption that has a
-meaningful summary of some data pulled out of our analytics warehouse. Overall,
-it’ll look a little like this:</p>
+<p>
+  <br />
+  <br />
+</p>
+<h2 id="creating-a-simple-project-with-make-and-python">
+  Creating a simple project with <code>make</code> and python
+</h2>
+<p>
+  I’m going to use a distilled example of a recent project I built using just a
+  Makefile, some python, and a little SQL. By the end of this my hope is to show
+  that simple tools can be efficient and reliable, and avoid the overhead of
+  learning, installing, configuring, and inevitably debugging something more
+  complex.<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"
+    ><sup>2</sup></a
+  >
+  Ultimately, I wanted to hand this project off in such a way that any of my
+  teammates could maintain it if I was unavailable, so it had to be short, and
+  stick to the tools I know they will always have installed.
+</p>
+<p>
+  Our goal is to produce an Excel file for executive consumption that has a
+  meaningful summary of some data pulled out of our analytics warehouse.
+  Overall, it’ll look a little like this:
+</p>
 <pre><code>base queries --&gt; summary CSVs --&gt; (report.xlsx, diagrams for powerpoint)</code></pre>
-<p>The “base” queries might look a lot like temporary tables or common table
-expressions (CTEs, or those blocks you see in <code>WITH</code> statements), but we’ve
-broken them into several, separate queries. We’re plopping those summarized
-results into some flat files so that we can examine the results with our
-favorite tools like <code>pandas</code> or <code>awk</code>. We’ll then take all those flat results
-and produce deliverables from them, like charts and an excel file.</p>
-<p><code>myguy</code> is always there for me, so that’s the name of our project, and its
-basic structure looks like this:</p>
+<p>
+  The “base” queries might look a lot like temporary tables or common table
+  expressions (CTEs, or those blocks you see in <code>WITH</code> statements),
+  but we’ve broken them into several, separate queries. We’re plopping those
+  summarized results into some flat files so that we can examine the results
+  with our favorite tools like <code>pandas</code> or <code>awk</code>. We’ll
+  then take all those flat results and produce deliverables from them, like
+  charts and an excel file.
+</p>
+<p>
+  <code>myguy</code> is always there for me, so that’s the name of our project,
+  and its basic structure looks like this:
+</p>
 <pre><code>.
 ├── config.yml
 ├── Makefile
@@ -74,33 +125,50 @@ basic structure looks like this:</p>
     ├── this_quarter_sales.sql
     ├── model_forecast.sql
     └── customer_disposition.sql</code></pre>
-<p>We will execute each file in the <code>sql/</code> directory as a query we execute and then
-locally cache the results as CSVs. Later we’ll discuss how to handle the case
-where all our queries are handled remotely, and don’t create local files, such
-as running <code>CREATE TABLE AS</code> (ctas) queries prior to building the report, but
-for now we’ll keep it simple: query –&gt; csv on computer.</p>
-<p>Our goal is to make reproducing this report dead simple. I should only have to
-run this command to rebuild the report at any time:</p>
+<p>
+  We will execute each file in the <code>sql/</code> directory as a query we
+  execute and then locally cache the results as CSVs. Later we’ll discuss how to
+  handle the case where all our queries are handled remotely, and don’t create
+  local files, such as running <code>CREATE TABLE AS</code> (ctas) queries prior
+  to building the report, but for now we’ll keep it simple: query –&gt; csv on
+  computer.
+</p>
+<p>
+  Our goal is to make reproducing this report dead simple. I should only have to
+  run this command to rebuild the report at any time:
+</p>
 <pre><code class="language-sh">make report.xlsx</code></pre>
-<p>The cookbook that provides this <em>rule</em> is the <code>Makefile</code>.</p>
+<p>
+  The cookbook that provides this <em>rule</em> is the <code>Makefile</code>.
+</p>
 <pre><code class="language-make"># Makefile
 report.xlsx: myguy.py
     python -m myguy build-report</code></pre>
 <p>If this is your first time seeing make, there are a few terms to know:</p>
 <ul>
-<li><code>report.xlsx</code> - this is the <em>target</em> of the rule. It is the file produced by
-running <code>make report.xlsx</code></li>
-<li><code>myguy.py</code> - the <em>prerequisite</em> of <code>report.xlsx</code>. It has to exist in order to
-create the excel file. If this python file’s contents have changed recently,
-then that’s an indication that <code>report.xlsx</code> may also change.</li>
-<li><code>python -m myguy build-report</code> - this is the <em>recipe</em> that Make runs when you
-issue the command <code>make report.xlsx</code>. I am invoking python with the <code>-m</code>, or
-“run module as main” flag in case we ever refactor our single .py file into a
-module, like <code>myguy/__init__.py</code> with its complementary “dunder main”
-<code>myguy/__main__.py</code>.</li>
+  <li>
+    <code>report.xlsx</code> - this is the <em>target</em> of the rule. It is
+    the file produced by running <code>make report.xlsx</code>
+  </li>
+  <li>
+    <code>myguy.py</code> - the <em>prerequisite</em> of
+    <code>report.xlsx</code>. It has to exist in order to create the excel file.
+    If this python file’s contents have changed recently, then that’s an
+    indication that <code>report.xlsx</code> may also change.
+  </li>
+  <li>
+    <code>python -m myguy build-report</code> - this is the <em>recipe</em> that
+    Make runs when you issue the command <code>make report.xlsx</code>. I am
+    invoking python with the <code>-m</code>, or “run module as main” flag in
+    case we ever refactor our single .py file into a module, like
+    <code>myguy/__init__.py</code> with its complementary “dunder main”
+    <code>myguy/__main__.py</code>.
+  </li>
 </ul>
-<p>Our main entry point will be in the python module. This will handle the program
-runtime for executing queries or doing some pandas hackery.</p>
+<p>
+  Our main entry point will be in the python module. This will handle the
+  program runtime for executing queries or doing some pandas hackery.
+</p>
 <pre><code class="language-python"># myguy.py
 from pathlib import Path
 from time import sleep
@@ -136,40 +204,73 @@ def build_report(output: str):
 
 if __name__ == &quot;__main__&quot;:
     cli()</code></pre>
-<p>I think <code>click</code> is just great, and provides me with a lot of zen writing a
-<em>command line interface</em> (CLI) compared to <code>argparse</code>, although you could
-achieve everything I’m doing in this article equally well with argparse. In
-this script we create a cli <code>group</code> because we’ll eventually add more commands
-to it. The <code>build_report</code> function just replicates a process that takes a
-couple seconds before it outputs a file to <code>build/report.xlsx</code>.</p>
-<p>It takes very little code to get a pleasant command line experience with nested
-commands. Here’s a quick example of using it after adding another command called
-<code>query</code>, which we’ll get to in a moment:</p>
-<script id="asciicast-FtGlAzi0kBBbJm7JczQFflKWx" src="https://asciinema.org/a/FtGlAzi0kBBbJm7JczQFflKWx.js" async></script>
-<p>However, if we try building our report right now with <code>make report.xlsx</code>, we get
-a <code>FileNotFoundError: [Errno 2] No such file or directory: 'build/report.xlsx'</code>,
-and that’s because we need to make sure the <code>build</code> directory exists before
-running this command. We could handle that in the python with a few lines, but
-why not have our dependency management tool, <code>make</code>, do it for us?</p>
+<p>
+  I think <code>click</code> is just great, and provides me with a lot of zen
+  writing a <em>command line interface</em> (CLI) compared to
+  <code>argparse</code>, although you could achieve everything I’m doing in this
+  article equally well with argparse. In this script we create a cli
+  <code>group</code> because we’ll eventually add more commands to it. The
+  <code>build_report</code> function just replicates a process that takes a
+  couple seconds before it outputs a file to <code>build/report.xlsx</code>.
+</p>
+<p>
+  It takes very little code to get a pleasant command line experience with
+  nested commands. Here’s a quick example of using it after adding another
+  command called <code>query</code>, which we’ll get to in a moment:
+</p>
+<script
+  id="asciicast-FtGlAzi0kBBbJm7JczQFflKWx"
+  src="https://asciinema.org/a/FtGlAzi0kBBbJm7JczQFflKWx.js"
+  async
+></script>
+<p>
+  However, if we try building our report right now with
+  <code>make report.xlsx</code>, we get a
+  <code
+    >FileNotFoundError: [Errno 2] No such file or directory:
+    'build/report.xlsx'</code
+  >, and that’s because we need to make sure the <code>build</code> directory
+  exists before running this command. We could handle that in the python with a
+  few lines, but why not have our dependency management tool, <code>make</code>,
+  do it for us?
+</p>
 <pre><code class="language-make"># Makefile
 build:
     mkdir -p build
 
 report.xlsx: myguy.py | build
     python -m myguy build-report</code></pre>
-<p>Now our <code>make report.xlsx</code> works just fine, and we get a new directory <code>build</code>
-with our empty report in it. Normally we won’t need the <code>|</code>, but in this case it
-declares that the <code>build</code> rule should only be run once, even if we have other
-targets with <code>build</code> as a prerequisite.<a href="#fn3" class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a> If we rerun <code>make report.xlsx</code>, it
-doesn’t try to create that directory again, because it already exists.</p>
-<p>We do have one other problem though: if we re-run the python code, it will
-overwrite our report, even if nothing has changed. Instead, we should get a
-message saying <code>make: 'report.xlsx' is up to date.</code> This is happening because
-our target is <code>report.xlsx</code> instead of <code>build/report.xlsx</code>, so <code>make</code> looks in
-the current directory, sees that there’s no <code>report.xlsx</code> and therefore runs the
-recipe. I don’t want to write <code>make build/report.xlsx</code>, so what we’ll do is set
-up <code>make</code> to automatically look in our <code>build</code> and <code>sql</code> directories for files
-by setting the <a href="https://www.gnu.org/software/make/manual/html_node/General-Search.html" title="GNU Make: General Search"><code>VPATH</code> variable</a>:</p>
+<p>
+  Now our <code>make report.xlsx</code> works just fine, and we get a new
+  directory <code>build</code> with our empty report in it. Normally we won’t
+  need the <code>|</code>, but in this case it declares that the
+  <code>build</code> rule should only be run once, even if we have other targets
+  with <code>build</code> as a prerequisite.<a
+    href="#fn3"
+    class="footnote-ref"
+    id="fnref3"
+    role="doc-noteref"
+    ><sup>3</sup></a
+  >
+  If we rerun <code>make report.xlsx</code>, it doesn’t try to create that
+  directory again, because it already exists.
+</p>
+<p>
+  We do have one other problem though: if we re-run the python code, it will
+  overwrite our report, even if nothing has changed. Instead, we should get a
+  message saying <code>make: 'report.xlsx' is up to date.</code> This is
+  happening because our target is <code>report.xlsx</code> instead of
+  <code>build/report.xlsx</code>, so <code>make</code> looks in the current
+  directory, sees that there’s no <code>report.xlsx</code> and therefore runs
+  the recipe. I don’t want to write <code>make build/report.xlsx</code>, so what
+  we’ll do is set up <code>make</code> to automatically look in our
+  <code>build</code> and <code>sql</code> directories for files by setting the
+  <a
+    href="https://www.gnu.org/software/make/manual/html_node/General-Search.html"
+    title="GNU Make: General Search"
+    ><code>VPATH</code> variable</a
+  >:
+</p>
 <pre><code class="language-make"># Makefile
 BUILDDIR := build
 SQLDIR := sql
@@ -180,11 +281,16 @@ $(BUILDDIR):
 
 report.xlsx: myguy.py | $(BULDDIR)
     python -m myguy build-report</code></pre>
-<p>By doing this, we can just issue <code>make report.xlsx</code> instead of <code>make build/report.xlsx</code>. Setting <code>build</code> to a variable (referenced via
-<code>$(BUILDDIR)</code>) allows us to change up the build directory on a whim, should we
-need to.</p>
-<p>Next, we need to structure the rules that handle our queries, so let’s add a
-generic method for doing exactly that, given the path to a sql file.</p>
+<p>
+  By doing this, we can just issue <code>make report.xlsx</code> instead of
+  <code>make build/report.xlsx</code>. Setting <code>build</code> to a variable
+  (referenced via <code>$(BUILDDIR)</code>) allows us to change up the build
+  directory on a whim, should we need to.
+</p>
+<p>
+  Next, we need to structure the rules that handle our queries, so let’s add a
+  generic method for doing exactly that, given the path to a sql file.
+</p>
 <pre><code class="language-python"># myguy.py, cont.
 from datetime import datetime
 
@@ -220,21 +326,33 @@ def query(path: str):
     )
 
     print(f&quot;Finished query for {path} and wrote results to {destination}&quot;)</code></pre>
-<p>Again, imagine that the “sleep” we’re doing here is some body of actual code
-that fetches results from the database. We also don’t need <code>pandas</code> for
-something as banal as touching a csv with today’s date, but it’s there to
-replicate the very common use case of <code>pd.read_sql -&gt; to_csv</code>, which is nearly
-always the most efficient way to write a program that acquires a database
-connection, queries it, and writes the results to a csv for analytics-scale work
-in python like this.</p>
-<p>We’ve also refactored out the
-destination build directory into a variable, so we can have the make script grab
-that automatically using the <a href="https://www.gnu.org/software/make/manual/html_node/Shell-Function.html" title="GNU Make: Shell Function"><code>shell</code> built-in</a>:</p>
+<p>
+  Again, imagine that the “sleep” we’re doing here is some body of actual code
+  that fetches results from the database. We also don’t need
+  <code>pandas</code> for something as banal as touching a csv with today’s
+  date, but it’s there to replicate the very common use case of
+  <code>pd.read_sql -&gt; to_csv</code>, which is nearly always the most
+  efficient way to write a program that acquires a database connection, queries
+  it, and writes the results to a csv for analytics-scale work in python like
+  this.
+</p>
+<p>
+  We’ve also refactored out the destination build directory into a variable, so
+  we can have the make script grab that automatically using the
+  <a
+    href="https://www.gnu.org/software/make/manual/html_node/Shell-Function.html"
+    title="GNU Make: Shell Function"
+    ><code>shell</code> built-in</a
+  >:
+</p>
 <pre><code class="language-make"># Makefile
 BUILDDIR := $(shell python -c &#39;import myguy; print(myguy.BUILD_DIR)&#39;)</code></pre>
-<p>This technique is also useful for having builds that depend on things like
-<code>myguy.__version__</code>, if it exists. With the python in place, we need to set up
-our recipes that run the queries. A naive first approach might look like this:</p>
+<p>
+  This technique is also useful for having builds that depend on things like
+  <code>myguy.__version__</code>, if it exists. With the python in place, we
+  need to set up our recipes that run the queries. A naive first approach might
+  look like this:
+</p>
 <pre><code class="language-make"># Makefile, cont.
 # ... same as above ...
 
@@ -246,65 +364,126 @@ model_forecast.csv: model_forecast.sql
 
 customer_disposition.csv: customer_disposition.sql
     python -m myguy query sql/customer_disposition.sql</code></pre>
-<p>That’s a lot of repetition, so our programmer instincts should kick in here and
-tell us that “there must be a better way!”<a href="#fn4" class="footnote-ref" id="fnref4" role="doc-noteref"><sup>4</sup></a>. Make can handle this using
-<a href="https://www.gnu.org/software/make/manual/html_node/Pattern-Rules.html#Pattern-Rules" title="GNU Make: Implicit Rules"><em>implicit rules</em></a>. We specify a pattern like this, and Make
-will do all the hard work of connecting the files together:</p>
+<p>
+  That’s a lot of repetition, so our programmer instincts should kick in here
+  and tell us that “there must be a better way!”<a
+    href="#fn4"
+    class="footnote-ref"
+    id="fnref4"
+    role="doc-noteref"
+    ><sup>4</sup></a
+  >. Make can handle this using
+  <a
+    href="https://www.gnu.org/software/make/manual/html_node/Pattern-Rules.html#Pattern-Rules"
+    title="GNU Make: Implicit Rules"
+    ><em>implicit rules</em></a
+  >. We specify a pattern like this, and Make will do all the hard work of
+  connecting the files together:
+</p>
 <pre><code class="language-make">%.csv: %.sql myguy.py | $(BUILDDIR)
     @python -m myguy query $&lt;</code></pre>
 <p>This takes care of all three rules at once.</p>
 <ul>
-<li>The <code>%</code> is a wildcard - it matches anything and our rules here say that “if
-we’re going to build a <code>.csv</code>, then it has a similarly-named <code>.sql</code> file as a
-prerequisite.</li>
-<li>The <code>@</code> at the start of the recipe suppresses echoing of the command when Make
-runs it</li>
-<li>The <code>$&lt;</code> is an <a href="https://www.gnu.org/software/make/manual/html_node/Automatic-Variables.html" title="GNU Make: Automatic Variables">automatic variable</a> that stands for the
-first prerequisite. In our case, that will be the full path to the <code>.sql</code> file we
-are passing into the query function we previously wrote.</li>
-<li>Since <code>myguy.py</code> is the “source” of the running command, that’s also a
-prerequisite</li>
-<li>the <code>| $(BUILDDIR)</code>, as before, says that we have an order-only prerequisite
-on the <code>build</code> directory, and our earlier rule will ensure <code>mkdir build</code> is
-run before trying to put output there</li>
+  <li>
+    The <code>%</code> is a wildcard - it matches anything and our rules here
+    say that “if we’re going to build a <code>.csv</code>, then it has a
+    similarly-named <code>.sql</code> file as a prerequisite.
+  </li>
+  <li>
+    The <code>@</code> at the start of the recipe suppresses echoing of the
+    command when Make runs it
+  </li>
+  <li>
+    The <code>$&lt;</code> is an
+    <a
+      href="https://www.gnu.org/software/make/manual/html_node/Automatic-Variables.html"
+      title="GNU Make: Automatic Variables"
+      >automatic variable</a
+    >
+    that stands for the first prerequisite. In our case, that will be the full
+    path to the <code>.sql</code> file we are passing into the query function we
+    previously wrote.
+  </li>
+  <li>
+    Since <code>myguy.py</code> is the “source” of the running command, that’s
+    also a prerequisite
+  </li>
+  <li>
+    the <code>| $(BUILDDIR)</code>, as before, says that we have an order-only
+    prerequisite on the <code>build</code> directory, and our earlier rule will
+    ensure <code>mkdir build</code> is run before trying to put output there
+  </li>
 </ul>
-<p>Now we can issue the same command as our report to build the CSV from each of
-our queries:</p>
+<p>
+  Now we can issue the same command as our report to build the CSV from each of
+  our queries:
+</p>
 <pre><code>$ make this_quarter_sales.csv
 Finished query for sql/this_quarter_sales.sql and wrote results to build/this_quarter_sales.csv</code></pre>
-<p>We still need to tie all these together so that I don’t have to run each command
-manually - we want to just run <code>make report.xlsx</code> and have it do all the
-prerequisite queries for us. To accomplish this, we’re going to use two more
-built-ins, <a href="https://www.gnu.org/software/make/manual/html_node/Wildcard-Function.html" title="GNU Make: Wildcard Function"><code>wildcard</code></a> and <a href="https://www.gnu.org/software/make/manual/html_node/Text-Functions.html" title="GNU Make: Text Functions"><code>patsubst</code></a> to build the prerequisite and
-target lists, respectively.</p>
+<p>
+  We still need to tie all these together so that I don’t have to run each
+  command manually - we want to just run <code>make report.xlsx</code> and have
+  it do all the prerequisite queries for us. To accomplish this, we’re going to
+  use two more built-ins,
+  <a
+    href="https://www.gnu.org/software/make/manual/html_node/Wildcard-Function.html"
+    title="GNU Make: Wildcard Function"
+    ><code>wildcard</code></a
+  >
+  and
+  <a
+    href="https://www.gnu.org/software/make/manual/html_node/Text-Functions.html"
+    title="GNU Make: Text Functions"
+    ><code>patsubst</code></a
+  >
+  to build the prerequisite and target lists, respectively.
+</p>
 <pre><code class="language-make">SQLFILES := $(wildcard $(SQLDIR)/*.sql)
 TARGETS := $(patsubst $(SQLDIR)/%.sql,%.csv,$(SQLFILES))</code></pre>
-<p>If we were to echo the contents of these two variables, they would look like
-this:</p>
+<p>
+  If we were to echo the contents of these two variables, they would look like
+  this:
+</p>
 <pre><code># contents of SQLFILES
 sql/customer_disposition.sql sql/model_forecast.sql sql/this_quarter_sales.sql
 
 # contents of TARGETS
 customer_disposition.csv model_forecast.csv this_quarter_sales.csv</code></pre>
-<p>Since our <code>report.xlsx</code> depends on all three of the files in <code>TARGETS</code>, we bind
-them together in that rule:</p>
+<p>
+  Since our <code>report.xlsx</code> depends on all three of the files in
+  <code>TARGETS</code>, we bind them together in that rule:
+</p>
 <pre><code class="language-make"># Makefile
 
 # ... other content same as before ...
 
 report.xlsx: $(TARGETS)
     @python -m myguy build-report</code></pre>
-<p>Note here that we took out the <code>myguy.py</code> and <code>$(BUILDDIR)</code> prerequisites from
-this rule, since those are coming from our implicit rule on the <code>$(TARGETS)</code>.
-I’m also going to add a <code>clean</code> rule for trying things over from a fresh start:</p>
+<p>
+  Note here that we took out the <code>myguy.py</code> and
+  <code>$(BUILDDIR)</code> prerequisites from this rule, since those are coming
+  from our implicit rule on the <code>$(TARGETS)</code>. I’m also going to add a
+  <code>clean</code> rule for trying things over from a fresh start:
+</p>
 <pre><code class="language-make">clean:
     @[ ! -d $(BUILDDIR) ] || rm -r $(BUILDDIR)</code></pre>
 <p>Decomposing this into English:</p>
 <ul>
-<li><code>@</code> - don’t echo this command when it runs. Just run it.</li>
-<li><code>[ ! -d $(BUILDDIR) ] ||</code> - unless the BUILDDIR is missing, do the next
-command<a href="#fn5" class="footnote-ref" id="fnref5" role="doc-noteref"><sup>5</sup></a></li>
-<li><code>rm -r $(BUILDDIR)</code> - remove the contents of the BUILDDIR recursively</li>
+  <li><code>@</code> - don’t echo this command when it runs. Just run it.</li>
+  <li>
+    <code>[ ! -d $(BUILDDIR) ] ||</code> - unless the BUILDDIR is missing, do
+    the next command<a
+      href="#fn5"
+      class="footnote-ref"
+      id="fnref5"
+      role="doc-noteref"
+      ><sup>5</sup></a
+    >
+  </li>
+  <li>
+    <code>rm -r $(BUILDDIR)</code> - remove the contents of the BUILDDIR
+    recursively
+  </li>
 </ul>
 <p>Here’s where our <code>Makefile</code> is now:</p>
 <pre><code class="language-make"># Makefile
@@ -326,45 +505,68 @@ $(BUILDDIR):
 clean:
     @[ ! -d $(BUILDDIR) ] || rm -r $(BUILDDIR)</code></pre>
 <p>So now we can run <code>clean</code> and build the report:</p>
-<script id="asciicast-k6BCaD1qgCjvmq157MUkOrd4d" src="https://asciinema.org/a/k6BCaD1qgCjvmq157MUkOrd4d.js" async></script>
-<p>We can do better though. Make has parallelism built in, and most of our
-computers have no trouble running things concurrently. By providing
-the <code>-j</code> (jobs) flag, we can tell it to do several things at once as long as
-they don’t depend on one another. Since our intermediate queries to CSV fit the
-bill, they can all run at the same time:</p>
-<script id="asciicast-GznCov5dP98vCmtK223Xvoo6G" src="https://asciinema.org/a/GznCov5dP98vCmtK223Xvoo6G.js" async></script>
-<p>It’s also possible to enable parallelism by default with the <code>MAKEFLAGS</code> special
-variable.</p>
+<script
+  id="asciicast-k6BCaD1qgCjvmq157MUkOrd4d"
+  src="https://asciinema.org/a/k6BCaD1qgCjvmq157MUkOrd4d.js"
+  async
+></script>
+<p>
+  We can do better though. Make has parallelism built in, and most of our
+  computers have no trouble running things concurrently. By providing the
+  <code>-j</code> (jobs) flag, we can tell it to do several things at once as
+  long as they don’t depend on one another. Since our intermediate queries to
+  CSV fit the bill, they can all run at the same time:
+</p>
+<script
+  id="asciicast-GznCov5dP98vCmtK223Xvoo6G"
+  src="https://asciinema.org/a/GznCov5dP98vCmtK223Xvoo6G.js"
+  async
+></script>
+<p>
+  It’s also possible to enable parallelism by default with the
+  <code>MAKEFLAGS</code> special variable.
+</p>
 <pre><code class="language-make"># Makefile
 MAKEFLAGS := --jobs=$(shell nproc)</code></pre>
-<h2 id="adding-dependencies-between-intermediate-queries">Adding dependencies between intermediate queries</h2>
-<p>Let’s suppose we add two more queries, and they need to run before our existing
-queries, because we did a little refactoring of our SQL.</p>
+<h2 id="adding-dependencies-between-intermediate-queries">
+  Adding dependencies between intermediate queries
+</h2>
+<p>
+  Let’s suppose we add two more queries, and they need to run before our
+  existing queries, because we did a little refactoring of our SQL.
+</p>
 <figure>
-<img src="our-dag.png" title="Our DAG" alt="Our DAG" />
-<figcaption aria-hidden="true">Our DAG</figcaption>
+  <img src="our-dag.png" title="Our DAG" alt="Our DAG" />
+  <figcaption aria-hidden="true">Our DAG</figcaption>
 </figure>
-<p>Moreover, let’s assume that these two new tables are too large to cache locally
-in a flat file, and we have to issue a CREATE TABLE AS (ctas) statement to build
-them first. Not every database will permit you to run a CTAS on it, but imagine
-this is any process that writes data remotely instead of locally, such as spark
-writing a parquet file on S3, or submitting a POST request to an endpoint we
-don’t control.</p>
-<p>We represent this in Make by first writing out the targets and prerequisites
-with different suffixes. For the remote tables, I’ll use the ‘.ctas’ suffix. I
-also like to do this in a separate file, <code>dag.mk</code>, so I can hop to its buffer
-directly in my editor.</p>
+<p>
+  Moreover, let’s assume that these two new tables are too large to cache
+  locally in a flat file, and we have to issue a CREATE TABLE AS (ctas)
+  statement to build them first. Not every database will permit you to run a
+  CTAS on it, but imagine this is any process that writes data remotely instead
+  of locally, such as spark writing a parquet file on S3, or submitting a POST
+  request to an endpoint we don’t control.
+</p>
+<p>
+  We represent this in Make by first writing out the targets and prerequisites
+  with different suffixes. For the remote tables, I’ll use the ‘.ctas’ suffix. I
+  also like to do this in a separate file, <code>dag.mk</code>, so I can hop to
+  its buffer directly in my editor.
+</p>
 <pre><code class="language-make"># dag.mk
 sales_subset.ctas:
 customer_product.ctas:
 this_quarter_sales.csv model_forecast.csv: sales_subset.ctas
 customer_disposition.csv: customer_product.ctas</code></pre>
-<p>This arrangement forces the completion of <code>sales_subset.csv</code> and
-<code>customer_product.csv</code> prior to the original three queries. Then in the main
-<code>MakeFile</code>, we include these contents above the rules that handle <code>.csv</code> files,
-along with a new rule for handling the remote tables. The <code>%.ctas</code> rule will
-create an <em>empty target</em> as soon as the query is done, signaling to make when it
-last completed successfully:</p>
+<p>
+  This arrangement forces the completion of <code>sales_subset.csv</code> and
+  <code>customer_product.csv</code> prior to the original three queries. Then in
+  the main <code>MakeFile</code>, we include these contents above the rules that
+  handle <code>.csv</code> files, along with a new rule for handling the remote
+  tables. The <code>%.ctas</code> rule will create an <em>empty target</em> as
+  soon as the query is done, signaling to make when it last completed
+  successfully:
+</p>
 <pre><code># Makefile
 # ... other content the same ...
 include dag.mk
@@ -375,7 +577,10 @@ include dag.mk
 %.ctas: %.sql myguy.py | $(BUILDDIR)
     @python -m myguy ctas $&lt;
     @touch $(BUILDDIR)/$@</code></pre>
-<p>Note that this includes a new command for <code>myguy</code>, so let’s add that too:</p>
+<p>
+  Note that this includes a new command for <code>myguy</code>, so let’s add
+  that too:
+</p>
 <pre><code class="language-python"># myguy.py
 
 @cli.command()
@@ -389,10 +594,12 @@ def ctas(path: str):
     query = f&quot;CREATE TABLE {sql_file.stem} AS {sql_file.read_text()}&quot;
     print(query)
     sleep(3)  # imagine the query is running</code></pre>
-<p>And one last thing - our <code>$(TARGETS)</code> assignment has no way of
-telling which sql files it should or shouldn’t tie to CSVs. The easiest way to
-make this distinction is to actually just remove $(TARGETS) altogether, and have
-the <code>dag.mk</code> declare what <code>report.xlsx</code> depends on.</p>
+<p>
+  And one last thing - our <code>$(TARGETS)</code> assignment has no way of
+  telling which sql files it should or shouldn’t tie to CSVs. The easiest way to
+  make this distinction is to actually just remove $(TARGETS) altogether, and
+  have the <code>dag.mk</code> declare what <code>report.xlsx</code> depends on.
+</p>
 <pre><code class="language-make"># dag.mk
 # ...other contents the same...
 report.xlsx: this_quarter_sales.csv \
@@ -402,29 +609,47 @@ report.xlsx: this_quarter_sales.csv \
 
 report.xlsx:
     @python -m myguy build-report</code></pre>
-<p>Make will take care of combining these two rules into a single one. If all the
-targets are going to have the same suffix, such as <code>.ctas</code> or <code>.csv</code>, then the
-trick with <code>$(TARGETS)</code> is handy, but adds more complexity than it’s worth when
-mixing target file types.</p>
+<p>
+  Make will take care of combining these two rules into a single one. If all the
+  targets are going to have the same suffix, such as <code>.ctas</code> or
+  <code>.csv</code>, then the trick with <code>$(TARGETS)</code> is handy, but
+  adds more complexity than it’s worth when mixing target file types.
+</p>
 <p>Altogether, our dag now looks like this:</p>
-<script id="asciicast-kYzgUqw3qGKKKa9KbsUaz7hur" src="https://asciinema.org/a/kYzgUqw3qGKKKa9KbsUaz7hur.js" async></script>
-<p><br>
-<br></p>
+<script
+  id="asciicast-kYzgUqw3qGKKKa9KbsUaz7hur"
+  src="https://asciinema.org/a/kYzgUqw3qGKKKa9KbsUaz7hur.js"
+  async
+></script>
+<p>
+  <br />
+  <br />
+</p>
 <h2 id="templating-the-sql-with-jinja">Templating the SQL with Jinja</h2>
-<p>To round out some of our feature parity with dbt, we need to add templating
-to our SQL. It’s best if I don’t have to think about <em>how</em> the template is
-injected, I just want a standard place to put stuff and have the python module
-take care of it. Let’s introduce a configuration file:</p>
+<p>
+  To round out some of our feature parity with dbt, we need to add templating to
+  our SQL. It’s best if I don’t have to think about <em>how</em> the template is
+  injected, I just want a standard place to put stuff and have the python module
+  take care of it. Let’s introduce a configuration file:
+</p>
 <pre><code># config.yml
 sales_max_date: &quot;2022-03-01&quot;
 sales_min_date: &quot;2021-09-01&quot;</code></pre>
-<p>Presumably, a future analyst will have to come refresh this report for a
-different set of dates, and we want that configuration readily available to
-them. The templating engine we’ll use is the same on available on dbt,
-Jinja2. How we integrate it is by intercepting our python code that reads
-queries and applying the template from the config there. The jinja2 part is a
-little verbose, but flexible - anything that’s in our config will be available
-to the templated SQL:<a href="#fn6" class="footnote-ref" id="fnref6" role="doc-noteref"><sup>6</sup></a></p>
+<p>
+  Presumably, a future analyst will have to come refresh this report for a
+  different set of dates, and we want that configuration readily available to
+  them. The templating engine we’ll use is the same on available on dbt, Jinja2.
+  How we integrate it is by intercepting our python code that reads queries and
+  applying the template from the config there. The jinja2 part is a little
+  verbose, but flexible - anything that’s in our config will be available to the
+  templated SQL:<a
+    href="#fn6"
+    class="footnote-ref"
+    id="fnref6"
+    role="doc-noteref"
+    ><sup>6</sup></a
+  >
+</p>
 <pre><code class="language-python"># myguy.py
 import yaml
 import jinja2
@@ -457,7 +682,10 @@ def read_sql_text(path: str | Path) -&gt; str:
     sql = template.render(**config)
 
     return sql</code></pre>
-<p>And now we use this version of the sql in the <code>ctas</code> and <code>query</code> functions:</p>
+<p>
+  And now we use this version of the sql in the <code>ctas</code> and
+  <code>query</code> functions:
+</p>
 <pre><code class="language-python"># myguy.py
 # ...other content the same ...
 
@@ -476,8 +704,10 @@ def ctas(path: str):
 
     with get_connection() as conn:
         conn.execute(sql)</code></pre>
-<p>Within the SQL itself, we can now reference any of the keys in the <code>config.yml</code>
-directly:</p>
+<p>
+  Within the SQL itself, we can now reference any of the keys in the
+  <code>config.yml</code> directly:
+</p>
 <pre><code class="language-sql"># sales_subset.sql
 SELECT
     product_id
@@ -487,10 +717,13 @@ FROM
     fact_sales
 WHERE
     sales_date BETWEEN date(&#39;{{ sales_min_date }}&#39;) AND date(&#39;{{ sales_max_date }}&#39;)</code></pre>
-<p>I’m not here to cover everything you can do with jinja and yaml, since those are
-already pretty well covered. If you haven’t used it before, it’s worth looking
-into. It’s very powerful. The looping and conditional constructs can make what
-would normally be pretty tough with just raw SQL easy. When we issue a <code>make recent_sales.ctas</code> command, it looks like this:</p>
+<p>
+  I’m not here to cover everything you can do with jinja and yaml, since those
+  are already pretty well covered. If you haven’t used it before, it’s worth
+  looking into. It’s very powerful. The looping and conditional constructs can
+  make what would normally be pretty tough with just raw SQL easy. When we issue
+  a <code>make recent_sales.ctas</code> command, it looks like this:
+</p>
 <pre><code>$ make sales_subset.ctas
 mkdir -p build
 CREATE TABLE `sales_subset` AS SELECT
@@ -501,38 +734,113 @@ FROM
     fact_sales
 WHERE
     sales_date BETWEEN date(&#39;2021-09-01&#39;) AND date(&#39;2022-03-01&#39;)</code></pre>
-<p><br>
-<br></p>
+<p>
+  <br />
+  <br />
+</p>
 <h2 id="conclusion">Conclusion</h2>
-<p>There we have it, a simple little dag system for coordinating our project’s
-deliverables. For a working example of how to implement this project structure,
-check out the <a href="https://github.com/renzmann/chinook-make-dag">companion repo</a>, which builds a simple analysis
-on the <a href="https://github.com/lerocha/chinook-database" title="Chinook on github">chinook</a> dataset. This example also includes code that produces
-<code>.png</code> files for including into presentations and migrates the <code>mypy.py</code> into a
-fully-fledged, pip-installable module.</p>
-<section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes">
-<hr />
-<ol>
-<li id="fn1"><p>Except Windows. You’ll need to get it via mingw/cygwin or via the Windows
-subsystem for Linux.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
-<li id="fn2"><p>I fully acknowledge the irony here that <code>make</code> is, in fact, a very foreign
-tool to many data scientists.<a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
-<li id="fn3"><p>These are called <a href="https://www.gnu.org/software/make/manual/html_node/Prerequisite-Types" title="GNU Make: Prerequisite Types">order-only prerequisites</a><a href="#fnref3" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
-<li id="fn4"><p>I’m taking this phrase from Raymond Hettinger, who gives fantastic talks
-on writing idomatic python. I recommend his <a href="https://www.youtube.com/watch?v=wf-BqAjZb8M" title="Raymond Hettinger: Beyond PEP8">beyond PEP8</a> talk
-to all levels of developers.<a href="#fnref4" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
-<li id="fn5"><p>We do “unless” instead of the more familiar “if” statement, because
-if we did this: <code>[ -d $(BUILDDIR) ] &amp;&amp; rm -r $(BUILDDIR)</code> the test command <code>[</code>
-exits with status 1 when the build directory doesn’t exist, and hence the
-whole pipe exits status 1. Make treats that as a failed recipe, which isn’t
-what we intend. We want it to look like a success both in the
-case of removing the directory should it exist, and doing nothing if it
-doesn’t.<a href="#fnref5" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
-<li id="fn6"><p>You should be extremely careful about templating like this. This article
-also uses f-strings for injecting arbitrary code into SQL, which is
-unacceptable if any of your system is public facing. All of these examples
-are working under the assumption that we’re in a locked-down internal data
-warehouse, and someone who has access to the system in <em>any</em> way is allowed to
-issue an arbitrary query.<a href="#fnref6" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
-</ol>
+<p>
+  There we have it, a simple little dag system for coordinating our project’s
+  deliverables. For a working example of how to implement this project
+  structure, check out the
+  <a href="https://github.com/renzmann/chinook-make-dag">companion repo</a>,
+  which builds a simple analysis on the
+  <a
+    href="https://github.com/lerocha/chinook-database"
+    title="Chinook on github"
+    >chinook</a
+  >
+  dataset. This example also includes code that produces <code>.png</code> files
+  for including into presentations and migrates the <code>mypy.py</code> into a
+  fully-fledged, pip-installable module.
+</p>
+<section
+  id="footnotes"
+  class="footnotes footnotes-end-of-document"
+  role="doc-endnotes"
+>
+  <hr />
+  <ol>
+    <li id="fn1">
+      <p>
+        Except Windows. You’ll need to get it via mingw/cygwin or via the
+        Windows subsystem for Linux.<a
+          href="#fnref1"
+          class="footnote-back"
+          role="doc-backlink"
+          >↩︎</a
+        >
+      </p>
+    </li>
+    <li id="fn2">
+      <p>
+        I fully acknowledge the irony here that <code>make</code> is, in fact, a
+        very foreign tool to many data scientists.<a
+          href="#fnref2"
+          class="footnote-back"
+          role="doc-backlink"
+          >↩︎</a
+        >
+      </p>
+    </li>
+    <li id="fn3">
+      <p>
+        These are called
+        <a
+          href="https://www.gnu.org/software/make/manual/html_node/Prerequisite-Types"
+          title="GNU Make: Prerequisite Types"
+          >order-only prerequisites</a
+        ><a href="#fnref3" class="footnote-back" role="doc-backlink">↩︎</a>
+      </p>
+    </li>
+    <li id="fn4">
+      <p>
+        I’m taking this phrase from Raymond Hettinger, who gives fantastic talks
+        on writing idomatic python. I recommend his
+        <a
+          href="https://www.youtube.com/watch?v=wf-BqAjZb8M"
+          title="Raymond Hettinger: Beyond PEP8"
+          >beyond PEP8</a
+        >
+        talk to all levels of developers.<a
+          href="#fnref4"
+          class="footnote-back"
+          role="doc-backlink"
+          >↩︎</a
+        >
+      </p>
+    </li>
+    <li id="fn5">
+      <p>
+        We do “unless” instead of the more familiar “if” statement, because if
+        we did this:
+        <code>[ -d $(BUILDDIR) ] &amp;&amp; rm -r $(BUILDDIR)</code> the test
+        command <code>[</code> exits with status 1 when the build directory
+        doesn’t exist, and hence the whole pipe exits status 1. Make treats that
+        as a failed recipe, which isn’t what we intend. We want it to look like
+        a success both in the case of removing the directory should it exist,
+        and doing nothing if it doesn’t.<a
+          href="#fnref5"
+          class="footnote-back"
+          role="doc-backlink"
+          >↩︎</a
+        >
+      </p>
+    </li>
+    <li id="fn6">
+      <p>
+        You should be extremely careful about templating like this. This article
+        also uses f-strings for injecting arbitrary code into SQL, which is
+        unacceptable if any of your system is public facing. All of these
+        examples are working under the assumption that we’re in a locked-down
+        internal data warehouse, and someone who has access to the system in
+        <em>any</em> way is allowed to issue an arbitrary query.<a
+          href="#fnref6"
+          class="footnote-back"
+          role="doc-backlink"
+          >↩︎</a
+        >
+      </p>
+    </li>
+  </ol>
 </section>
