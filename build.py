@@ -166,6 +166,48 @@ def copy_post_assets(src_slug_dir: Path, dest_slug_dir: Path) -> None:
             shutil.copy2(entry, dest)
 
 
+REDIRECT_STUB = """\
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Redirecting...</title>
+    <link rel="canonical" href="{target}">
+    <meta http-equiv="refresh" content="0; url={target}">
+  </head>
+  <body>
+    <p>This page has moved to <a href="{target}">{target}</a>.</p>
+    <script>location.replace({target_js});</script>
+  </body>
+</html>
+"""
+
+
+def write_redirects(front_matter_vars: dict[str, str], new_slug: str) -> None:
+    """For each path in front-matter `redirect_from`, write a meta-refresh stub.
+
+    Comma-separated paths, e.g. `/posts/006_emacs_2_python/,/old/other/`.
+    Each path yields `build/<path>/index.html` pointing at the new post URL.
+    """
+    raw = front_matter_vars.get("redirect_from", "").strip()
+    if not raw:
+        return
+    target = f"/posts/{new_slug}/"
+    import json as _json
+    target_js = _json.dumps(target)
+    for path in (p.strip() for p in raw.split(",") if p.strip()):
+        rel = path.strip("/")
+        if not rel:
+            continue
+        dest_dir = BUILD / rel
+        dest_dir.mkdir(parents=True, exist_ok=True)
+        (dest_dir / "index.html").write_text(
+            REDIRECT_STUB.format(target=target, target_js=target_js),
+            encoding="utf-8",
+            newline="\n",
+        )
+
+
 def main() -> None:
     if BUILD.exists():
         shutil.rmtree(BUILD)
@@ -185,6 +227,7 @@ def main() -> None:
             render_post(post), encoding="utf-8", newline="\n"
         )
         copy_post_assets(post.parent, dest_dir)
+        write_redirects(parse_front_matter(post).vars, slug)
 
     static_src = SRC / "static"
     if static_src.is_dir():
