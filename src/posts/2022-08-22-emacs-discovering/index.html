@@ -1,0 +1,116 @@
+layout: default
+title: Discovering Useful Functions in Emacs
+date: 2022-08-22
+description: Reading the source to find useful commands hiding in the stock Emacs distribution.
+---
+<h2 id="setup">Setup</h2>
+<p>In one of my <a href="/posts/2022-08-07-emacs-packages/">first articles</a> about getting set up with <code class="verbatim">packages.el</code>, I
+left a somewhat expensive line hanging out in the open:</p>
+<pre><code class="language-lisp">;; init.el
+;; --snip--
+(package-refresh-contents)
+;; --snip--
+</code></pre>
+<p>This function will call out to any repositories we've configured to
+search packages from and update our local registry of what's
+available. That can take a few seconds, and is a bit annoying if
+you're constantly restarting Emacs to work on your <code class="verbatim">init.el</code> like I am
+right now. So it would be nice if this function instead looked
+something like this:</p>
+<pre><code class="language-lisp">(when &lt;packages-aren&#39;t-installed&gt;
+  (package-refresh-contents))
+</code></pre>
+<p>We just need a little code to check when <code class="verbatim">&lt;packages-aren't-installed&gt;</code>
+is true. We already discovered that the variable
+<code class="verbatim">package-selected-packages</code>, managed by <code class="verbatim">custom.el</code>, is a list of
+packages that we've chosen to install. We also know that the function
+<code class="verbatim">package-installed-p</code> checkes whether a particular package is
+installed or not. In my <code class="verbatim">init.el</code>, I have a block like so:</p>
+<pre><code class="language-lisp">;; init.el
+;; --snip--
+(custom-set-variables
+  &#39;(package-selected-packages &#39;(markdown-mode marginalia)))
+;; --snip--
+</code></pre>
+<p>So it seems like we have the ingredients we need, save for a way to
+apply the <code class="verbatim">package-installed-p</code> over the whole list
+<code class="verbatim">package-selected-packages</code>, and reduce down to a single true or false
+value, depending on if any of the expected packages aren't installed.
+Altogether, that means we have a very simple map-reduce problem, and I
+am <em>certain</em> there's a function in Emacs ready for us to use - we just
+need to find it.</p>
+<h2 id="vertical-fido-mode">Vertical FIDO Mode</h2>
+<p>This hidden superpower of Emacs 28.1+, along with the <code class="verbatim">marginalia</code>
+package described below, are the main tools in my arsenal for
+surfacing everything from Emacs' many hidden, labyrinthine depths.</p>
+<pre><code class="language-lisp">;; Set &#39;flex&#39; to be the main completion style.  This enables a &quot;fuzzy&quot;
+;; style of searching for things using the minibuffer
+(setq completion-styles &#39;(flex basic partial-completion emacs22))
+;; Turn on FIDO (Fake IDO) mode
+(fido-mode)
+;; Have TAB complete using the first option and continue, instead of
+;; popping up the *Completions* buffer
+(define-key icomplete-minibuffer-map [remap minibuffer-complete] &#39;icomplete-force-complete)
+;; Sometimes I have to customize this icomplete-compute-delay variable
+;; to 0.0 to avoid delay before the M-x minibuffer pops up
+(setq icomplete-compute-delay 0.0)
+;; Set the display to be a vertical list of items, instead of a horizontal one
+(fido-vertical-mode)
+</code></pre>
+<p>This sets up the minibuffer to show a live update of completion
+candidates as we type, in an easy-to-read vertical format</p>
+<p><img src="./vert-fido.png" /></p>
+<h2 id="marginalia">Marginalia</h2>
+<p>While not a part of base Emacs, this little package complements the
+vertical FIDO display by adding information, usually a docstring, next
+to each item. After performing a <code class="verbatim">M-x package-refresh-contents</code> and
+<code class="verbatim">M-x package-install RET marginalia</code>, we get this:</p>
+<p><img src="./fido-marginalia.png" /></p>
+<h2 id="search-process">Search Process</h2>
+<p>The modifications we just made also affect commands that search
+through variables and functions, like <code class="verbatim">C-h f</code> (describe-function).
+What we're after right now is some kind of function that acts on a
+list, and tells us if any of the items are <code class="verbatim">nil</code> after applying the
+<code class="verbatim">package-installed-p</code> function to them. My gut tells me that a word
+like "all", "every", or "none" might appear in such a function. After
+trying a few of these, examining the descriptions, and quickly trying
+again, a query for the word "any" brought up a promising function
+called <code class="verbatim">cl-notany</code></p>
+<p><img src="./any-query.png" /></p>
+<p>It's close; this one will yield <code class="verbatim">t</code> when <em>every</em> element in the
+sequence is <code class="verbatim">nil</code>, we want one for when <em>any</em> element is <code class="verbatim">nil</code>.
+Hitting <code class="verbatim">RET</code> on <code class="verbatim">cl-notany</code> above brings up its help text</p>
+<pre><code>cl-notany is an autoloaded compiled Lisp function in ‘cl-extra.el’.
+
+(cl-notany PREDICATE SEQ...)
+
+Return true if PREDICATE is false of every element of SEQ or SEQs.
+
+[back]
+</code></pre>
+<p>There's a link on `cl-extra` in this buffer, and my bet is that the
+function we're looking for would be defined near <code class="verbatim">cl-notany</code>.
+Following that link takes us to a block of code with the <code class="verbatim">defun</code> for
+<code class="verbatim">cl-notany</code>. Lo and behold, there's a <code class="verbatim">cl-notevery</code> right below it
+with a description that matches exactly what we need:</p>
+<pre><code class="language-lisp">;; cl-extra.el
+;;;###autoload
+(defun cl-notany (cl-pred cl-seq &amp;rest cl-rest)
+  &quot;Return true if PREDICATE is false of every element of SEQ or SEQs.
+\n(fn PREDICATE SEQ...)&quot;
+  (not (apply #&#39;cl-some cl-pred cl-seq cl-rest)))
+
+;;;###autoload
+(defun cl-notevery (cl-pred cl-seq &amp;rest cl-rest)
+  &quot;Return true if PREDICATE is false of some element of SEQ or SEQs.
+\n(fn PREDICATE SEQ...)&quot;
+  (not (apply #&#39;cl-every cl-pred cl-seq cl-rest)))
+</code></pre>
+<h2 id="writing-the-when-block">Writing the <code class="verbatim">when</code> block</h2>
+<p>With <code class="verbatim">cl-notevery</code> in hand, the last step is to apply it in our <code class="verbatim">init.el</code>
+for managing package refresh and installation.</p>
+<pre><code class="language-lisp">(when (cl-notevery &#39;package-installed-p package-selected-packages)
+  (add-to-list &#39;package-archives &#39;(&quot;melpa&quot; . &quot;https://melpa.org/packages/&quot;) t)
+  (package-refresh-contents)
+  (package-install-selected-packages))
+</code></pre>
