@@ -26,19 +26,19 @@ after pressing a ‘TAB’ if completion is not unique.</p>
 <p>The (old) default value <code>t</code> always hides the completion buffer after some
 completion is made.</p>
 <pre><code class="language-lisp">(setq completion-auto-help t)</code></pre>
-<p><img src="/ox-hugo/auto-help-t.gif" alt=""></p>
+<p><img src="/static/img/auto-help-t.gif" alt=""></p>
 <p>The value ‘always’ updates or shows the ∗Completions∗ buffer after any attempt
 to complete, including the first time we press TAB. Comparing to the one above,
 notice that the buffer pops up as soon as I complete <code>~/.emacs.d/</code>. Before, I had
 to start another completion by typing <code>tra&lt;TAB&gt;</code>. Also, after completing
 <code>transient/</code>, the buffer once again updates with the contents of that directory.</p>
 <pre><code class="language-lisp">(setq completion-auto-help &#39;always)</code></pre>
-<p><img src="/ox-hugo/auto-help-always.gif" alt=""></p>
+<p><img src="/static/img/auto-help-always.gif" alt=""></p>
 <p>The value ‘visible’ is like ‘always’, but only updates the completions if they
 are already visible. The main difference in this one is that we don’t get the
 ∗Completions∗ buffer on the first TAB for <code>~/.emacs.d/</code>:</p>
 <pre><code class="language-lisp">(setq completion-auto-help &#39;visible)</code></pre>
-<p><img src="/ox-hugo/auto-help-visible.gif" alt=""></p>
+<p><img src="/static/img/auto-help-visible.gif" alt=""></p>
 <p>If your goal is reduction of visual noise because you already know how a chain
 of <code>TAB</code>‘s are going to complete, then ’visible’ seems like a good option.</p>
 <h3 id="the-and-lowast-completions-and-lowast-buffer-can-now-be-automatically-selected-dot">The ∗Completions∗ buffer can now be automatically selected.</h3>
@@ -46,17 +46,17 @@ of <code>TAB</code>‘s are going to complete, then ’visible’ seems like a g
 for completion-at-point. Here’s what the current behavior looks like with
 completion in a buffer:</p>
 <pre><code class="language-lisp">(setq completion-auto-select nil)</code></pre>
-<p><img src="/ox-hugo/auto-select-nil.gif" alt=""></p>
+<p><img src="/static/img/auto-select-nil.gif" alt=""></p>
 <p>In the minibuffer, we’ve always had <code>M-v</code> to switch to ∗Completions∗, but there
 was no analogue for completion-in-region. Now, in Emacs 29, we can set
 <code>completion-auto-select</code> to one of <code>t</code> or <code>second-tab</code> to enable automatic selection
 of the “∗Completions∗” buffer</p>
 <pre><code class="language-lisp">(setq completion-auto-select t)</code></pre>
-<p><img src="/ox-hugo/auto-select-t.gif" alt=""></p>
+<p><img src="/static/img/auto-select-t.gif" alt=""></p>
 <p>If the value is ‘second-tab’, then the first <code>TAB</code> will display “∗Completions∗”,
 and the second one will switch to the “∗Completions∗” buffer.</p>
 <pre><code class="language-lisp">(setq completion-auto-select &#39;second-tab)</code></pre>
-<p><img src="/ox-hugo/auto-select-second-tab.gif" alt=""></p>
+<p><img src="/static/img/auto-select-second-tab.gif" alt=""></p>
 <p>With ‘second-tab’, I can use the “∗Completions∗” buffer a lot like how I would
 use <code>corfu</code>: type a bit, request completion with TAB, examine the list, and keep
 typing to narrow the candidates, and request completion again. If I see the
@@ -72,7 +72,7 @@ completes on the history items instead of the default completion table.</li>
 completes on the default items instead of the completion table.</li>
 </ul>
 <p>The first two also work for <code>completion-at-point</code> (in-buffer completion).</p>
-<p><img src="/ox-hugo/completion-nav-commands.gif" alt=""></p>
+<p><img src="/static/img/completion-nav-commands.gif" alt=""></p>
 <p>Some may find the arrow keys an unfortunate choice, though, and bind something
 more convenient:</p>
 <pre><code class="language-lisp">;; Up/down when completing in the minibuffer
